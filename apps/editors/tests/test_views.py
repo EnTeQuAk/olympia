@@ -71,11 +71,11 @@ class TestEventLog(EditorTest):
 
     def test_log(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_start_filter(self):
         r = self.client.get(self.url, dict(start='2011-01-01'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_enddate_filter(self):
         """
@@ -87,7 +87,7 @@ class TestEventLog(EditorTest):
                 created=datetime(2011, 1, 1))
 
         r = self.client.get(self.url, dict(end='2011-01-01'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('tbody td').eq(0).text(), 'Jan 1, 2011 12:00:00 AM')
 
     def test_action_filter(self):
@@ -117,7 +117,7 @@ class TestEventLogDetail(TestEventLog):
         amo.log(amo.LOG.APPROVE_REVIEW, review, review.addon)
         id = ActivityLog.objects.editor_events()[0].id
         r = self.client.get(reverse('editors.eventlog.detail', args=[id]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
 
 class TestBetaSignedLog(EditorTest):
@@ -233,7 +233,7 @@ class TestReviewLog(EditorTest):
                 user=self.get_user(), details={'comments': 'xss!'})
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         inner_html = pq(r.content)('#log-listing tbody td').eq(1).html()
 
         assert '&lt;script&gt;' in inner_html
@@ -248,7 +248,7 @@ class TestReviewLog(EditorTest):
         # Make sure we show the stuff we just made.
         date = time.strftime('%Y-%m-%d')
         r = self.client.get(self.url, dict(end=date))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)('#log-listing tbody')
         eq_(doc('tr:not(.hide)').length, 2)
         eq_(doc('tr.hide').eq(0).text(), 'youwin')
@@ -261,28 +261,28 @@ class TestReviewLog(EditorTest):
         self.make_approvals()
         r = self.client.get(self.url, dict(end='wrong!'))
         # If this is broken, we'll get a traceback.
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#log-listing tr:not(.hide)').length, 3)
 
     def test_search_comment_exists(self):
         """Search by comment."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='hello'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#log-listing tbody tr.hide').eq(0).text(), 'hello')
 
     def test_search_comment_case_exists(self):
         """Search by comment, with case."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='HeLlO'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#log-listing tbody tr.hide').eq(0).text(), 'hello')
 
     def test_search_comment_doesnt_exist(self):
         """Search by comment, with no results."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='bye'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.no-results').length, 1)
 
     def test_search_author_exists(self):
@@ -292,7 +292,7 @@ class TestReviewLog(EditorTest):
                               comment='hi')
 
         r = self.client.get(self.url, dict(search='editor'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         rows = pq(r.content)('#log-listing tbody tr')
 
         eq_(rows.filter(':not(.hide)').length, 1)
@@ -305,7 +305,7 @@ class TestReviewLog(EditorTest):
                               comment='hi')
 
         r = self.client.get(self.url, dict(search='EdItOr'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         rows = pq(r.content)('#log-listing tbody tr')
 
         eq_(rows.filter(':not(.hide)').length, 1)
@@ -317,7 +317,7 @@ class TestReviewLog(EditorTest):
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, username='editor')
 
         r = self.client.get(self.url, dict(search='wrong'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.no-results').length, 1)
 
     def test_search_addon_exists(self):
@@ -325,7 +325,7 @@ class TestReviewLog(EditorTest):
         self.make_approvals()
         addon = Addon.objects.all()[0]
         r = self.client.get(self.url, dict(search=addon.name))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         tr = pq(r.content)('#log-listing tr[data-addonid="%s"]' % addon.id)
         eq_(tr.length, 1)
         eq_(tr.siblings('.comments').text(), 'youwin')
@@ -335,7 +335,7 @@ class TestReviewLog(EditorTest):
         self.make_approvals()
         addon = Addon.objects.all()[0]
         r = self.client.get(self.url, dict(search=str(addon.name).swapcase()))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         tr = pq(r.content)('#log-listing tr[data-addonid="%s"]' % addon.id)
         eq_(tr.length, 1)
         eq_(tr.siblings('.comments').text(), 'youwin')
@@ -344,7 +344,7 @@ class TestReviewLog(EditorTest):
         """Search by add-on name, with no results."""
         self.make_approvals()
         r = self.client.get(self.url, dict(search='xxx'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.no-results').length, 1)
 
     def test_breadcrumbs(self):
@@ -684,14 +684,14 @@ class QueueTest(EditorTest):
     def _test_queue_count(self, eq, name, count):
         self.generate_files()
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         a = pq(r.content)('.tabnav li a:eq(%s)' % eq)
         eq_(a.text(), '%s (%s)' % (name, count))
         eq_(a.attr('href'), self.url)
 
     def _test_results(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         expected = []
         for idx, addon in enumerate(self.expected_addons):
             name = '%s %s' % (unicode(addon.name),
@@ -710,35 +710,35 @@ class TestQueueBasics(QueueTest):
     def test_only_viewable_by_editor(self):
         # Addon reviewer has access.
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Regular user doesn't have access.
         self.client.logout()
         assert self.client.login(username='regular@mozilla.com',
                                  password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         # Persona reviewer doesn't have access either.
         self.client.logout()
         assert self.client.login(username='persona_reviewer@mozilla.com',
                                  password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_invalid_page(self):
         r = self.client.get(self.url, {'page': 999})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['page'].number, 1)
 
     def test_invalid_per_page(self):
         r = self.client.get(self.url, {'per_page': '<garbage>'})
         # No exceptions:
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_grid_headers(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         expected = [
             'Addon',
@@ -758,7 +758,7 @@ class TestQueueBasics(QueueTest):
                       addon_type_ids=['2'],
                       sort=['addon_type_id'])
         r = self.client.get(self.url, params)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         tr = pq(r.content)('#addon-queue tr')
         sorts = {
             # Column index => sort.
@@ -776,12 +776,12 @@ class TestQueueBasics(QueueTest):
 
     def test_no_results(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.queue-outer .no-results').length, 1)
 
     def test_no_paginator_when_on_single_page(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.pagination').length, 0)
 
     def test_paginator_when_many_pages(self):
@@ -790,7 +790,7 @@ class TestQueueBasics(QueueTest):
         self.generate_files()
 
         r = self.client.get(self.url, {'per_page': 1})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('.data-grid-top .num-results').text(),
             u'Results 1 \u2013 1 of 2')
@@ -801,7 +801,7 @@ class TestQueueBasics(QueueTest):
         self.generate_files()
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#navbar li.top ul').eq(0).text(),
             'Fast Track (0) Full Reviews (2) Pending Updates (2) '
@@ -815,7 +815,7 @@ class TestQueueBasics(QueueTest):
         )
         for key, text in sorts:
             r = self.client.get(self.url, {'sort': key})
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             eq_(pq(r.content)('th.ordered a').text(), text)
 
     def test_full_reviews_bar(self):
@@ -931,7 +931,7 @@ class TestQueueBasics(QueueTest):
         self.client.logout()
         self.login(users[1])
         res = self.client.get(reverse('editors.home'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
 
 class TestUnlistedQueueBasics(TestQueueBasics):
@@ -946,34 +946,34 @@ class TestUnlistedQueueBasics(TestQueueBasics):
     def test_only_viewable_by_senior_editor(self):
         # Addon reviewer has access.
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Regular user doesn't have access.
         self.client.logout()
         assert self.client.login(username='regular@mozilla.com',
                                  password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         # Persona reviewer doesn't have access either.
         self.client.logout()
         assert self.client.login(username='persona_reviewer@mozilla.com',
                                  password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         # Standard reviewer doesn't have access either.
         self.client.logout()
         assert self.client.login(username='editor@mozilla.com',
                                  password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_navbar_queue_counts(self):
         self.generate_files()
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#navbar li.top ul').eq(1).text(),
             'Full Reviews (2) Pending Updates (2) Preliminary Reviews (2)')
@@ -991,14 +991,14 @@ class TestUnlistedQueueBasics(TestQueueBasics):
 
         # Listed addon is displayed in the listed queue.
         r = self.client.get(reverse('editors.queue_nominated'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert doc('#addon-queue #addon-{0}'.format(listed.pk))
         assert not doc('#addon-queue #addon-{0}'.format(unlisted.pk))
 
         # Unlisted addon is displayed in the unlisted queue.
         r = self.client.get(reverse('editors.unlisted_queue_nominated'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert not doc('#addon-queue #addon-{0}'.format(listed.pk))
         assert doc('#addon-queue #addon-{0}'.format(unlisted.pk))
@@ -1066,7 +1066,7 @@ class TestNominatedQueue(QueueTest):
         file_.save()
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         expected = [
             ('Nominated One 0.1', reverse('editors.review',
                                           args=[version1.addon.slug])),
@@ -1127,7 +1127,7 @@ class TestModeratedQueue(QueueTest):
 
     def test_results(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)('#reviews-flagged')
 
         rows = doc('.review-flagged:not(.review-saved)')
@@ -1255,7 +1255,7 @@ class TestModeratedQueue(QueueTest):
         Review.objects.all().delete()
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)('#reviews-flagged')
 
         eq_(doc('.no-results').length, 1)
@@ -1364,7 +1364,7 @@ class TestPerformance(QueueTest):
 
     def _test_chart(self):
         r = self.client.get(self.get_url())
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         # The ' - 1' is to account for REQUEST_VERSION not being displayed.
@@ -1394,7 +1394,7 @@ class TestPerformance(QueueTest):
         self.create_logs()
         self.setUpEditor()
         r = self.client.get(self.get_url())
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         data = json.loads(doc('#monthly').attr('data-chart'))
         label = datetime.now().strftime('%Y-%m')
@@ -1444,7 +1444,7 @@ class SearchTest(EditorTest):
 
     def search(self, *args, **kw):
         r = self.client.get(self.url, kw)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['search_form'].errors.as_text(), '')
         return r
 
@@ -1576,7 +1576,7 @@ class TestQueueSearch(SearchTest):
         a.save()
         r = self.client.get('/ja/' + self.url, {'text_query': uni},
                             follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.named_addons(r), [name])
 
     def test_search_by_addon_author(self):
@@ -1604,7 +1604,7 @@ class TestQueueSearch(SearchTest):
         a.save()
         r = self.client.get('/ja/' + self.url, {'text_query': uni},
                             follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.named_addons(r), [name])
 
     def test_search_by_addon_type(self):
@@ -1630,14 +1630,14 @@ class TestQueueSearch(SearchTest):
         self.generate_files(['Bieber For Mobile', 'Linux Widget',
                              'Mac Widget'])
         r = self.search(platform_ids=[amo.PLATFORM_MAC.id])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.named_addons(r), ['Mac Widget'])
 
     def test_search_by_platform_linux(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget',
                              'Mac Widget'])
         r = self.search(platform_ids=[amo.PLATFORM_LINUX.id])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.named_addons(r), ['Linux Widget'])
 
     def test_search_by_platform_mac_linux(self):
@@ -1645,7 +1645,7 @@ class TestQueueSearch(SearchTest):
                              'Mac Widget'])
         r = self.search(platform_ids=[amo.PLATFORM_MAC.id,
                                       amo.PLATFORM_LINUX.id])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(sorted(self.named_addons(r)), ['Linux Widget', 'Mac Widget'])
 
     def test_preserve_multi_platform_files(self):
@@ -1654,7 +1654,7 @@ class TestQueueSearch(SearchTest):
                               amo.STATUS_NOMINATED, amo.STATUS_UNREVIEWED,
                               platform=plat)
         r = self.search(platform_ids=[amo.PLATFORM_WIN.id])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # Should not say Windows only.
         td = pq(r.content)('#addon-queue tbody td').eq(5)
         eq_(td.find('div').attr('title'), 'Firefox')
@@ -1672,7 +1672,7 @@ class TestQueueSearch(SearchTest):
     def test_search_by_app(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget'])
         r = self.search(application_id=[amo.MOBILE.id])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.named_addons(r), ['Bieber For Mobile'])
 
     def test_preserve_multi_apps(self):
@@ -1691,7 +1691,7 @@ class TestQueueSearch(SearchTest):
 
     def test_search_by_version_requires_app(self):
         r = self.client.get(self.url, {'max_version': '3.6'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # This is not the most descriptive message but it's
         # the easiest to show.  This missing app scenario is unlikely.
         eq_(r.context['search_form'].errors.as_text(),
@@ -1759,7 +1759,7 @@ class TestQueueSearch(SearchTest):
         self.generate_file('Bieber For Mobile')
         r = self.client.post(reverse('editors.application_versions_json'),
                              {'application_id': amo.MOBILE.id})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         eq_(data['choices'],
             [[av, av] for av in
@@ -1768,12 +1768,12 @@ class TestQueueSearch(SearchTest):
 
     def test_clear_search_visible(self):
         r = self.search(text_query='admin', searching=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.clear-queue-search').text(), 'clear search')
 
     def test_clear_search_hidden(self):
         r = self.search(text_query='admin')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.clear-queue-search').text(), None)
 
     def test_clear_search_uses_correct_queue(self):
@@ -1973,7 +1973,7 @@ class TestReview(ReviewBase):
 
     def test_files_shown(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         items = pq(r.content)('#review-files .files .file-info')
         eq_(items.length, 1)
@@ -2335,26 +2335,26 @@ class TestReview(ReviewBase):
     def test_eula_displayed(self):
         eq_(bool(self.addon.has_eula), False)
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertNotContains(r, 'View End-User License Agreement')
 
         self.addon.eula = 'Test!'
         self.addon.save()
         eq_(bool(self.addon.has_eula), True)
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertContains(r, 'View End-User License Agreement')
 
     def test_privacy_policy_displayed(self):
         eq_(self.addon.privacy_policy, None)
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertNotContains(r, 'View Privacy Policy')
 
         self.addon.privacy_policy = 'Test!'
         self.addon.save()
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertContains(r, 'View Privacy Policy')
 
     def test_breadcrumbs_all(self):
@@ -2420,7 +2420,7 @@ class TestReview(ReviewBase):
 
     def test_no_compare_link(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         info = pq(r.content)('#review-files .file-info')
         eq_(info.length, 1)
         eq_(info.find('a.compare').length, 0)
@@ -2722,7 +2722,7 @@ class TestEditorMOTD(EditorTest):
         self.login_as_editor()
         r = self.client.post(reverse('editors.save_motd'),
                              {'motd': "I'm a sneaky editor"})
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_editor_can_view_not_edit(self):
         motd = 'Some announcement'
@@ -2740,7 +2740,7 @@ class TestEditorMOTD(EditorTest):
         self.login_as_editor()
         r = self.client.post(reverse('editors.save_motd'),
                              {'motd': 'I am the keymaster.'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(get_config('editors_review_motd'), 'I am the keymaster.')
 
     def test_form_errors(self):
@@ -2822,7 +2822,7 @@ class TestAbuseReports(amo.tests.TestCase):
         assert self.client.login(username='admin@mozilla.com',
                                  password='password')
         r = self.client.get(reverse('editors.abuse_reports', args=['a3615']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # We see the two abuse reports created in setUp.
         eq_(len(r.context['reports']), 2)
 

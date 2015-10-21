@@ -160,7 +160,7 @@ class TestActivity(HubTest):
         assert self.client.login(username='admin@mozilla.com',
                                  password='password')
         r = self.get_response(addon=self.addon.id)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_filter_addon_otherguy(self):
         """Make sure nobody else can see my precious add-on feed."""

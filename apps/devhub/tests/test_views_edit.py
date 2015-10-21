@@ -97,7 +97,7 @@ class TestEditBasic(TestEdit):
         data = self.get_dict()
 
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         addon = self.get_addon()
 
         eq_(unicode(addon.name), data['name'])
@@ -114,7 +114,7 @@ class TestEditBasic(TestEdit):
         data = self.get_dict()
 
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         addon = self.get_addon()
 
         eq_(addon.description, old_desc)
@@ -137,7 +137,7 @@ class TestEditBasic(TestEdit):
         data = self.get_dict()
         data['summary'] = '<b>oh my</b>'
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Fetch the page so the LinkifiedTranslation gets in cache.
         r = self.client.get(reverse('devhub.addons.edit', args=[data['slug']]))
@@ -162,7 +162,7 @@ class TestEditBasic(TestEdit):
             user=devuser, role=amo.AUTHOR_ROLE_DEV)
         r = self.client.post(self.basic_edit_url, data)
 
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         addon = self.get_addon()
 
         eq_(unicode(addon.name), data['name'])
@@ -175,20 +175,20 @@ class TestEditBasic(TestEdit):
     def test_edit_name_required(self):
         data = self.get_dict(name='', slug='test_addon')
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'form', 'name', 'This field is required.')
 
     def test_edit_name_spaces(self):
         data = self.get_dict(name='    ', slug='test_addon')
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'form', 'name', 'This field is required.')
 
     def test_edit_slugs_unique(self):
         Addon.objects.get(id=5579).update(slug='test_slug')
         data = self.get_dict()
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(
             r, 'form', 'slug',
             'This slug is already in use. Please choose another.')
@@ -198,7 +198,7 @@ class TestEditBasic(TestEdit):
         self.tags.insert(0, 'tag4')
         data = self.get_dict()
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         result = pq(r.content)('#addon_tags_edit').eq(0).text()
 
@@ -214,7 +214,7 @@ class TestEditBasic(TestEdit):
         Tag.objects.get_or_create(tag_text='blue', blacklisted=True)
         data = self.get_dict(tags='blue')
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         error = 'Invalid tag: blue'
         self.assertFormError(r, 'form', 'tags', error)
@@ -224,7 +224,7 @@ class TestEditBasic(TestEdit):
         Tag.objects.get_or_create(tag_text='darn', blacklisted=True)
         data = self.get_dict(tags='blue, darn, swearword')
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         error = 'Invalid tags: blue, darn'
         self.assertFormError(r, 'form', 'tags', error)
@@ -235,7 +235,7 @@ class TestEditBasic(TestEdit):
         Tag.objects.get_or_create(tag_text='swearword', blacklisted=True)
         data = self.get_dict(tags='blue, darn, swearword')
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         error = 'Invalid tags: blue, darn, swearword'
         self.assertFormError(r, 'form', 'tags', error)
@@ -246,7 +246,7 @@ class TestEditBasic(TestEdit):
         count = ActivityLog.objects.all().count()
         data = self.get_dict()
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         result = pq(r.content)('#addon_tags_edit').eq(0).text()
 
@@ -260,7 +260,7 @@ class TestEditBasic(TestEdit):
         tags.append('a' * (amo.MIN_TAG_LENGTH - 1))
         data = self.get_dict()
         r = self.client.post(self.basic_edit_url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         self.assertFormError(r, 'form', 'tags',
                              'All tags must be at least %d characters.' %
@@ -1236,7 +1236,7 @@ class TestAdmin(amo.tests.TestCase):
         self.login_admin()
         url = reverse('devhub.addons.edit', args=['a3615'])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertContains(r, 'Admin Settings')
         assert 'admin_form' in r.context, 'AdminForm expected in context.'
 
@@ -1244,7 +1244,7 @@ class TestAdmin(amo.tests.TestCase):
         self.login_user()
         url = reverse('devhub.addons.edit', args=['a3615'])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertNotContains(r, 'Admin Settings')
         assert 'admin_form' not in r.context, (
             'AdminForm not expected in context.')
@@ -1253,7 +1253,7 @@ class TestAdmin(amo.tests.TestCase):
         self.login_admin()
         url = reverse('devhub.addons.admin', args=['a3615'])
         r = self.client.post(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_post_as_nonadmin(self):
         self.login_user()

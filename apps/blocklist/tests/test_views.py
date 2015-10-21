@@ -163,18 +163,18 @@ class BlocklistItemTest(XMLAssertsMixin, BlocklistViewTest):
     def test_app_guid(self):
         # There's one item for Firefox.
         r = self.client.get(self.fx4_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(len(r.context['items']), 1)
 
         # There are no items for mobile.
         r = self.client.get(self.mobile_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(len(r.context['items']), 0)
 
         # Without the app constraint we see the item.
         self.app.delete()
         r = self.client.get(self.mobile_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(len(r.context['items']), 1)
 
     def test_item_guid(self):

@@ -40,7 +40,7 @@ pytestmark = pytest.mark.django_db
 @nottest
 def test_listing_sort(self, sort, key=None, reverse=True, sel_class='opt'):
     r = self.client.get(self.url, dict(sort=sort))
-    eq_(r.status_code, 200)
+    assert r.status_code == 200
     sel = pq(r.content)('#sorter ul > li.selected')
     eq_(sel.find('a').attr('class'), sel_class)
     eq_(r.context['sorting'], sort)
@@ -53,11 +53,11 @@ def test_listing_sort(self, sort, key=None, reverse=True, sel_class='opt'):
 @nottest
 def test_default_sort(self, sort, key=None, reverse=True, sel_class='opt'):
     r = self.client.get(self.url)
-    eq_(r.status_code, 200)
+    assert r.status_code == 200
     eq_(r.context['sorting'], sort)
 
     r = self.client.get(self.url, dict(sort='xxx'))
-    eq_(r.status_code, 200)
+    assert r.status_code == 200
     eq_(r.context['sorting'], sort)
     test_listing_sort(self, sort, key, reverse, sel_class)
 
@@ -131,7 +131,7 @@ class TestESExtensions(ExtensionTestCase):
 
         cat_url = reverse('browse.es.extensions', args=['alerts'])
         r = self.client.get(urlparams(cat_url))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         addons = r.context['addons'].object_list
         eq_(list(addons), [addon])
 
@@ -456,7 +456,7 @@ class TestFeeds(amo.tests.TestCase):
         Category.objects.update(type=amo.ADDON_THEME)
         r = self.client.get(reverse('browse.themes.rss',
                                     args=['alerts-updates']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_extensions_sort_opts_urls(self):
         r = self.client.get(self.url, follow=True)
@@ -467,7 +467,7 @@ class TestFeeds(amo.tests.TestCase):
 
     def test_themes_sort_opts_urls(self):
         r = self.client.get(reverse('browse.themes'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#sorter').length, 1)
         eq_(doc('#subscribe').length, 0)
@@ -922,7 +922,7 @@ class TestSearchToolsPages(BaseSearchToolsTest):
 
         def get_link(url):
             r = self.client.get(url)
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             doc = pq(r.content)
             return doc('head link[type="application/rss+xml"]').attr('href')
 
@@ -943,7 +943,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
         self.setup_tools_and_extensions()
         url = reverse('browse.search-tools.rss') + '?sort=created'
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         eq_(doc('rss channel title')[0].text,
@@ -960,7 +960,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
     def test_search_tools_no_sorting(self):
         url = reverse('browse.search-tools.rss')
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         link = doc('rss channel link')[0].text
@@ -974,7 +974,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
 
         url = reverse('browse.search-tools.rss') + '?sort=name'
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         eq_(doc('rss channel description')[0].text, 'Search tools')
@@ -997,7 +997,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
         url = reverse('browse.search-tools.rss',
                       args=('bookmarks',)) + '?sort=popular'
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         eq_(doc('rss channel title')[0].text,
@@ -1022,7 +1022,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
         url = reverse('browse.search-tools.rss',
                       args=('bookmarks',))
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         eq_(doc('rss channel title')[0].text,
@@ -1201,7 +1201,7 @@ class TestPersonas(amo.tests.TestCase):
         eq_(base.count(), 2)
         r = self.client.get(self.landing_url)
         self.assertTemplateUsed(r, self.grid_template)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['is_homepage'], True)
 
     def test_personas_landing(self):
@@ -1298,7 +1298,7 @@ class TestMobileFeatured(TestMobile):
 
     def test_featured(self):
         r = self.client.get(reverse('browse.extensions') + '?sort=featured')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'browse/mobile/extensions.html')
         eq_(r.context['sorting'], 'featured')
 
@@ -1307,7 +1307,7 @@ class TestMobileExtensions(TestMobile):
 
     def test_extensions(self):
         r = self.client.get(reverse('browse.extensions'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'browse/mobile/extensions.html')
         self.assertTemplateUsed(r, 'addons/listing/items_mobile.html')
         eq_(r.context['category'], None)
@@ -1317,7 +1317,7 @@ class TestMobileExtensions(TestMobile):
         cat = Category.objects.all()[0]
         url = reverse('browse.extensions', args=[cat.slug])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'browse/mobile/extensions.html')
         self.assertTemplateUsed(r, 'addons/listing/items_mobile.html')
         eq_(r.context['sorting'], 'rating')
@@ -1331,7 +1331,7 @@ class TestMobileExtensions(TestMobile):
         url = reverse('browse.extensions', args=[cat.slug])
         url = "{0}?sort=featured".format(url)
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'browse/mobile/extensions.html')
         self.assertTemplateNotUsed(r, 'addons/listing/items_mobile.html')
         eq_(r.context['category'], cat)
@@ -1349,7 +1349,7 @@ class TestMobileHeader(amo.tests.MobileTest, amo.tests.TestCase):
 
     def get_pq(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         return pq(r.content.decode('utf-8'))
 
     def test_header(self):
@@ -1363,7 +1363,7 @@ class TestMobileHeader(amo.tests.MobileTest, amo.tests.TestCase):
         self.client.login(username='regular@mozilla.com', password='password')
         self.url = reverse('browse.extensions')
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content.decode('utf-8'))
         amo.tests.check_links(expected, doc('#auth-nav li'))
 
@@ -1382,7 +1382,7 @@ class TestMobilePersonas(TestMobile):
 
     def test_personas_home(self):
         r = self.client.get(reverse('browse.personas'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(
             r, 'browse/personas/mobile/category_landing.html')
         eq_(r.context['category'], None)

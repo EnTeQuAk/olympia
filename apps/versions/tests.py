@@ -315,7 +315,7 @@ class TestVersion(amo.tests.TestCase):
         addon = Addon.objects.get(pk=3615)
         r = self.client.get(reverse('addons.versions.update_info',
                                     args=(addon.slug, self.version.version)))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r['Content-Type'], 'application/xhtml+xml')
         eq_(PyQuery(r.content)('p').html(), 'Fix for an important bug')
 
@@ -324,7 +324,7 @@ class TestVersion(amo.tests.TestCase):
             r = self.client.get(reverse('addons.versions.update_info',
                                         args=(addon.slug,
                                               self.version.version)))
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             eq_(r['Content-Type'], 'application/xhtml+xml')
             assert '<br/>' in r.content, (
                 'Should be using XHTML self-closing tags!')
@@ -1309,7 +1309,7 @@ class TestMobileVersions(TestMobile):
 
     def test_versions(self):
         r = self.client.get(reverse('addons.versions', args=['a3615']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'versions/mobile/version_list.html')
 
 

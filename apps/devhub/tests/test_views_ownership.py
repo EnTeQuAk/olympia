@@ -154,7 +154,7 @@ class TestEditLicense(TestOwnership):
     def test_custom_has_text(self):
         data = self.formset(builtin=License.OTHER, name='name')
         r = self.client.post(self.url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'license_form', None,
                              'License text is required when choosing Other.')
 
@@ -297,7 +297,7 @@ class TestEditAuthor(TestOwnership):
                  role=amo.AUTHOR_ROLE_DEV, position=1)
         data = self.formset(f.initial, u, u, initial_count=1)
         r = self.client.post(self.url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['user_form'].non_form_errors(),
             ['An author can only be listed once.'])
 

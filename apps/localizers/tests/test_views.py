@@ -18,19 +18,19 @@ class TestDecorators(amo.tests.TestCase):
         url = reverse('localizers.locale_dashboard',
                       kwargs=dict(locale_code=settings.AMO_LANGUAGES[0]))
         res = self.client.head(url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_hidden_locale(self):
         url = reverse('localizers.locale_dashboard',
                       kwargs=dict(locale_code=settings.HIDDEN_LANGUAGES[0]))
         res = self.client.head(url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_invalid_locale(self):
         url = reverse('localizers.locale_dashboard',
                       kwargs=dict(locale_code='xx'))
         res = self.client.head(url)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_locale_switcher(self):
         # Test valid locale redirect.
@@ -50,7 +50,7 @@ class TestDecorators(amo.tests.TestCase):
                          kwargs=dict(locale_code=to_locale))
         res = self.client.get(urlparams(from_url, userlang=to_locale),
                               follow=True)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
 
 class TestCategory(amo.tests.TestCase):
@@ -76,7 +76,7 @@ class TestCategory(amo.tests.TestCase):
                                  password='password')
         url = reverse('localizers.categories', kwargs=dict(locale_code='es'))
         res = self.client.get(url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_the_basics(self):
         assert self.client.login(username='admin@mozilla.com',
@@ -84,7 +84,7 @@ class TestCategory(amo.tests.TestCase):
         # Test page loads and names are as we expect.
         url = reverse('localizers.categories', kwargs=dict(locale_code='es'))
         res = self.client.get(url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content.decode('utf-8'))
         eq_(doc('#id_form-0-name').val(), u'Campañas')
 
@@ -96,7 +96,7 @@ class TestCategory(amo.tests.TestCase):
             url = reverse('localizers.categories',
                           kwargs=dict(locale_code='es'))
             res = self.client.get(url)
-            eq_(res.status_code, 200)
+            assert res.status_code == 200
             doc = pq(res.content.decode('utf-8'))
             # Site UI (logout link) is in German.
             eq_(doc('.nomenu a').text(), u'Abmelden')
@@ -112,7 +112,7 @@ class TestCategory(amo.tests.TestCase):
             url = reverse('localizers.categories',
                           kwargs=dict(locale_code='es'))
             res = self.client.get(url)
-            eq_(res.status_code, 200)
+            assert res.status_code == 200
             doc = pq(res.content.decode('utf-8'))
             eq_(doc('#id_form-0-name').val(), u'Campañas')
             eq_(doc('td.enus').eq(0).text(), u'Causes')

@@ -214,13 +214,13 @@ class TestViews(amo.tests.TestCase):
 
         # User not logged in: redirect to login page.
         res = self.client.post(collection.delete_icon_url())
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         assert res.url != edit_url
 
         self.client.login(username='jbalogh@mozilla.com', password='password')
 
         res = self.client.post(collection.delete_icon_url())
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(res.url, 'http://testserver%s' % edit_url)
 
     def test_delete_icon_csrf_protected(self):
@@ -232,10 +232,10 @@ class TestViews(amo.tests.TestCase):
         client.login(username='jbalogh@mozilla.com', password='password')
 
         res = client.get(collection.delete_icon_url())
-        eq_(res.status_code, 405)  # Only POSTs are allowed.
+        assert res.status_code == 405  # Only POSTs are allowed.
 
         res = client.post(collection.delete_icon_url())
-        eq_(res.status_code, 403)  # The view is csrf protected.
+        assert res.status_code == 403  # The view is csrf protected.
 
 
 class TestPrivacy(amo.tests.TestCase):
@@ -254,7 +254,7 @@ class TestPrivacy(amo.tests.TestCase):
     def test_owner(self):
         self.client.login(username='jbalogh@mozilla.com', password='password')
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # TODO(cvan): Uncomment when bug 719512 gets fixed.
         #eq_(pq(r.content)('.meta .view-stats').length, 1,
         #    'Add-on authors should be able to view stats')
@@ -270,7 +270,7 @@ class TestPrivacy(amo.tests.TestCase):
         self.c.listed = True
         self.c.save()
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.meta .view-stats').length, 0,
             'Only add-on authors can view stats')
 
@@ -282,7 +282,7 @@ class TestPrivacy(amo.tests.TestCase):
         CollectionUser.objects.create(collection=self.c, user=u)
         self.client.login(username='fligtar@gmail.com', password='foo')
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # TODO(cvan): Uncomment when bug 719512 gets fixed.
         #eq_(pq(r.content)('.meta .view-stats').length, 1,
         #    'Add-on authors (not just owners) should be able to view stats')
@@ -304,7 +304,7 @@ class TestVotes(amo.tests.TestCase):
         self.client.logout()
         r = self.client.post(self.up, follow=True)
         url, _ = r.redirect_chain[-1]
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assert_(reverse('users.login') in url)
 
     def test_post_required(self):
@@ -349,7 +349,7 @@ class TestVotes(amo.tests.TestCase):
     def test_ajax_response(self):
         r = self.client.post_ajax(self.up, follow=True)
         assert not r.redirect_chain
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
 
 class TestCRUD(amo.tests.TestCase):
@@ -383,7 +383,7 @@ class TestCRUD(amo.tests.TestCase):
     def create_collection(self, **kw):
         self.data.update(kw)
         r = self.client.post(self.add_url, self.data, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         return r
 
     def test_restricted(self, **kw):
@@ -394,7 +394,7 @@ class TestCRUD(amo.tests.TestCase):
         GroupUser.objects.create(group=g, user=user)
         self.data.update(kw)
         r = self.client.post(self.add_url, self.data, follow=True)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_no_xss_in_edit_page(self):
         name = '"><script>alert(/XSS/);</script>'
@@ -421,7 +421,7 @@ class TestCRUD(amo.tests.TestCase):
         user.save()
 
         r = self.client.post(url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         qs = CollectionWatcher.objects.filter(user__username='clouserw',
                                               collection=80)
@@ -450,7 +450,7 @@ class TestCRUD(amo.tests.TestCase):
     def test_default_locale(self):
         r = self.client.post('/he/firefox/collections/add',
                              self.data, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         c = Collection.objects.get(slug=self.slug)
         eq_(c.default_locale, 'he')
 
@@ -462,7 +462,7 @@ class TestCRUD(amo.tests.TestCase):
     def test_showform(self):
         """Shows form if logged in."""
         r = self.client.get(self.add_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_breadcrumbs(self):
         r = self.client.get(self.add_url)
@@ -510,7 +510,7 @@ class TestCRUD(amo.tests.TestCase):
         r = self.client.post(url,
                              {'contributor': 4043307, 'new_owner': 4043307},
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # verify that user1's addon is slug + '-'
         c = Collection.objects.get(slug=self.slug)
         eq_(c.author_id, 4043307)
@@ -519,7 +519,7 @@ class TestCRUD(amo.tests.TestCase):
         self.create_collection()
         url = reverse('collections.edit', args=['admin', self.slug])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_edit_contributors_form(self):
         self.create_collection()
@@ -551,7 +551,7 @@ class TestCRUD(amo.tests.TestCase):
 
         r = self.client.post(url, {'name': 'HALP', 'slug': 'halp',
                                    'listed': True}, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         c = Collection.objects.get(slug='halp')
         eq_(unicode(c.name), 'HALP')
 
@@ -586,7 +586,7 @@ class TestCRUD(amo.tests.TestCase):
         r = self.client.post(url,
                              {'name': '  H A L  P ', 'slug': '  halp  ',
                               'listed': True}, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         c = Collection.objects.get(slug='halp')
         eq_(unicode(c.name), 'H A L  P')
 
@@ -597,23 +597,23 @@ class TestCRUD(amo.tests.TestCase):
 
         url = reverse('collections.edit', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         url = reverse('collections.edit_addons', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         url = reverse('collections.edit_contributors', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         url = reverse('collections.edit_privacy', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
         url = reverse('collections.delete', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_acl_collections_edit(self):
         # Test users in group with 'Collections:Edit' are allowed.
@@ -626,32 +626,32 @@ class TestCRUD(amo.tests.TestCase):
 
         url = reverse('collections.edit', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         url = reverse('collections.edit_addons', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 405)
+        assert r.status_code == 405
         # Passed acl check, but this view needs a POST.
 
         url = reverse('collections.edit_contributors', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 405)
+        assert r.status_code == 405
         # Passed acl check, but this view needs a POST.
 
         url = reverse('collections.edit_privacy', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 405)
+        assert r.status_code == 405
         # Passed acl check, but this view needs a POST.
 
         url = reverse('collections.delete', args=url_args)
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_edit_favorites(self):
         r = self.client.get(reverse('collections.list'))
         fav = r.context['request'].amo_user.favorites_collection()
         r = self.client.post(fav.edit_url(), {'name': 'xxx', 'listed': True})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
         c = Collection.objects.get(id=fav.id)
         eq_(unicode(c.name), 'xxx')
@@ -697,7 +697,7 @@ class TestCRUD(amo.tests.TestCase):
         self.create_collection()
         url = reverse('collections.edit_addons', args=['admin', self.slug])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 405)
+        assert r.status_code == 405
 
     def test_edit_addons_post(self):
         self.create_collection()
@@ -756,12 +756,12 @@ class TestCRUD(amo.tests.TestCase):
         url = reverse('collections.edit',
                       args=['admin', self.slug])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert 'Admin Settings' in doc('form h3').text()
 
         r = self.client.post(url, dict(application=1, type=0), follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_delete_link(self):
         # Create an addon by user 1.
@@ -775,13 +775,13 @@ class TestCRUD(amo.tests.TestCase):
         url = reverse('collections.edit', args=['admin', self.slug])
 
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(len(doc('a.delete')), 2)
 
         self.login_regular()
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(len(doc('a.delete')), 0)
 
@@ -820,7 +820,7 @@ class TestCRUD(amo.tests.TestCase):
                              dict(name='new name', slug=self.slug,
                                   listed=True),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         newc = Collection.objects.get(slug=self.slug,
                                       author__username=c.author_username)
@@ -850,16 +850,16 @@ class TestChangeAddon(amo.tests.TestCase):
     def test_login_required(self):
         self.client.logout()
         r = self.client.post(self.add)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         self.assert_(reverse('users.login') in r['Location'], r['Location'])
 
     def test_post_required(self):
         r = self.client.get(self.add)
-        eq_(r.status_code, 405)
+        assert r.status_code == 405
 
     def test_ownership(self):
         r = self.client.post(self.flig_add)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_publisher(self):
         CollectionUser.objects.create(user_id=4043307, collection=self.flig)
@@ -868,7 +868,7 @@ class TestChangeAddon(amo.tests.TestCase):
 
     def test_no_addon(self):
         r = self.client.post(self.add)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_add_success(self):
         r = self.client.post_ajax(self.add, {'addon_id': self.addon.id})
@@ -952,7 +952,7 @@ class AjaxTest(amo.tests.TestCase):
 
     def test_bad_collection(self):
         r = self.client.post(reverse('collections.ajax_add'), {'id': 'adfa'})
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_remove_collection(self):
         r = self.client.post(reverse('collections.ajax_remove'),
@@ -978,7 +978,7 @@ class AjaxTest(amo.tests.TestCase):
 
         r = self.client.post(reverse('collections.ajax_add'),
                              {'addon_id': 3615, 'id': c.id}, follow=True)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_remove_other_collection(self):
         "403 when you try to add to a collection that isn't yours."
@@ -987,7 +987,7 @@ class AjaxTest(amo.tests.TestCase):
 
         r = self.client.post(reverse('collections.ajax_remove'),
                              {'addon_id': 3615, 'id': c.id}, follow=True)
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_ajax_list_no_addon_id(self):
         eq_(self.client.get(reverse('collections.ajax_list')).status_code, 400)
@@ -1014,25 +1014,25 @@ class TestWatching(amo.tests.TestCase):
 
     def test_watch(self):
         r = self.client.post(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.qs.count(), 1)
 
     def test_unwatch(self):
         r = self.client.post(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.post(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.qs.count(), 0)
 
     def test_amouser_watching(self):
         r = self.client.post(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.get('/en-US/firefox/')
         eq_(r.context['amo_user'].watching, [57181])
 
     def test_ajax_response(self):
         r = self.client.post_ajax(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(json.loads(r.content), {'watching': True})
 
 
@@ -1042,7 +1042,7 @@ class TestSharing(amo.tests.TestCase):
     def test_twitter_share(self):
         c = Collection.objects.get(id=57181)
         r = self.client.get(c.share_url() + '?service=twitter')
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         loc = urlparse.urlparse(r['Location'])
         query = dict(urlparse.parse_qsl(loc.query))
         eq_(loc.netloc, 'twitter.com')
@@ -1053,9 +1053,9 @@ class TestSharing(amo.tests.TestCase):
         c = Collection.objects.get(id=57181)
         url = reverse('collections.share', args=[c.author.username, c.slug])
         r = self.client.get(url)
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
         r = self.client.get(url + '?service=xxx')
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
 
 class TestCollectionFeed(TestFeeds):
@@ -1189,7 +1189,7 @@ class TestCollectionDetailFeed(amo.tests.TestCase):
 
     def test_feed_redirect(self):
         r = self.client.get(self.collection.get_url_path() + '?format=rss')
-        eq_(r.status_code, 301)
+        assert r.status_code == 301
         loc = r['Location']
         assert loc.endswith(self.feed_url), loc
 
@@ -1219,7 +1219,7 @@ class TestMobileCollections(TestMobile):
     # for now we want collections disabled.
     def test_collections(self):
         r = self.client.get(reverse('collections.list'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'bandwagon/impala/collection_listing.html')
 
 

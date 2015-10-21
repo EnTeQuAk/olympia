@@ -44,7 +44,7 @@ def fake_request():
 
 def check_sidebar_links(self, expected):
     r = self.client.get(self.url)
-    eq_(r.status_code, 200)
+    assert r.status_code == 200
     links = pq(r.content)('#secondary-nav ul a')
     amo.tests.check_links(expected, links)
     eq_(links.filter('.selected').attr('href'), self.url)
@@ -106,7 +106,7 @@ class TestAjax(UserViewBase):
 
     def test_ajax_404(self):
         r = self.client.get(reverse('users.ajax'), follow=True)
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_ajax_success(self):
         r = self.client.get(reverse('users.ajax'), {'q': 'fligtar@gmail.com'},
@@ -143,7 +143,7 @@ class TestAjax(UserViewBase):
     def test_forbidden(self):
         self.client.logout()
         r = self.client.get(reverse('users.ajax'))
-        eq_(r.status_code, 401)
+        assert r.status_code == 401
 
 
 class TestEdit(UserViewBase):
@@ -159,7 +159,7 @@ class TestEdit(UserViewBase):
 
     def test_password_logs(self):
         res = self.client.post(self.url, self.data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.user.userlog_set
                 .filter(activity_log__action=amo.LOG.CHANGE_PASSWORD.id)
                 .count(), 1)
@@ -171,14 +171,14 @@ class TestEdit(UserViewBase):
         homepage = {'username': 'jbalogh', 'email': 'jbalogh@mozilla.com',
                     'homepage': 'http://cbc.ca', 'lang': 'en-US'}
         res = self.client.post(self.url, homepage)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
     def test_password_blacklisted(self):
         BlacklistedPassword.objects.create(password='password')
         bad = self.data.copy()
         bad['password'] = 'password'
         res = self.client.post(self.url, bad)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res.context['form'].is_valid(), False)
         eq_(res.context['form'].errors['password'],
             [u'That password is not allowed.'])
@@ -187,7 +187,7 @@ class TestEdit(UserViewBase):
         bad = self.data.copy()
         bad['password'] = 'short'
         res = self.client.post(self.url, bad)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res.context['form'].is_valid(), False)
         eq_(res.context['form'].errors['password'],
             [u'Must be 8 characters or more.'])
@@ -301,26 +301,26 @@ class TestEdit(UserViewBase):
 
     def test_collections_toggles(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#profile-misc').length, 1,
             'Collections options should be visible.')
 
     def test_remove_locale_bad_request(self):
         r = self.client.post(self.user.get_user_url('remove-locale'))
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     @patch.object(UserProfile, 'remove_locale')
     def test_remove_locale(self, remove_locale_mock):
         r = self.client.post(self.user.get_user_url('remove-locale'),
                              {'locale': 'el'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         remove_locale_mock.assert_called_with('el')
 
     def test_remove_locale_default_locale(self):
         r = self.client.post(self.user.get_user_url('remove-locale'),
                              {'locale': settings.LANGUAGE_CODE})
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
 
 class TestEditAdmin(UserViewBase):
@@ -344,30 +344,30 @@ class TestEditAdmin(UserViewBase):
 
     def test_edit(self):
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_edit_without_user_lang(self):
         self.regular.lang = None
         self.regular.save()
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_edit_forbidden(self):
         self.client.logout()
         self.client.login(username='editor@mozilla.com', password='password')
         res = self.client.get(self.url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_edit_forbidden_anon(self):
         self.client.logout()
         res = self.client.get(self.url)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
     def test_anonymize(self):
         data = self.get_data()
         data['anonymize'] = True
         res = self.client.post(self.url, data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.get_user().password, "sha512$Anonymous$Password")
 
     def test_anonymize_fails(self):
@@ -375,7 +375,7 @@ class TestEditAdmin(UserViewBase):
         data['anonymize'] = True
         data['email'] = 'something@else.com'
         res = self.client.post(self.url, data)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(self.get_user().password, self.regular.password)  # Hasn't changed.
 
     def test_admin_logs_edit(self):
@@ -433,7 +433,7 @@ class TestPasswordAdmin(UserViewBase):
 
     def test_password_admin(self):
         res = self.client.post(self.url, self.correct, follow=False)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res.context['form'].is_valid(), False)
         eq_(res.context['form'].errors['password'],
             [u'Letters and numbers required.'])
@@ -441,7 +441,7 @@ class TestPasswordAdmin(UserViewBase):
     def test_password(self):
         UserProfile.objects.get(username='editor').groups.all().delete()
         res = self.client.post(self.url, self.correct, follow=False)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
 
 class TestEmailChange(UserViewBase):
@@ -455,25 +455,25 @@ class TestEmailChange(UserViewBase):
         # Completely invalid user, valid code
         url = reverse('users.emailchange', args=[1234, self.token, self.hash])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
         # User is in the system, but not attached to this code, valid code
         url = reverse('users.emailchange', args=[9945, self.token, self.hash])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
         # Valid user, invalid code
         url = reverse('users.emailchange', args=[self.user.id, self.token,
                                                  self.hash[:-3]])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_success(self):
         self.assertEqual(self.user.email, 'jbalogh@mozilla.com')
         url = reverse('users.emailchange', args=[self.user.id, self.token,
                                                  self.hash])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         u = UserProfile.objects.get(id=self.user.id)
         self.assertEqual(u.email, 'nobody@mozilla.org')
 
@@ -481,7 +481,7 @@ class TestEmailChange(UserViewBase):
         token, hash_ = EmailResetCode.create(self.user.id, 'testo@example.com')
         url = reverse('users.emailchange', args=[self.user.id, token, hash_])
         r = self.client.get(url, follow=True)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
 
 class TestLogin(UserViewBase):
@@ -530,19 +530,19 @@ class TestLogin(UserViewBase):
 
     def test_login_link(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#aux-nav li.login').length, 1)
 
     def test_logout_link(self):
         self.test_client_login()
         r = self.client.get(reverse('home'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#aux-nav li.logout').length, 1)
 
     @amo.tests.mobile_test
     def test_mobile_login(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)('header')
         eq_(doc('nav').length, 1)
         eq_(doc('#home').length, 1)
@@ -551,10 +551,10 @@ class TestLogin(UserViewBase):
     def test_login_ajax(self):
         url = reverse('users.login_modal')
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         res = self.client.post(url, data=self.data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
     def test_login_ajax_error(self):
         url = reverse('users.login_modal')
@@ -576,13 +576,13 @@ class TestLogin(UserViewBase):
 
     def test_login_no_recaptcha(self):
         res = self.client.post(self.url, data=self.data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
     @patch.object(settings, 'RECAPTCHA_PRIVATE_KEY', 'something')
     @patch.object(settings, 'LOGIN_RATELIMIT_USER', 2)
     def test_login_attempts_recaptcha(self):
         res = self.client.post(self.url, data=self.data)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert res.context['form'].fields.get('recaptcha')
 
     @patch.object(settings, 'RECAPTCHA_PRIVATE_KEY', 'something')
@@ -590,7 +590,7 @@ class TestLogin(UserViewBase):
         data = self.data.copy()
         data['recaptcha_shown'] = ''
         res = self.client.post(self.url, data=data)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert res.context['form'].fields.get('recaptcha')
 
     @patch.object(settings, 'RECAPTCHA_PRIVATE_KEY', 'something')
@@ -601,7 +601,7 @@ class TestLogin(UserViewBase):
         data = self.data.copy()
         data.update({'recaptcha': '', 'recaptcha_shown': ''})
         res = self.client.post(self.url, data=data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
     def test_login_fails_increment(self):
         # It increments even when the form is wrong.
@@ -628,7 +628,7 @@ class TestLogin(UserViewBase):
         res = self.client.post(self.url,
                                data={'username': 'charlie@example.com',
                                      'password': 'wrongpassword'})
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(UserProfile.objects.get(email='charlie@example.com')
             .failed_login_attempts, 1)
         res2 = self.client.post(self.url,
@@ -652,7 +652,7 @@ class TestLogin(UserViewBase):
         res = self.client.post(self.url,
                                data={'username': 'charlie@example.com',
                                      'password': 'wrongpassword'})
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(UserProfile.objects.get(email='charlie@example.com')
             .failed_login_attempts, 1)
         res2 = self.client.post(self.url,
@@ -807,7 +807,7 @@ class TestReset(UserViewBase):
                                        args=self.token),
                                data={'new_password1': 'password1',
                                      'new_password2': 'password1'})
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
 
 class TestLogout(UserViewBase):
@@ -981,17 +981,17 @@ class TestProfileSections(amo.tests.TestCase):
 
     def test_mine_anonymous(self):
         res = self.client.get('/user/me/', follow=True)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_mine_authenticated(self):
         self.login(self.user)
         res = self.client.get('/user/me/', follow=True)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res.context['user'].id, self.user.id)
 
     def test_my_last_login_anonymous(self):
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('.last-login-time').length, 0)
         eq_(doc('.last-login-ip').length, 0)
@@ -1000,14 +1000,14 @@ class TestProfileSections(amo.tests.TestCase):
         self.user.update(last_login_ip='255.255.255.255')
         self.login(self.user)
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         assert doc('.last-login-time td').text()
         eq_(doc('.last-login-ip td').text(), '255.255.255.255')
 
     def test_not_my_last_login(self):
         res = self.client.get('/user/999/', follow=True)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('.last-login-time').length, 0)
         eq_(doc('.last-login-ip').length, 0)
@@ -1227,7 +1227,7 @@ class TestThemesProfile(amo.tests.TestCase):
         self.url = self.user.get_user_url('themes')
 
     def _test_good(self, res):
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
         ids = res.context['addons'].object_list.values_list('id', flat=True)
         self.assertSetEqual(ids, [self.theme.id])
@@ -1241,11 +1241,11 @@ class TestThemesProfile(amo.tests.TestCase):
 
     def test_bad_user(self):
         res = self.client.get(reverse('users.themes', args=['yolo']))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_no_themes(self):
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
         eq_(pq(res.content)('.no-results').length, 1)
 
@@ -1258,7 +1258,7 @@ class TestThemesProfile(amo.tests.TestCase):
 
     def test_bad_category(self):
         res = self.client.get(reverse('users.themes', args=['yolo', 'swag']))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_empty_category(self):
         self.theme = amo.tests.addon_factory(type=amo.ADDON_PERSONA)
@@ -1267,7 +1267,7 @@ class TestThemesProfile(amo.tests.TestCase):
 
         res = self.client.get(
             self.user.get_user_url('themes', args=[cat.slug]))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_themes_category(self):
         self.theme = amo.tests.addon_factory(type=amo.ADDON_PERSONA)

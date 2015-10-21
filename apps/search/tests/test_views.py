@@ -77,7 +77,7 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
     def check_sort_links(self, key, title=None, sort_by=None, reverse=True,
                          params={}):
         r = self.client.get(urlparams(self.url, sort=key, **params))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         if title:
             if hasattr(self, 'MOBILE'):
@@ -97,7 +97,7 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
 
     def check_name_results(self, params, expected):
         r = self.client.get(urlparams(self.url, **params), follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         got = self.get_results(r)
         eq_(got, expected,
             'Got: %s. Expected: %s. Parameters: %s' % (got, expected, params))
@@ -116,11 +116,11 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
 
     def check_heading(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.results-count strong').text(), None)
 
         r = self.client.get(self.url + '&q=ballin')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.results-count strong').text(), 'ballin')
 
 
@@ -143,18 +143,18 @@ class TestESSearch(SearchBase):
 
     def test_get(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         assert 'X-PJAX' in r['vary'].split(','), 'Expected "Vary: X-PJAX"'
         self.assertTemplateUsed(r, 'search/results.html')
 
     def test_search_space(self):
         r = self.client.get(urlparams(self.url, q='+'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     @amo.tests.mobile_test
     def test_get_mobile(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'search/mobile/results.html')
 
     @amo.tests.mobile_test
@@ -165,7 +165,7 @@ class TestESSearch(SearchBase):
 
     def test_search_tools_omit_users(self):
         r = self.client.get(self.url, dict(cat='%s,5' % amo.ADDON_SEARCH))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         sorter = pq(r.content)('#sorter')
         eq_(sorter.length, 1)
         assert 'sort=users' not in sorter.text(), (
@@ -388,7 +388,7 @@ class TestESSearch(SearchBase):
 
     def test_non_pjax_results(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['is_pjax'], None)
 
         # These context variables should exist for normal requests.
@@ -403,7 +403,7 @@ class TestESSearch(SearchBase):
 
     def test_pjax_results(self):
         r = self.client.get(self.url, HTTP_X_PJAX=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['is_pjax'], True)
 
         doc = pq(r.content)
@@ -496,7 +496,7 @@ class TestESSearch(SearchBase):
 
     def test_no_tag_filters_on_tags_page(self):
         r = self.client.get(reverse('tags.detail', args=['sky']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('#tag-facets').length, 0)
 
     def get_results(self, r):
@@ -520,12 +520,12 @@ class TestESSearch(SearchBase):
 
         # Extensions should show only extensions.
         r = self.client.get(self.url, dict(atype=amo.ADDON_EXTENSION))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.get_results(r), extensions)
 
         # Themes should show only themes.
         r = self.client.get(self.url, dict(atype=amo.ADDON_THEME))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.get_results(r), themes)
 
     def test_results_respect_appver_filtering(self):
@@ -670,7 +670,7 @@ class TestPersonaSearch(SearchBase):
         self._generate_personas()
         personas_ids = sorted(p.id for p in self.personas)  # Not PersonaID ;)
         r = self.client.get(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.get_results(r), personas_ids)
         doc = pq(r.content)
         eq_(doc('.personas-grid li').length, len(personas_ids))
@@ -723,7 +723,7 @@ class TestPersonaSearch(SearchBase):
         for sort in ('downloads', 'popularity', 'users'):
             r = self.client.get(urlparams(self.url, q='japanese tattoo',
                                           sort=sort), follow=True)
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             results = list(r.context['pager'].object_list)
             first = results[0]
             eq_(unicode(first.name), expected_name,
@@ -755,12 +755,12 @@ class TestPersonaSearch(SearchBase):
 
         # Page one should show 2 personas.
         r = self.client.get(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.personas-grid li').length, 2)
 
         # Page two should show 1 persona.
         r = self.client.get(self.url + '&page=2', follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.personas-grid li').length, 1)
 
 
@@ -888,7 +888,7 @@ class TestCollectionSearch(SearchBase):
         self._generate()
         collection_ids = sorted(p.id for p in self.collections)
         r = self.client.get(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(self.get_results(r), collection_ids)
         doc = pq(r.content)
         eq_(doc('.primary .item').length, len(collection_ids))
@@ -960,7 +960,7 @@ class TestCollectionSearch(SearchBase):
             else:
                 r = self.client.get(urlparams(self.url, q='web developer'),
                                     follow=True)
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             results = list(r.context['pager'].object_list)
             eq_(len(results), len(webdev_collections))
             for coll, expected in zip(results, sorted_webdev_collections):
@@ -1068,7 +1068,7 @@ class TestAjaxSearch(amo.tests.ESTestCaseWithAddons):
     def search_addons(self, url, params, addons=[], types=amo.ADDON_TYPES,
                       src=None):
         r = self.client.get(url + '?' + params)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
 
         data = sorted(data, key=lambda x: x['id'])
@@ -1179,7 +1179,7 @@ class TestSearchSuggestions(TestAjaxSearch):
 
     def search_applications(self, params, apps=[]):
         r = self.client.get(self.url + '?' + params)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
 
         data = sorted(data, key=lambda x: x['id'])
@@ -1194,7 +1194,7 @@ class TestSearchSuggestions(TestAjaxSearch):
 
     def test_get(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_addons(self):
         addons = (Addon.objects.reviewed()

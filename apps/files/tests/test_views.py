@@ -145,18 +145,18 @@ class FilesBase(object):
     def test_poll_extracted(self):
         self.file_viewer.extract()
         res = self.client.get(self.poll_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(json.loads(res.content)['status'], True)
 
     def test_poll_not_extracted(self):
         res = self.client.get(self.poll_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(json.loads(res.content)['status'], False)
 
     def test_poll_extracted_anon(self):
         self.client.logout()
         res = self.client.get(self.poll_url())
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_content_headers(self):
         self.file_viewer.extract()
@@ -171,7 +171,7 @@ class FilesBase(object):
         etag = obj.selected.get('md5')
         res = self.client.get(self.file_url('install.js'),
                               HTTP_IF_NONE_MATCH=etag)
-        eq_(res.status_code, 304)
+        assert res.status_code == 304
 
     def test_content_headers_if_modified(self):
         self.file_viewer.extract()
@@ -180,7 +180,7 @@ class FilesBase(object):
         date = http_date(obj.selected.get('modified'))
         res = self.client.get(self.file_url('install.js'),
                               HTTP_IF_MODIFIED_SINCE=date)
-        eq_(res.status_code, 304)
+        assert res.status_code == 304
 
     def test_file_header(self):
         self.file_viewer.extract()
@@ -204,7 +204,7 @@ class FilesBase(object):
 
     def test_no_files(self):
         res = self.client.get(self.file_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert 'files' not in res.context
 
     @patch('waffle.switch_is_active')
@@ -214,24 +214,24 @@ class FilesBase(object):
         # extraction. The files will be extracted and there will be
         # files in context.
         res = self.client.get(self.file_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert 'files' in res.context
 
     def test_files(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert 'files' in res.context
 
     def test_files_anon(self):
         self.client.logout()
         res = self.client.get(self.file_url())
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_files_file(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(not_binary))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert 'selected' in res.context
 
     def test_files_back_link(self):
@@ -245,7 +245,7 @@ class FilesBase(object):
         self.client.logout()
         self.addon.update(view_source=True)
         res = self.client.get(self.file_url(not_binary))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('#commands td:last').text(), 'Back to addon')
 
@@ -264,7 +264,7 @@ class FilesBase(object):
 
     def test_browse_404(self):
         res = self.client.get('/files/browse/file/dont/exist.png', follow=True)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_invalid_redirect(self):
         res = self.client.post(self.file_url(), {})
@@ -366,44 +366,44 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
         self.file_viewer.extract()
         self.add_file('file.php', '<script>alert("foo")</script>')
         res = self.client.get(self.file_url('file.php'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         assert self.file_viewer.get_files()['file.php']['md5'] in res.content
 
     def test_tree_no_file(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url('doesnotexist.js'))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_directory(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url('doesnotexist.js'))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_unicode(self):
         self.file_viewer.src = unicode_filenames
         self.file_viewer.extract()
         res = self.client.get(self.file_url(u'\u1109\u1161\u11a9'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_serve_no_token(self):
         self.file_viewer.extract()
         res = self.client.get(self.files_serve(binary))
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_serve_fake_token(self):
         self.file_viewer.extract()
         res = self.client.get(self.files_serve(binary) + '?token=aasd')
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_serve_bad_token(self):
         self.file_viewer.extract()
         res = self.client.get(self.files_serve(binary) + '?token=a asd')
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_serve_get_token(self):
         self.file_viewer.extract()
         res = self.client.get(self.files_redirect(binary))
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         url = res['Location']
         assert urlparse.urlparse(url).query.startswith('token=')
 
@@ -412,15 +412,15 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
         res = self.client.get(self.files_redirect(binary))
         url = res['Location']
         res = self.client.get(url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         cache.clear()
         res = self.client.get(url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def test_bounce(self):
         self.file_viewer.extract()
         res = self.client.get(self.files_redirect(binary), follow=True)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res[settings.XSENDFILE_HEADER],
             self.file_viewer.get_files().get(binary)['full'])
 
@@ -435,7 +435,7 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
         msg = Message('file-viewer:%s' % self.file_viewer)
         msg.save('I like cheese.')
         res = self.client.get(self.poll_url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         data = json.loads(res.content)
         eq_(data['status'], False)
         eq_(data['msg'], ['I like cheese.'])
@@ -495,7 +495,7 @@ class TestDiffViewer(FilesBase, amo.tests.TestCase):
     def test_tree_no_file(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url('doesnotexist.js'))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_content_file(self):
         self.file_viewer.extract()

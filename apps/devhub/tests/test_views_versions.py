@@ -41,7 +41,7 @@ class TestVersion(amo.tests.TestCase):
 
     def get_doc(self):
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         return pq(res.content)
 
     def test_version_status_public(self):
@@ -128,17 +128,17 @@ class TestVersion(amo.tests.TestCase):
         version, file = self._extra_version_and_file(amo.STATUS_LITE)
         self.client.post(self.delete_url, self.delete_data)
         res = self.client.get(reverse('addons.detail', args=[self.addon.slug]))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_cant_delete_version(self):
         self.client.logout()
         res = self.client.post(self.delete_url, self.delete_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         assert Version.objects.filter(pk=81551).exists()
 
     def test_version_delete_status_null(self):
         res = self.client.post(self.delete_url, self.delete_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.addon.versions.count(), 0)
         eq_(Addon.objects.get(id=3615).status, amo.STATUS_NULL)
 
@@ -158,7 +158,7 @@ class TestVersion(amo.tests.TestCase):
         self._extra_version_and_file(amo.STATUS_PUBLIC)
 
         res = self.client.post(self.delete_url, self.delete_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.addon.versions.count(), 1)
         eq_(Addon.objects.get(id=3615).status, amo.STATUS_PUBLIC)
 
@@ -166,7 +166,7 @@ class TestVersion(amo.tests.TestCase):
         self._extra_version_and_file(amo.STATUS_BETA)
 
         res = self.client.post(self.delete_url, self.delete_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.addon.versions.count(), 1)
         eq_(Addon.objects.get(id=3615).status, amo.STATUS_UNREVIEWED)
 
@@ -175,7 +175,7 @@ class TestVersion(amo.tests.TestCase):
         self.addon.update(status=amo.STATUS_PUBLIC,
                           disabled_by_user=False)
         res = self.client.post(self.disable_url)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         addon = Addon.objects.get(id=3615)
         eq_(addon.disabled_by_user, True)
         eq_(addon.status, amo.STATUS_PUBLIC)
@@ -243,7 +243,7 @@ class TestVersion(amo.tests.TestCase):
         self.addon.update(disabled_by_user=False)
         self.client.logout()
         res = self.client.post(self.disable_url)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(Addon.objects.get(id=3615).disabled_by_user, False)
 
     def test_non_owner_cant_disable_addon(self):
@@ -252,7 +252,7 @@ class TestVersion(amo.tests.TestCase):
         assert self.client.login(username='regular@mozilla.com',
                                  password='password')
         res = self.client.post(self.disable_url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
         eq_(Addon.objects.get(id=3615).disabled_by_user, False)
 
     def test_non_owner_cant_enable_addon(self):
@@ -261,7 +261,7 @@ class TestVersion(amo.tests.TestCase):
         assert self.client.login(username='regular@mozilla.com',
                                  password='password')
         res = self.client.get(self.enable_url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
         eq_(Addon.objects.get(id=3615).disabled_by_user, False)
 
     def test_non_owner_cant_change_status(self):
@@ -365,7 +365,7 @@ class TestVersion(amo.tests.TestCase):
         cancel_url = reverse('devhub.addons.cancel', args=['a3615'])
         eq_(self.addon.status, amo.STATUS_PUBLIC)
         res = self.client.post(cancel_url)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(Addon.objects.get(id=3615).status, amo.STATUS_PUBLIC)
 
     def test_cancel_button(self):
@@ -411,7 +411,7 @@ class TestVersion(amo.tests.TestCase):
 
     def test_add_version_modal(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         # Make sure checkboxes are visible:
         eq_(doc('.supported-platforms input.platform').length, 5)
@@ -485,7 +485,7 @@ class TestVersionEditDetails(TestVersionEditBase):
     def test_edit_notes(self):
         d = self.formset(releasenotes='xx', approvalnotes='yy')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         version = self.get_version()
         eq_(unicode(version.releasenotes), 'xx')
         eq_(unicode(version.approvalnotes), 'yy')
@@ -601,7 +601,7 @@ class TestVersionEditSearchEngine(TestVersionEditMixin,
                           approvalnotes='yy')
 
         r = self.client.post(self.url, dd)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         version = Addon.objects.no_cache().get(id=4594).current_version
         eq_(unicode(version.releasenotes), 'xx')
         eq_(unicode(version.approvalnotes), 'yy')
@@ -654,10 +654,10 @@ class TestVersionEditFiles(TestVersionEditBase):
                              '/versions/2.1.072">Version 2.1.072</a> of <a '
                              'href="/en-US/firefox/addon/a3615/">Delicious '
                              'Bookmarks</a>.')
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.version.files.count(), 0)
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_unique_platforms(self):
         # Move the existing file to Linux.
@@ -673,7 +673,7 @@ class TestVersionEditFiles(TestVersionEditBase):
         r = self.client.post(self.url, self.formset(*forms, prefix='files'))
         doc = pq(r.content)
         assert doc('#id_files-0-platform')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['file_form'].non_form_errors(),
             ['A platform can only be chosen once.'])
 
@@ -750,7 +750,7 @@ class TestVersionEditFiles(TestVersionEditBase):
 
     def test_add_file_modal(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         # Make sure radio buttons are visible:
         eq_(doc('.platform ul label').text(), 'Linux Mac OS X Windows')
@@ -816,7 +816,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = self.formset(initial(f), dict(application=18, min=288, max=298),
                          initial_count=1)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         apps = self.get_version().compatible_apps.keys()
         eq_(sorted(apps), sorted([amo.FIREFOX, amo.THUNDERBIRD]))
         eq_(list(ActivityLog.objects.all().values_list('action')),
@@ -827,7 +827,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d.update(min=self.v1.id, max=self.v5.id)
         r = self.client.post(self.url,
                              self.formset(d, initial_count=1))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         av = self.version.apps.get()
         eq_(av.min.version, '1.0')
         eq_(av.max.version, '5.0')
@@ -840,7 +840,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = self.get_form(url)
         d.update(min=self.v1.id, max=self.v5.id)
         r = self.client.post(url, self.formset(d, initial_count=1))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         av = self.version.apps.get()
         eq_(av.min.version, '1.0')
         eq_(av.max.version, '5.0')
@@ -854,7 +854,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = map(initial, f.initial_forms)
         d[0]['DELETE'] = True
         r = self.client.post(self.url, self.formset(*d, initial_count=2))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         apps = self.get_version().compatible_apps.keys()
         eq_(apps, [amo.THUNDERBIRD])
         eq_(list(ActivityLog.objects.all().values_list('action')),
@@ -866,7 +866,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         del dupe['id']
         d = self.formset(initial(f), dupe, initial_count=1)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # Because of how formsets work, the second form is expected to be a
         # tbird version range.  We got an error, so we're good.
 
@@ -876,7 +876,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = initial(f)
         d['DELETE'] = True
         r = self.client.post(self.url, self.formset(d, initial_count=1))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['compat_form'].non_form_errors(),
             ['Need at least one compatible application.'])
         eq_(self.version.apps.get(), old_av)
@@ -886,7 +886,7 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = initial(f)
         d['min'], d['max'] = d['max'], d['min']
         r = self.client.post(self.url, self.formset(d, initial_count=1))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['compat_form'].forms[0].non_field_errors(),
             ['Invalid version range.'])
 
@@ -895,6 +895,6 @@ class TestVersionEditCompat(TestVersionEditBase):
         d = initial(f)
         d['min'] = d['max']
         r = self.client.post(self.url, self.formset(d, initial_count=1))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         av = self.version.apps.all()[0]
         eq_(av.min, av.max)

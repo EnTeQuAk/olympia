@@ -271,7 +271,7 @@ class TestContributeEmbedded(amo.tests.TestCase):
 
     def test_unicode_comment(self):
         res = self.client_post(rev=['a592'], data={'comment': u'版本历史记录'})
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         assert settings.PAYPAL_FLOW_URL in res._headers['location'][1]
         eq_(Contribution.objects.all()[0].comment, u'版本历史记录')
 
@@ -288,19 +288,19 @@ class TestContributeEmbedded(amo.tests.TestCase):
         self.addon.update(charity=c)
 
         r = self.client_post(rev=['a592'])
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.addon.charity_id,
             self.addon.contribution_set.all()[0].charity_id)
 
     def test_no_org(self):
         r = self.client_post(rev=['a592'])
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.addon.contribution_set.all()[0].charity_id, None)
 
     def test_no_suggested_amount(self):
         self.addon.update(suggested_amount=None)
         res = self.client_post(rev=['a592'])
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(settings.DEFAULT_SUGGESTED_CONTRIBUTION,
             self.addon.contribution_set.all()[0].amount)
 
@@ -373,7 +373,7 @@ class TestDeveloperPages(amo.tests.TestCase):
 
     def test_nl2br_info(self):
         r = self.client.get(reverse('addons.meet', args=['a228106']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('.bio').html(),
             'Bio: This is line one.<br/><br/>This is line two')
@@ -387,7 +387,7 @@ class TestDeveloperPages(amo.tests.TestCase):
         # Get an Add-on that has multiple developers,
         # which will trigger the else block in the template.
         r = self.client.get(reverse('addons.meet', args=['a228107']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         bios = pq(r.content)('.bio')
         eq_(bios.eq(0).html(),
             'Bio1: This is line one.<br/><br/>This is line two')
@@ -462,32 +462,32 @@ class TestLicensePage(amo.tests.TestCase):
     def test_explicit_version(self):
         url = reverse('addons.license', args=['a3615', self.version.version])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['version'], self.version)
 
     def test_implicit_version(self):
         url = reverse('addons.license', args=['a3615'])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['version'], self.addon.current_version)
 
     def test_no_license(self):
         self.version.update(license=None)
         url = reverse('addons.license', args=['a3615'])
         r = self.client.get(url)
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_no_version(self):
         self.addon.versions.all().delete()
         url = reverse('addons.license', args=['a3615'])
         r = self.client.get(url)
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_duplicate_version_number(self):
         Version.objects.create(addon=self.addon, version=self.version.version)
         url = reverse('addons.license', args=['a3615', self.version.version])
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['version'], self.addon.current_version)
 
     def test_cat_sidebar(self):
@@ -635,7 +635,7 @@ class TestDetailPage(amo.tests.TestCase):
         prefixer = amo.urlresolvers.get_url_prefix()
         prefixer.app = not_comp_app.short
         r = self.client.get(reverse('addons.detail', args=[self.addon.slug]))
-        eq_(r.status_code, 301)
+        assert r.status_code == 301
         eq_(r['Location'].find(not_comp_app.short), -1)
         assert r['Location'].find(comp_app.short) >= 0
 
@@ -643,7 +643,7 @@ class TestDetailPage(amo.tests.TestCase):
         prefixer = amo.urlresolvers.get_url_prefix()
         prefixer.app = comp_app.short
         r = self.client.get(reverse('addons.detail', args=[self.addon.slug]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_external_urls(self):
         """Check that external URLs are properly escaped."""
@@ -806,13 +806,13 @@ class TestDetailPage(amo.tests.TestCase):
     def test_disabled_user_message(self):
         self.addon.update(disabled_by_user=True)
         res = self.client.get(self.url)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
         assert 'removed by its author' in res.content
 
     def test_disabled_status_message(self):
         self.addon.update(status=amo.STATUS_DISABLED)
         res = self.client.get(self.url)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
         assert 'disabled by an administrator' in res.content
 
     def test_deleted_status_message(self):
@@ -820,7 +820,7 @@ class TestDetailPage(amo.tests.TestCase):
         addon.update(status=amo.STATUS_DELETED)
         url = reverse('addons.detail', args=[addon.slug])
         res = self.client.get(url)
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_more_url(self):
         response = self.client.get(self.url)
@@ -1329,7 +1329,7 @@ class TestAddonSharing(amo.tests.TestCase):
         r = self.client.get(reverse('addons.share', args=['a3615']),
                             {'service': 'facebook'})
         url = absolutify(unicode(addon.get_url_path()))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         assert iri_to_uri(addon.name) in r['Location']
         assert iri_to_uri(url) in r['Location']
 
@@ -1401,7 +1401,7 @@ class TestMobileHome(TestMobile):
 
     def test_addons(self):
         r = self.client.get('/', follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         app, lang = r.context['APP'], r.context['LANG']
         featured, popular = r.context['featured'], r.context['popular']
         # Careful here: we can't be sure of the number of featured addons,
@@ -1429,12 +1429,12 @@ class TestMobileDetails(TestPersonas, TestMobile):
 
     def test_extension(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'addons/mobile/details.html')
 
     def test_persona(self):
         r = self.client.get(self.persona_url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'addons/mobile/persona_detail.html')
         assert 'review_form' not in r.context
         assert 'reviews' not in r.context
@@ -1458,7 +1458,7 @@ class TestMobileDetails(TestPersonas, TestMobile):
 
     def test_persona_mobile_url(self):
         r = self.client.get('/en-US/mobile/addon/15679/')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_extension_release_notes(self):
         r = self.client.get(self.url)
@@ -1468,7 +1468,7 @@ class TestMobileDetails(TestPersonas, TestMobile):
         version_url = self.ext.current_version.get_url_path()
         eq_(relnotes.attr('href'), version_url)
         self.client.get(version_url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_extension_adu(self):
         doc = pq(self.client.get(self.url).content)('table')

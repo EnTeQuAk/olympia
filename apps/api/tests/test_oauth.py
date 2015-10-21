@@ -178,7 +178,7 @@ def get_access_token(consumer, token, authorize=True, verifier=None):
     if authorize:
         return get_token_from_response(r)
     else:
-        eq_(r.status_code, 401)
+        assert r.status_code == 401
 
 
 class BaseOAuth(TestCase):
@@ -277,7 +277,7 @@ class TestUser(BaseOAuth):
         c.save()
         r = oclient.get('api.user', c, None,
                         params={'email': 'admin@mozilla.com'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(json.loads(r.content)['email'], 'admin@mozilla.com')
 
     def test_failed_user_lookup(self):
@@ -287,7 +287,7 @@ class TestUser(BaseOAuth):
         c.save()
         r = oclient.get('api.user', c, None,
                         params={'email': 'not_a_user@mozilla.com'})
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_forbidden_user_lookup(self, response_code=401):
         r = oclient.get('api.user', self.accepted_consumer, self.token,
@@ -366,7 +366,7 @@ class TestAddon(BaseOAuth):
         self.accepted_consumer.user = None
         self.accepted_consumer.save()
         r = self.make_create_request(self.create_data)
-        eq_(r.status_code, 401)
+        assert r.status_code == 401
 
     def test_create_user_altered(self):
         data = self.create_data
@@ -489,7 +489,7 @@ class TestAddon(BaseOAuth):
     def test_xpi_failure(self, f):
         f.side_effect = forms.ValidationError('F')
         r = self.make_create_request(self.create_data)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_fake_license(self):
         data = self.create_data.copy()
@@ -525,7 +525,7 @@ class TestAddon(BaseOAuth):
         # Upload new version of file
         r = oclient.post(('api.versions', id,), self.accepted_consumer,
                          self.token, data=self.version_data)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
         eq_(r.content, 'Bad Request: Add-on did not validate: '
             "Add-on ID doesn't match add-on.")
 
@@ -534,7 +534,7 @@ class TestAddon(BaseOAuth):
         data = self.create_data.copy()
         data['xpi'] = self.version_data['xpi']
         r = self.make_create_request(data)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
         eq_(r.content, 'Bad Request: Add-on did not validate: '
             'Duplicate add-on ID found.')
 
@@ -648,7 +648,7 @@ class TestAddon(BaseOAuth):
         # upload new version
         r = oclient.put(('api.version', id, v.id), self.accepted_consumer,
                         self.token, data=data, content_type=MULTIPART_CONTENT)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_update_version_bad_id(self):
         r = oclient.put(('api.version', 0, 0), self.accepted_consumer,
@@ -660,7 +660,7 @@ class TestAddon(BaseOAuth):
         a = Addon.objects.get(pk=data['id'])
         r = oclient.get(('api.version', data['id'], a.versions.get().id),
                         self.accepted_consumer, self.token)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_get_version_statuses(self):
         data = self.create_addon()
@@ -865,44 +865,44 @@ class TestPerformanceAPI(BaseOAuth):
 
     def test_form_fails(self):
         res = self.make_create_request({})
-        eq_(res.status_code, 400)
+        assert res.status_code == 400
 
     def test_not_allowed(self):
         res = self.client.post(reverse('api.performance.add'), {})
-        eq_(res.status_code, 401)
+        assert res.status_code == 401
 
     def test_form_incomplete(self):
         data = self.get_data()
         del data['test']
         res = self.make_create_request(data)
-        eq_(res.status_code, 400)
+        assert res.status_code == 400
         assert 'This field is required. (test)' in res.content
 
     def test_form_validate(self):
         data = self.get_data()
         data['os'] = 'WebOS hotness'
         res = self.make_create_request(data)
-        eq_(res.status_code, 400)
+        assert res.status_code == 400
         assert 'WebOS hotness' in res.content
 
     def test_no_addon(self):
         data = self.get_data()
         data['addon_id'] = '123'
         res = self.make_create_request(data)
-        eq_(res.status_code, 400)
+        assert res.status_code == 400
         assert 'Add-on not found' in res.content
 
     def test_addon(self):
         data = self.get_data()
         data['addon_id'] = Addon.objects.create(type=amo.ADDON_EXTENSION).pk
         res = self.make_create_request(data)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         perfs = Performance.objects.all()
         eq_(perfs[0].addon_id, data['addon_id'])
 
     def test_form_data(self):
         res = self.make_create_request(self.get_data())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         perfs = Performance.objects.all()
         eq_(perfs.count(), 1)
         eq_(perfs[0].average, 1.25)

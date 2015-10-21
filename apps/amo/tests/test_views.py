@@ -55,7 +55,7 @@ class Test404(amo.tests.TestCase):
 
     def test_404_app_links(self):
         res = self.client.get('/en-US/thunderbird/xxxxxxx')
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
         self.assertTemplateUsed(res, 'amo/404.html')
         links = pq(res.content)('[role=main] ul a[href^="/en-US/thunderbird"]')
         eq_(links.length, 4)
@@ -370,7 +370,7 @@ class TestCSP(amo.tests.TestCase):
 
     def test_malformed(self, log_cef):
         res = self.client.post(self.url, 'f', content_type='application/json')
-        eq_(res.status_code, 400)
+        assert res.status_code == 400
 
     def test_document_uri(self, log_cef):
         url = 'http://foo.com'
@@ -389,7 +389,7 @@ class TestContribute(amo.tests.TestCase):
 
     def test_contribute_json(self):
         res = self.client.get('/contribute.json')
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res._headers['content-type'], ('Content-Type', 'application/json'))
 
 

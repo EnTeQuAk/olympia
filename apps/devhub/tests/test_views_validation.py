@@ -126,14 +126,14 @@ class TestFileValidation(amo.tests.TestCase):
 
     def test_version_list(self):
         r = self.client.get(self.addon.get_dev_url('versions'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         a = pq(r.content)('td.file-validation a')
         eq_(a.text(), '0 errors, 0 warnings')
         eq_(a.attr('href'), self.url)
 
     def test_results_page(self):
         r = self.client.get(self.url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['addon'], self.addon)
         doc = pq(r.content)
         assert not doc('#site-nav').hasClass('app-nav'), (
@@ -169,7 +169,7 @@ class TestFileValidation(amo.tests.TestCase):
 
     def test_no_html_in_messages(self):
         r = self.client.post(self.json_url, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         msg = data['validation']['messages'][0]
         eq_(msg['message'], 'The value of &lt;em:id&gt; is invalid.')
@@ -316,11 +316,11 @@ class TestValidateAddon(amo.tests.TestCase):
     def test_login_required(self):
         self.client.logout()
         r = self.client.get(reverse('devhub.validate_addon'))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def test_context(self):
         r = self.client.get(reverse('devhub.validate_addon'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#upload-addon').attr('data-upload-url'),
             reverse('devhub.standalone_upload'))
@@ -478,7 +478,7 @@ class TestValidateFile(BaseUploadTest):
         r = self.client.post(reverse('devhub.json_file_validation',
                                      args=[self.addon.slug, self.file.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         msg = data['validation']['messages'][0]
         ok_('is invalid' in msg['message'])
@@ -510,7 +510,7 @@ class TestValidateFile(BaseUploadTest):
         r = self.client.post(reverse('devhub.json_file_validation',
                                      args=[self.addon.slug, self.file.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         assert not data['validation']['errors']
         addon = Addon.objects.get(pk=self.addon.id)
@@ -536,7 +536,7 @@ class TestValidateFile(BaseUploadTest):
         r = self.client.post(reverse('devhub.json_file_validation',
                                      args=[self.addon.slug, self.file.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         assert not data['validation']['errors']
         assert data['validation']['ending_tier'] == 5
@@ -561,7 +561,7 @@ class TestValidateFile(BaseUploadTest):
         r = self.client.post(reverse('devhub.json_file_validation',
                                      args=[self.addon.slug, self.file.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         assert not data['validation']['errors']
         addon = Addon.objects.get(pk=self.addon.id)
@@ -593,7 +593,7 @@ class TestValidateFile(BaseUploadTest):
         r = self.client.post(reverse('devhub.json_file_validation',
                                      args=[self.addon.slug, self.file.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         doc = pq(data['validation']['messages'][0]['description'][0])
         eq_(doc('a').text(), 'https://bugzilla.mozilla.org/')
@@ -680,15 +680,15 @@ class TestCompatibilityResults(amo.tests.TestCase):
         self.client.logout()
         r = self.client.get(reverse('devhub.bulk_compat_result',
                                     args=[self.addon.slug, self.result.id]))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         r = self.client.post(reverse('devhub.json_bulk_compat_result',
                                      args=[self.addon.slug, self.result.id]))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def test_target_version(self):
         r = self.client.get(reverse('devhub.bulk_compat_result',
                                     args=[self.addon.slug, self.result.id]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         ver = json.loads(doc('.results').attr('data-target-version'))
         assert amo.FIREFOX.guid in ver, ('Unexpected: %s' % ver)
@@ -697,7 +697,7 @@ class TestCompatibilityResults(amo.tests.TestCase):
     def test_app_trans(self):
         r = self.client.get(reverse('devhub.bulk_compat_result',
                                     args=[self.addon.slug, self.result.id]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         trans = json.loads(doc('.results').attr('data-app-trans'))
         for app in amo.APPS.values():
@@ -706,7 +706,7 @@ class TestCompatibilityResults(amo.tests.TestCase):
     def test_app_version_change_links(self):
         r = self.client.get(reverse('devhub.bulk_compat_result',
                                     args=[self.addon.slug, self.result.id]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         trans = json.loads(doc('.results').attr('data-version-change-links'))
         eq_(trans['%s 4.0.*' % amo.FIREFOX.guid],
@@ -721,7 +721,7 @@ class TestCompatibilityResults(amo.tests.TestCase):
         r = self.client.post(reverse('devhub.bulk_compat_result',
                                      args=[self.addon.slug, self.result.id]),
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert doc('time').text()
         eq_(doc('table tr td:eq(1)').text(), 'Firefox 4.0.*')
@@ -771,7 +771,7 @@ class TestUploadCompatCheck(BaseUploadTest):
 
     def test_compat_form(self):
         res = self.client.get(reverse('devhub.check_addon_compatibility'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
 
         options = doc('#id_application option')
@@ -815,7 +815,7 @@ class TestUploadCompatCheck(BaseUploadTest):
         res = self.client.get(poll_url)
         data = json.loads(res.content)
         res = self.client.get(data['full_report_url'])
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(res.context['result_type'], 'compat')
         doc = pq(res.content)
         # Shows app/version on the results page.
@@ -824,14 +824,14 @@ class TestUploadCompatCheck(BaseUploadTest):
 
     def test_compat_application_versions(self):
         res = self.client.get(reverse('devhub.check_addon_compatibility'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         data = {'application': amo.FIREFOX.id,
                 'csrfmiddlewaretoken':
                     doc('input[name=csrfmiddlewaretoken]').val()}
         r = self.client.post(doc('#id_application').attr('data-url'),
                              data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         empty = True
         for id, ver in data['choices']:

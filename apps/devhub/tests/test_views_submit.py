@@ -26,7 +26,7 @@ class TestSubmitPersona(amo.tests.TestCase):
 
     def test_img_urls(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         header_url, footer_url = self.get_img_urls()
         eq_(doc('#id_header').attr('data-upload-url'), header_url)

@@ -344,7 +344,7 @@ class TestLayout(StatsTest):
 
     def test_not_public_stats(self):
         r = self.client.get(reverse('stats.downloads', args=[4]))
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def get_public_url(self):
         addon = amo.tests.addon_factory(public_stats=True)
@@ -352,7 +352,7 @@ class TestLayout(StatsTest):
 
     def test_public_stats_page_loads(self):
         r = self.client.get(self.get_public_url())
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_public_stats_stats_notes(self):
         r = self.client.get(self.get_public_url())
@@ -367,7 +367,7 @@ class TestResponses(ESStatsTest):
 
             r = self.get_view_response('stats.usage_series', group='day',
                                        format='json')
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             self.assertListEqual(json.loads(r.content), [
                 {'count': 1500, 'date': '2009-06-02', 'end': '2009-06-02'},
                 {'count': 1000, 'date': '2009-06-01', 'end': '2009-06-01'},
@@ -379,7 +379,7 @@ class TestResponses(ESStatsTest):
 
             r = self.get_view_response('stats.usage_series', group='day',
                                        format='csv')
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             self.csv_eq(r,
                         """date,count
                            2009-06-02,1500
@@ -388,7 +388,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_app_json(self):
         r = self.get_view_response('stats.apps_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "data": {
@@ -411,7 +411,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_app_csv(self):
         r = self.get_view_response('stats.apps_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,Firefox 4.0
                           2009-06-02,1500,1500
                           2009-06-01,1000,1000""")
@@ -419,7 +419,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_locale_json(self):
         r = self.get_view_response('stats.locales_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "count": 1500,
@@ -444,7 +444,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_locale_csv(self):
         r = self.get_view_response('stats.locales_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,English (US) (en-us),Ελληνικά (el)
                           2009-06-02,1500,300,400
                           2009-06-01,1000,300,400""")
@@ -452,7 +452,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_os_json(self):
         r = self.get_view_response('stats.os_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "count": 1500,
@@ -477,12 +477,12 @@ class TestResponses(ESStatsTest):
     def test_usage_by_os_csv(self):
         r = self.get_view_response('stats.os_series', head=True, group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_usage_by_version_json(self):
         r = self.get_view_response('stats.versions_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "count": 1500,
@@ -507,7 +507,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_version_csv(self):
         r = self.get_view_response('stats.versions_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,2.0,1.0
                           2009-06-02,1500,950,550
                           2009-06-01,1000,800,200""")
@@ -515,7 +515,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_status_json(self):
         r = self.get_view_response('stats.statuses_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "count": 1500,
@@ -540,7 +540,7 @@ class TestResponses(ESStatsTest):
     def test_usage_by_status_csv(self):
         r = self.get_view_response('stats.statuses_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,userEnabled,userDisabled
                           2009-06-02,1500,1370,130
                           2009-06-01,1000,950,50""")
@@ -548,7 +548,7 @@ class TestResponses(ESStatsTest):
     def test_overview(self):
         r = self.get_view_response('stats.overview_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # These are the dates from the fixtures. The return value will have
         # dates in between filled with zeroes.
         expected_data = [
@@ -595,7 +595,7 @@ class TestResponses(ESStatsTest):
     def test_downloads_json(self):
         r = self.get_view_response('stats.downloads_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {"count": 10, "date": "2009-09-03", "end": "2009-09-03"},
             {"count": 10, "date": "2009-08-03", "end": "2009-08-03"},
@@ -610,7 +610,7 @@ class TestResponses(ESStatsTest):
     def test_downloads_csv(self):
         r = self.get_view_response('stats.downloads_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count
                           2009-09-03,10
                           2009-08-03,10
@@ -624,7 +624,7 @@ class TestResponses(ESStatsTest):
     def test_downloads_sources_json(self):
         r = self.get_view_response('stats.sources_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {"count": 10,
              "date": "2009-09-03",
@@ -663,7 +663,7 @@ class TestResponses(ESStatsTest):
     def test_downloads_sources_csv(self):
         r = self.get_view_response('stats.sources_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,search,api
                           2009-09-03,10,3,2
                           2009-08-03,10,3,2
@@ -677,7 +677,7 @@ class TestResponses(ESStatsTest):
     def test_contributions_series_json(self):
         r = self.get_view_response('stats.contributions_series', group='day',
                                    format='json')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertListEqual(json.loads(r.content), [
             {
                 "count": 2,
@@ -698,7 +698,7 @@ class TestResponses(ESStatsTest):
     def test_contributions_series_csv(self):
         r = self.get_view_response('stats.contributions_series', group='day',
                                    format='csv')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.csv_eq(r, """date,count,total,average
                           2009-06-02,2,4.98,2.49
                           2009-06-01,1,5.0,5.0""")
@@ -802,18 +802,18 @@ class TestCollections(amo.tests.ESTestCase):
 
     def tests_collection_anon(self):
         res = self.client.get(self.url)
-        eq_(res.status_code, 403)
+        assert res.status_code == 403
 
     def tests_collection_user(self):
         self.client.login(username='admin@mozilla.com', password='password')
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def tests_collection_admin(self):
         self.client.login(username='admin@mozilla.com', password='password')
         self.collection.update(author=None)
         res = self.client.get(self.url)
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     def test_collection_json(self):
         self.client.login(username='admin@mozilla.com', password='password')

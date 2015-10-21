@@ -55,7 +55,7 @@ class TestIndex(amo.tests.TestCase):
 
     def test_previous_version_link(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         self.assertUrlEqual(doc('h2.c a').attr('href'),
                             '{url}?page=1&previous=1'.format(url=self.url))
@@ -64,7 +64,7 @@ class TestIndex(amo.tests.TestCase):
         # The current pagination is not kept when we switch to previous
         # versions. See 1056022.
         r = self.client.get(self.url, {'page': 2, 'type': 'all'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         self.assertUrlEqual(
             doc('h2.c a').attr('href'),
@@ -120,7 +120,7 @@ class TestReporter(amo.tests.TestCase):
 
     def test_success(self):
         r = self.client.get(reverse('compat.reporter'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_redirect(self):
         CompatReport.objects.create(guid=self.addon.guid,
@@ -200,7 +200,7 @@ class TestReporterDetail(amo.tests.TestCase):
 
     def check_table(self, data={}, good=0, bad=0, appver=None, report_pks=[]):
         r = self.client.get(self.url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Check that we got the correct reports.
         eq_(sorted(r.id for r in r.context['reports'].object_list),

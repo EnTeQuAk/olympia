@@ -247,17 +247,17 @@ class TestUrls(amo.tests.TestCase):
 
     def test_no_compat_mode(self):
         r = self.client.head('/en-US/firefox/discovery/pane/10.0/WINNT')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_with_compat_mode(self):
         r = self.client.head('/en-US/firefox/discovery/pane/10.0/WINNT/strict')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.head('/en-US/firefox/discovery/pane/10.0/WINNT/normal')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.head('/en-US/firefox/discovery/pane/10.0/WINNT/ignore')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.head('/en-US/firefox/discovery/pane/10.0/WINNT/blargh')
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
 
 class TestPromos(amo.tests.TestCase):
@@ -271,7 +271,7 @@ class TestPromos(amo.tests.TestCase):
 
     def test_no_params(self):
         r = self.client.get(self.get_home_url())
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_mac(self):
         # Ensure that we get the same thing for the homepage promos.
@@ -293,7 +293,7 @@ class TestPromos(amo.tests.TestCase):
     def test_hidden(self):
         DiscoveryModule.objects.all().delete()
         r = self.client.get(self.get_disco_url('10.0', 'Darwin'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.content, '')
 
 
@@ -309,7 +309,7 @@ class TestPane(amo.tests.TestCase):
     def test_my_account(self):
         self.client.login(username='regular@mozilla.com', password='password')
         r = self.client.get(reverse('discovery.pane.account'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         s = doc('#my-account')
@@ -459,7 +459,7 @@ class TestPersonaDetails(amo.tests.TestCase):
 
     def test_page(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_by(self):
         """Test that the `by ... <authors>` section works."""
@@ -618,20 +618,20 @@ class TestPaneMoreAddons(amo.tests.TestCase):
     def test_hotness_strict(self):
         # Defaults to strict compat mode, both are within range.
         res = self.client.get(self._url())
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 2)
 
     def test_hotness_strict_filtered(self):
         # Defaults to strict compat mode, one is within range.
         res = self.client.get(self._url(version='6.0'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 1)
         self.assertContains(res, self.addon2.name)
 
     def test_hotness_ignore(self):
         # Defaults to ignore compat mode for Fx v10, both are compatible.
         res = self.client.get(self._url(version='10.0'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 2)
 
     def test_hotness_normal_strict_opt_in(self):
@@ -640,7 +640,7 @@ class TestPaneMoreAddons(amo.tests.TestCase):
                       file_kw=dict(strict_compatibility=True))
 
         res = self.client.get(self._url(version='12.0', compat_mode='normal'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 2)
 
     def test_hotness_normal_binary_components(self):
@@ -649,7 +649,7 @@ class TestPaneMoreAddons(amo.tests.TestCase):
                       file_kw=dict(binary_components=True))
 
         res = self.client.get(self._url(version='12.0', compat_mode='normal'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 2)
 
     def test_hotness_normal_compat_override(self):
@@ -664,5 +664,5 @@ class TestPaneMoreAddons(amo.tests.TestCase):
             min_version=addon3.current_version.version, max_version='*')
 
         res = self.client.get(self._url(version='12.0', compat_mode='normal'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('.featured-addons').length, 2)

@@ -292,7 +292,7 @@ class TestAdminUserEditForm(UserFormBase):
 
     def test_delete_link(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('a.delete').attr('href'),
             reverse('admin:users_userprofile_delete', args=[self.user.id]))
 

@@ -308,10 +308,10 @@ class TestUpdateCompatibility(amo.tests.TestCase):
         a = Addon.objects.get(pk=4594)
         r = self.client.get(reverse('devhub.ajax.compat.update',
                                     args=[a.slug, a.current_version.id]))
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
         r = self.client.get(reverse('devhub.ajax.compat.status',
                                     args=[a.slug]))
-        eq_(r.status_code, 404)
+        assert r.status_code == 404
 
     def test_compat(self):
         a = Addon.objects.get(pk=3615)
@@ -569,7 +569,7 @@ class TestEditPayments(amo.tests.TestCase):
         d = dict(enable_thankyou='on', thankyou_note='woo',
                  annoying=1, recipient='moz')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         addon = self.get_addon()
         eq_(addon.enable_thankyou, True)
         eq_(unicode(addon.thankyou_note), 'woo')
@@ -578,7 +578,7 @@ class TestEditPayments(amo.tests.TestCase):
         d = dict(enable_thankyou='', thankyou_note='woo',
                  annoying=1, recipient='moz')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         addon = self.get_addon()
         eq_(addon.enable_thankyou, False)
         eq_(addon.thankyou_note, None)
@@ -603,7 +603,7 @@ class TestEditPayments(amo.tests.TestCase):
         d = dict(enable_thankyou='on', thankyou_note='',
                  annoying=1, recipient='moz')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         addon = self.get_addon()
         eq_(addon.enable_thankyou, False)
         eq_(addon.thankyou_note, None)
@@ -660,7 +660,7 @@ class TestDisablePayments(amo.tests.TestCase):
 
     def test_disable(self):
         r = self.client.post(self.disable_url)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         assert(r['Location'].endswith(self.pay_url))
         eq_(Addon.objects.no_cache().get(id=3615).wants_contributions, False)
 
@@ -704,7 +704,7 @@ class TestPaymentsProfile(amo.tests.TestCase):
                  annoying=amo.CONTRIB_ROADBLOCK, the_reason='xxx',
                  the_future='yyy')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
         # The profile form is gone, we're accepting contributions.
         doc = pq(self.client.get(self.url).content)
@@ -731,7 +731,7 @@ class TestPaymentsProfile(amo.tests.TestCase):
         d = dict(recipient='dev', suggested_amount=2, paypal_id='xx@yy',
                  annoying=amo.CONTRIB_ROADBLOCK)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'profile_form', 'the_reason',
                              'This field is required.')
         self.assertFormError(r, 'profile_form', 'the_future',
@@ -742,7 +742,7 @@ class TestPaymentsProfile(amo.tests.TestCase):
         d = dict(recipient='dev', suggested_amount=2, paypal_id='xx@yy',
                  annoying=amo.CONTRIB_ROADBLOCK, the_reason='xxx')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'profile_form', 'the_future',
                              'This field is required.')
         check_page(r)
@@ -789,12 +789,12 @@ class TestHome(amo.tests.TestCase):
 
     def get_pq(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         return pq(r.content)
 
     def test_addons(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'devhub/index.html')
 
     def test_editor_promo(self):
@@ -875,14 +875,14 @@ class TestActivityFeed(amo.tests.TestCase):
 
     def test_feed_for_all(self):
         r = self.client.get(reverse('devhub.feed_all'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('header h2').text(), 'Recent Activity for My Add-ons')
         eq_(doc('#breadcrumbs li:eq(2)').text(), 'Recent Activity')
 
     def test_feed_for_addon(self):
         r = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('header h2').text(),
             'Recent Activity for %s' % self.addon.name)
@@ -891,12 +891,12 @@ class TestActivityFeed(amo.tests.TestCase):
     def test_feed_disabled(self):
         self.addon.update(status=amo.STATUS_DISABLED)
         r = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_feed_disabled_anon(self):
         self.client.logout()
         r = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def add_log(self, action=amo.LOG.ADD_REVIEW):
         amo.set_user(UserProfile.objects.get(email='del@icio.us'))
@@ -1047,7 +1047,7 @@ class TestProfile(TestProfileBase):
 
     def test_without_contributions_labels(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('label[for=the_reason] .optional').length, 1)
         eq_(doc('label[for=the_future] .optional').length, 1)
@@ -1087,7 +1087,7 @@ class TestProfile(TestProfileBase):
 
         d = dict(the_reason='', the_future='')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'profile_form', 'the_reason',
                              'This field is required.')
         self.assertFormError(r, 'profile_form', 'the_future',
@@ -1095,13 +1095,13 @@ class TestProfile(TestProfileBase):
 
         d = dict(the_reason='to be cool', the_future='')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'profile_form', 'the_future',
                              'This field is required.')
 
         d = dict(the_reason='', the_future='hot stuff')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'profile_form', 'the_reason',
                              'This field is required.')
 
@@ -1257,7 +1257,7 @@ class TestSubmitStep2(amo.tests.TestCase):
         r = self.client.post(reverse('devhub.submit.1'))
         self.assertRedirects(r, reverse('devhub.submit.2'))
         r = self.client.get(reverse('devhub.submit.2'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_step_2_not_seen(self):
         # We require a cookie that gets set in step 1.
@@ -1305,12 +1305,12 @@ class TestSubmitStep3(TestSubmitBase):
 
     def test_submit_success(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Post and be redirected.
         d = self.get_dict()
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.get_step().step, 4)
 
         addon = self.get_addon()
@@ -1397,7 +1397,7 @@ class TestSubmitStep3(TestSubmitBase):
         # Make sure the name isn't too long.
         d = self.get_dict(name='a' * 51)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         error = 'Ensure this value has at most 50 characters (it has 51).'
         self.assertFormError(r, 'form', 'name', error)
 
@@ -1405,7 +1405,7 @@ class TestSubmitStep3(TestSubmitBase):
         # Submit an invalid slug.
         d = self.get_dict(slug='slug!!! aksl23%%')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'form', 'slug', "Enter a valid 'slug' " +
                              "consisting of letters, numbers, underscores or "
                              "hyphens.")
@@ -1413,19 +1413,19 @@ class TestSubmitStep3(TestSubmitBase):
     def test_submit_slug_required(self):
         # Make sure the slug is required.
         r = self.client.post(self.url, self.get_dict(slug=''))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'form', 'slug', 'This field is required.')
 
     def test_submit_summary_required(self):
         # Make sure summary is required.
         r = self.client.post(self.url, self.get_dict(summary=''))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'form', 'summary', 'This field is required.')
 
     def test_submit_summary_length(self):
         # Summary is too long.
         r = self.client.post(self.url, self.get_dict(summary='a' * 251))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         error = 'Ensure this value has at most 250 characters (it has 251).'
         self.assertFormError(r, 'form', 'summary', error)
 
@@ -1499,7 +1499,7 @@ class TestSubmitStep4(TestSubmitBase):
         data = dict(icon_type='')
         data_formset = self.formset_media(**data)
         r = self.client.post(self.url, data_formset)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.get_step().step, 5)
 
     def formset_new_form(self, *args, **kw):
@@ -1636,7 +1636,7 @@ class TestSubmitStep4(TestSubmitBase):
             data = {'icon_type': 'image/png', 'icon_upload': filehandle}
             data_formset = self.formset_media(**data)
             res = self.client.post(self.url, data_formset)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         eq_(self.get_step().step, 5)
 
 
@@ -1667,7 +1667,7 @@ class TestSubmitStep5(Step5TestBase):
 
     def test_license_error(self):
         r = self.client.post(self.url, {'builtin': 4})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'license_form', 'builtin',
                              'Select a valid choice. 4 is not one of '
                              'the available choices.')
@@ -1702,18 +1702,18 @@ class TestSubmitStep6(TestSubmitBase):
 
     def test_get(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_require_review_type(self):
         r = self.client.post(self.url, {'dummy': 'text'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'review_type_form', 'review_type',
                              'A review type must be selected.')
 
     def test_bad_review_type(self):
         d = dict(review_type='jetsfool')
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertFormError(r, 'review_type_form', 'review_type',
                              'Select a valid choice. jetsfool is not one of '
                              'the available choices.')
@@ -1721,7 +1721,7 @@ class TestSubmitStep6(TestSubmitBase):
     def test_prelim_review(self):
         d = dict(review_type=amo.STATUS_UNREVIEWED)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.get_addon().status, amo.STATUS_UNREVIEWED)
         assert_raises(SubmitStep.DoesNotExist, self.get_step)
 
@@ -1729,7 +1729,7 @@ class TestSubmitStep6(TestSubmitBase):
         self.get_version().update(nomination=None)
         d = dict(review_type=amo.STATUS_NOMINATED)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         addon = self.get_addon()
         eq_(addon.status, amo.STATUS_NOMINATED)
         self.assertCloseToNow(self.get_version().nomination)
@@ -1739,7 +1739,7 @@ class TestSubmitStep6(TestSubmitBase):
         # This was a regression, see bug 632191.
         # Nominate:
         r = self.client.post(self.url, dict(review_type=amo.STATUS_NOMINATED))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         nomdate = datetime.now() - timedelta(days=5)
         self.get_version().update(nomination=nomdate, _signal=False)
         # Update something else in the addon:
@@ -1782,7 +1782,7 @@ class TestSubmitStep7(TestSubmitBase):
         eq_(self.addon.current_version.supported_platforms, [amo.PLATFORM_ALL])
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         a = doc('a#submitted-addon-url')
@@ -1803,7 +1803,7 @@ class TestSubmitStep7(TestSubmitBase):
         self.addon.update(is_listed=False, status=amo.STATUS_UNREVIEWED)
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         # For unlisted add-ons, there's only the devhub page link displayed and
@@ -1817,7 +1817,7 @@ class TestSubmitStep7(TestSubmitBase):
         self.addon.update(is_listed=False, status=amo.STATUS_PUBLIC)
 
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
 
         # For unlisted addon that are already signed, show a url to the devhub
@@ -1836,7 +1836,7 @@ class TestSubmitStep7(TestSubmitBase):
         addon = Addon.objects.get(name__localized_string='Cooliris')
         addon.addonuser_set.create(user_id=55021)
         r = self.client.get(reverse('devhub.submit.7', args=[addon.slug]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         next_steps = pq(r.content)('.done-next-steps li a')
 
         # upload more platform specific files...
@@ -1887,7 +1887,7 @@ class TestSubmitStep7(TestSubmitBase):
         u = 'フォクすけといっしょ'
         self.addon.update(slug=u)
         r = self.client.get(reverse('devhub.submit.7', args=[u]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         # The meta charset will always be utf-8.
         doc = pq(r.content.decode('utf-8'))
         eq_(doc('#submitted-addon-url').text(),
@@ -1928,7 +1928,7 @@ class TestSubmitBump(TestSubmitBase):
 
     def test_bump_acl(self):
         r = self.client.post(self.url, {'step': 4})
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
     def test_bump_submit_and_redirect(self):
         assert self.client.login(username='admin@mozilla.com',
@@ -1966,14 +1966,14 @@ class TestSubmitSteps(amo.tests.TestCase):
     def test_step_1(self):
         self.user.update(read_dev_agreement=None)
         r = self.client.get(reverse('devhub.submit.1'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_on_step_6(self):
         # Hitting the step we're supposed to be on is a 200.
         SubmitStep.objects.create(addon_id=3615, step=6)
         r = self.client.get(reverse('devhub.submit.6',
                                     args=['a3615']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_skip_step_6(self):
         # We get bounced back to step 3.
@@ -2060,7 +2060,7 @@ class TestUpload(BaseUploadTest):
     def test_login_required(self):
         self.client.logout()
         r = self.post()
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def test_create_fileupload(self):
         self.post()
@@ -2143,7 +2143,7 @@ class TestUploadDetail(BaseUploadTest):
         with open(addon, 'rb') as f:
             r = self.client.post(reverse('devhub.upload'),
                                  {'upload': f})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     @attr('validator')
     def test_detail_json(self):
@@ -2152,7 +2152,7 @@ class TestUploadDetail(BaseUploadTest):
         upload = FileUpload.objects.get()
         r = self.client.get(reverse('devhub.upload_detail',
                                     args=[upload.uuid, 'json']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         assert data['validation']['errors'] == 2
         eq_(data['url'],
@@ -2169,7 +2169,7 @@ class TestUploadDetail(BaseUploadTest):
         upload = FileUpload.objects.filter().order_by('-created').first()
         r = self.client.get(reverse('devhub.upload_detail',
                                     args=[upload.uuid]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert (doc('header h2').text() ==
                 'Validation Results for {0}_animated.png'.format(upload.pk))
@@ -2184,7 +2184,7 @@ class TestUploadDetail(BaseUploadTest):
         upload = FileUpload.objects.get()
         r = self.client.get(reverse('devhub.upload_detail',
                                     args=[upload.uuid, 'json']))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         eq_(sorted(data['platforms_to_exclude']), sorted(platforms))
 
@@ -2464,7 +2464,7 @@ class TestVersionAddFile(UploadTest):
 
     def test_success_html(self):
         r = self.post()
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         new_file = self.version.files.get(platform=amo.PLATFORM_MAC.id)
         eq_(r.context['form'].instance, new_file)
 
@@ -2637,7 +2637,7 @@ class TestUploadErrors(UploadTest):
     def test_version_upload(self, run_validator, validate_, flag_is_active):
         # Load the versions page:
         res = self.client.get(self.addon.get_dev_url('versions'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
 
         # javascript: upload file:
@@ -2673,7 +2673,7 @@ class TestUploadErrors(UploadTest):
         # Submit a new addon:
         self.client.post(reverse('devhub.submit.1'))  # set cookie
         res = self.client.get(reverse('devhub.submit.2'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
 
         # javascript: upload file:
@@ -2773,7 +2773,7 @@ class TestAddVersion(AddVersionTest):
     def test_multiple_platforms(self):
         r = self.post(supported_platforms=[amo.PLATFORM_MAC,
                                            amo.PLATFORM_LINUX])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         version = self.addon.versions.get(version='0.1')
         eq_(len(version.all_files), 2)
 
@@ -2782,7 +2782,7 @@ class TestAddVersion(AddVersionTest):
         self.addon.update(is_listed=False)
         r = self.post(supported_platforms=[amo.PLATFORM_MAC,
                                            amo.PLATFORM_LINUX])
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         version = self.addon.versions.get(version='0.1')
         eq_(len(version.all_files), 2)
         mock_auto_sign_file.assert_has_calls(
@@ -2900,7 +2900,7 @@ class TestAddBetaVersion(AddVersionTest):
 
         self.do_upload()
         r = self.post_additional(version, platform=amo.PLATFORM_LINUX)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         # Make sure that the additional files are beta
         fle = File.objects.all().order_by('-id')[0]
@@ -3020,7 +3020,7 @@ class TestVersionXSS(UploadTest):
         self.version.update(
             version='<script>alert("Happy XSS-Xmas");<script>')
         r = self.client.get(reverse('devhub.addons'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         assert '<script>alert' not in r.content
         assert '&amp;lt;script&amp;gt;alert' in r.content
 
@@ -3149,7 +3149,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
 
     def test_missing_platforms(self):
         r = self.client.post(self.url, dict(upload=self.upload.pk))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['new_addon_form'].errors.as_text(),
             '* supported_platforms\n  * Need at least one platform.')
         doc = pq(r.content)
@@ -3248,7 +3248,7 @@ class TestRequestReview(amo.tests.TestCase):
 
     def check_400(self, url):
         r = self.client.post(url)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_404(self):
         bad_url = self.public_url.replace(str(amo.STATUS_PUBLIC), '0')
@@ -3390,7 +3390,7 @@ class TestRemoveLocale(amo.tests.TestCase):
 
     def test_bad_request(self):
         r = self.client.post(self.url)
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_success(self):
         self.addon.name = {'en-US': 'woo', 'el': 'yeah'}
@@ -3399,12 +3399,12 @@ class TestRemoveLocale(amo.tests.TestCase):
         qs = (Translation.objects.filter(localized_string__isnull=False)
               .values_list('locale', flat=True))
         r = self.client.post(self.url, {'locale': 'el'})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(sorted(qs.filter(id=self.addon.name_id)), ['en-US'])
 
     def test_delete_default_locale(self):
         r = self.client.post(self.url, {'locale': self.addon.default_locale})
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_remove_version_locale(self):
         version = self.addon.versions.all()[0]

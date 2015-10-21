@@ -38,7 +38,7 @@ class TestViews(ReviewTest):
     def test_dev_reply(self):
         url = helpers.url('addons.reviews.detail', self.addon.slug, 218468)
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_dev_no_rss(self):
         url = helpers.url('addons.reviews.detail', self.addon.slug, 218468)
@@ -54,7 +54,7 @@ class TestViews(ReviewTest):
     def test_feed(self):
         url = helpers.url('addons.reviews.list.rss', self.addon.slug)
         r = self.client.get(url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_abuse_form(self):
         r = self.client.get(helpers.url('addons.reviews.list',
@@ -75,7 +75,7 @@ class TestViews(ReviewTest):
     def test_list(self):
         r = self.client.get(helpers.url('addons.reviews.list',
                                         self.addon.slug))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         reviews = doc('#reviews .item')
         eq_(reviews.length, Review.objects.count())
@@ -109,7 +109,7 @@ class TestViews(ReviewTest):
         eq_(Review.objects.count(), 0)
         r = self.client.get(helpers.url('addons.reviews.list',
                                         self.addon.slug))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#reviews .item').length, 0)
         eq_(doc('#add-first-review').length, 1)
@@ -294,7 +294,7 @@ class TestCreate(ReviewTest):
 
     def test_add_logged(self):
         r = self.client.get(self.add)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'reviews/add.html')
 
     def test_add_admin(self):
@@ -466,7 +466,7 @@ class TestTranslate(ReviewTest):
         url = helpers.url('addons.reviews.translate', review.addon.slug,
                           review.id, 'fr')
         r = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(json.loads(r.content), {"body": "oui", "title": "oui"})
 
     @mock.patch('waffle.switch_is_active', lambda x: True)
@@ -512,7 +512,7 @@ class TestMobileReviews(amo.tests.MobileTest, amo.tests.TestCase):
         self.client.logout()
         self.mobile_init()
         r = self.client.get(self.list)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'reviews/mobile/review_list.html')
 
     def test_add_visitor(self):
@@ -523,13 +523,13 @@ class TestMobileReviews(amo.tests.MobileTest, amo.tests.TestCase):
 
     def test_add_logged(self):
         r = self.client.get(self.add)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         self.assertTemplateUsed(r, 'reviews/mobile/add.html')
 
     def test_add_admin(self):
         self.login_admin()
         r = self.client.get(self.add)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_add_dev(self):
         self.login_dev()

@@ -320,7 +320,7 @@ class TestBulkValidation(BulkValidationTest):
             self.create_result(job, self.create_file(), **res)
 
         r = self.client.get(reverse('zadmin.validation'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         assert doc('table tr td').eq(0).text() == str(job.pk)  # ID
         assert doc('table tr td').eq(3).text() == 'Firefox'  # Application
@@ -349,7 +349,7 @@ class TestBulkValidation(BulkValidationTest):
             self.create_result(job, self.create_file(), **{})
             r = self.client.post(reverse('zadmin.job_status'),
                                  {'job_ids': json.dumps([job.pk])})
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             data = json.loads(r.content)[str(job.pk)]
             return data
 
@@ -409,7 +409,7 @@ class TestBulkUpdate(BulkValidationTest):
     def test_update_anonymous(self):
         self.client.logout()
         r = self.client.post(self.update_url)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def test_version_pks(self):
         for version in [self.version_one, self.version_two]:
@@ -430,7 +430,7 @@ class TestBulkUpdate(BulkValidationTest):
     def test_update_pks(self):
         self.create_result(self.job, self.create_file(self.version))
         r = self.client.post(self.update_url, self.data)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.version.apps.all()[0].max, self.job.target_version)
 
     def test_update_unclean_pks(self):
@@ -438,7 +438,7 @@ class TestBulkUpdate(BulkValidationTest):
         self.create_result(self.job, self.create_file(self.version),
                            errors=1)
         r = self.client.post(self.update_url, self.data)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(self.version.apps.all()[0].max, self.job.curr_max_version)
 
     def test_update_pks_logs(self):
@@ -592,7 +592,7 @@ class TestBulkNotify(BulkValidationTest):
     def test_notify_anonymous(self):
         self.client.logout()
         r = self.client.post(self.update_url)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
     def test_notify_log(self):
         self.create_result(self.job, self.create_file(self.version),
@@ -621,7 +621,7 @@ class TestBulkNotify(BulkValidationTest):
         r = self.client.post(self.update_url,
                              {'text': '..',
                               'subject': '{{ FAILING_ADDONS.0.name }}'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
         eq_(mail.outbox[0].body, '..')
         eq_(mail.outbox[0].subject, self.addon.name)
@@ -633,7 +633,7 @@ class TestBulkNotify(BulkValidationTest):
         r = self.client.post(self.update_url,
                              {'text': '{{ FAILING_ADDONS.0.links }}',
                               'subject': '...'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
         res = reverse('devhub.bulk_compat_result',
                       args=(self.addon.slug, result.pk))
@@ -645,7 +645,7 @@ class TestBulkNotify(BulkValidationTest):
                            **{'errors': 1})
         self.create_result(self.job, self.create_file(self.version))
         r = self.client.post(self.update_url, {'text': '..', 'subject': '..'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
 
     def test_notify_mail_multiple(self):
@@ -654,7 +654,7 @@ class TestBulkNotify(BulkValidationTest):
         self.create_result(self.job, self.create_file(self.version),
                            **{'errors': 1})
         r = self.client.post(self.update_url, {'text': '..', 'subject': '..'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
 
     def test_notify_mail_preview(self):
@@ -664,7 +664,7 @@ class TestBulkNotify(BulkValidationTest):
         r = self.client.post(self.update_url,
                              {'text': 'the message', 'subject': 'the subject',
                               'preview_only': 'on'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 0)
         rs = self.job.get_notify_preview_emails()
         eq_([e.subject for e in rs], ['the subject'])
@@ -676,7 +676,7 @@ class TestBulkNotify(BulkValidationTest):
                              {'text': '{{ FAILING_ADDONS.0.name }}'
                                       '{{ FAILING_ADDONS.0.compat_link }}',
                               'subject': '{{ FAILING_ADDONS.0.name }} blah'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
         url = reverse('devhub.versions.edit', args=[self.addon.pk,
                                                     self.version.pk])
@@ -692,7 +692,7 @@ class TestBulkNotify(BulkValidationTest):
         r = self.client.post(self.update_url,
                              {'text': '{{ FAILING_ADDONS.0.name }}',
                               'subject': '{{ FAILING_ADDONS.0.name }} blah'})
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(len(mail.outbox), 1)
         eq_(mail.outbox[0].body, self.addon.name)
 
@@ -707,7 +707,7 @@ class TestBulkNotify(BulkValidationTest):
                           ['{{ FAILING_ADDONS.0.name }}{% if %}', False]):
             r = self.client.post(self.syntax_url, {'text': text,
                                                    'subject': '..'})
-            eq_(r.status_code, 200)
+            assert r.status_code == 200
             eq_(json.loads(r.content)['valid'], res)
 
 
@@ -1073,7 +1073,7 @@ class TestTallyValidationErrors(BulkValidationTest):
     def csv(self, job_id):
         r = self.client.get(reverse('zadmin.validation_tally_csv',
                             args=[job_id]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         rdr = csv.reader(StringIO(r.content))
         header = rdr.next()
         rows = sorted((r for r in rdr), key=lambda r: r[0])
@@ -1134,7 +1134,7 @@ class TestEmailPreview(amo.tests.TestCase):
                              recipient_list=['funnyguy@mozilla.org'])
         r = self.client.get(reverse('zadmin.email_preview_csv',
                             args=[self.topic.topic]))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         rdr = csv.reader(StringIO(r.content))
         eq_(rdr.next(), ['from_email', 'recipient_list', 'subject', 'body'])
         eq_(rdr.next(), ['admin@mozilla.org', 'funnyguy@mozilla.org',
@@ -1201,7 +1201,7 @@ class TestMonthlyPick(amo.tests.TestCase):
         d = initial(self.f)
         d.update(locale='fr')
         r = self.client.post(self.url, formset(d, initial_count=1))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(MonthlyPick.objects.all()[0].locale, 'fr')
 
     def test_success_delete(self):
@@ -1213,7 +1213,7 @@ class TestMonthlyPick(amo.tests.TestCase):
     def test_require_login(self):
         self.client.logout()
         r = self.client.get(self.url)
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
 
 
 class TestFeatures(amo.tests.TestCase):
@@ -1236,7 +1236,7 @@ class TestFeatures(amo.tests.TestCase):
 
     def test_form_attrs(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('#features tr').attr('data-app'), str(amo.FIREFOX.id))
         assert doc('#features td.app').hasClass(amo.FIREFOX.short)
@@ -1257,7 +1257,7 @@ class TestFeatures(amo.tests.TestCase):
         d = dict(locale='zh-CN', collection=80)
         data = formset(self.initial, d, initial_count=1)
         r = self.client.post(self.url, data)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['form'].errors[0]['application'],
             ['This field is required.'])
         eq_(r.context['form'].errors[0]['collection'],
@@ -1318,7 +1318,7 @@ class TestFeatures(amo.tests.TestCase):
         d = initial(self.f)
         d.update(locale='fr')
         r = self.client.post(self.url, formset(d, initial_count=1))
-        eq_(r.status_code, 302)
+        assert r.status_code == 302
         eq_(FeaturedCollection.objects.all()[0].locale, 'fr')
 
     def test_success_delete(self):
@@ -1360,7 +1360,7 @@ class TestLookup(amo.tests.TestCase):
 
     def check_results(self, q, expected):
         res = self.client.get(urlparams(self.url, q=q))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         content = json.loads(res.content)
         eq_(len(content), len(expected))
         ids = [int(c['value']) for c in content]
@@ -1376,7 +1376,7 @@ class TestLookup(amo.tests.TestCase):
     def test_lookup_wrong_model(self):
         self.url = reverse('zadmin.search', args=['doesnt', 'exist'])
         res = self.client.get(urlparams(self.url, q=''))
-        eq_(res.status_code, 404)
+        assert res.status_code == 404
 
     def test_lookup_empty(self):
         users = UserProfile.objects.values('id', 'email')
@@ -1409,7 +1409,7 @@ class TestAddonSearch(amo.tests.ESTestCase):
     def test_lookup_addon(self):
         res = self.client.get(urlparams(self.url, q='delicious'))
         # There's only one result, so it should just forward us to that page.
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
 
 
 class TestAddonAdmin(amo.tests.TestCase):
@@ -1460,14 +1460,14 @@ class TestAddonManagement(amo.tests.TestCase):
     def test_addon_status_change(self):
         data = self._form_data({'status': '3'})
         r = self.client.post(self.url, data, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         addon = Addon.objects.get(pk=3615)
         eq_(addon.status, 3)
 
     def test_addon_file_status_change(self):
         data = self._form_data({'form-0-status': '1'})
         r = self.client.post(self.url, data, follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         file = File.objects.get(pk=67442)
         eq_(file.status, 1)
 
@@ -1497,7 +1497,7 @@ class TestAddonManagement(amo.tests.TestCase):
             filename='delicious_bookmarks-2.1.106-fx.xpi', version=version)
 
         r = self.client.get(reverse('zadmin.recalc_hash', args=[file.id]))
-        eq_(r.status_code, 405)  # GET out of here
+        assert r.status_code == 405  # GET out of here
 
 
 class TestCompat(amo.tests.ESTestCase):
@@ -1536,12 +1536,12 @@ class TestCompat(amo.tests.ESTestCase):
 
     def get_pq(self, **kw):
         r = self.client.get(self.url, kw)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         return pq(r.content)('#compat-results')
 
     def test_defaults(self):
         r = self.client.get(self.url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(r.context['app'], self.app)
         eq_(r.context['version'], self.app_version)
         table = pq(r.content)('#compat-results')

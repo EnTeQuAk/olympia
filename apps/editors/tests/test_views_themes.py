@@ -268,7 +268,7 @@ class ThemeReviewTestMixin(object):
 
             res = self.client.get(reverse('editors.themes.single',
                                           args=[addon.slug]))
-            eq_(res.status_code, 200)
+            assert res.status_code == 200
             eq_(res.context['theme'].id,
                 addon.persona.rereviewqueuetheme_set.all()[0].id
                 if self.rereview else addon.persona.id)
@@ -326,7 +326,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         self.create_and_become_reviewer()
         self.theme_factory()
         res = self.client.get(reverse('editors.themes.list'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         eq_(pq(res.content)('#addon-queue tbody tr').length, 1)
 
     @mock.patch.object(rvw, 'THEME_INITIAL_LOCKS', 1)
@@ -411,7 +411,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         reviewer = self.create_and_become_reviewer()
 
         res = self.client.get(reverse('editors.themes.history'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('tbody tr').length, 0)
 
@@ -422,12 +422,12 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
                              'comment': '', 'reject_reason': ''})
 
         res = self.client.get(reverse('editors.themes.history'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('tbody tr').length, 3)
 
         res = self.client.get(reverse('editors.themes.logs'))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
         doc = pq(res.content)
         eq_(doc('tbody tr').length, 3 * 2)  # Double for comment rows.
 
@@ -441,7 +441,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
 
             res = self.client.get(reverse('editors.themes.single',
                                           args=[addon.slug]))
-            eq_(res.status_code, 200)
+            assert res.status_code == 200
             eq_(res.context['theme'].id,
                 addon.persona.rereviewqueuetheme_set.all()[0].id
                 if self.rereview else addon.persona.id)
@@ -509,7 +509,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
 
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(self.queue_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         doc = pq(r.content)
         eq_(doc('.theme').length, 1)
         eq_(RereviewQueueTheme.unfiltered.count(), 2)
@@ -520,7 +520,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         self.theme_factory(status=amo.STATUS_REJECTED)
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(self.queue_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.theme').length, 1)
 
     def test_rejected_addon_in_locks(self):
@@ -536,7 +536,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
                                  theme=rejected_theme.persona)
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(self.queue_url)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('.theme').length, 0)
 
     @mock.patch('editors.tasks.send_mail_jinja')
@@ -625,7 +625,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         with self.settings(ALLOW_SELF_REVIEWS=True):
             res = self.client.get(reverse('editors.themes.single',
                                           args=[addon.slug]))
-        eq_(res.status_code, 200)
+        assert res.status_code == 200
 
     @mock.patch('amo.utils.LocalFileStorage.delete')
     def test_reject_theme_without_footer_bug_1142449(self, delete_mock):
@@ -647,7 +647,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
 
         with self.settings(ALLOW_SELF_REVIEWS=True):
             res = self.client.post(reject_url, form_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         assert delete_mock.call_count == 2  # Did try to delete the footer.
         delete_mock.assert_any_call(rereview.header_path)
         delete_mock.assert_any_call(rereview.footer_path)
@@ -662,7 +662,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
 
         with self.settings(ALLOW_SELF_REVIEWS=True):
             res = self.client.post(reject_url, form_data)
-        eq_(res.status_code, 302)
+        assert res.status_code == 302
         assert delete_mock.call_count == 1  # Didn't try to delete the footer.
         delete_mock.assert_any_call(rereview.header_path)
 
@@ -679,14 +679,14 @@ class TestDeletedThemeLookup(amo.tests.TestCase):
     def test_table(self):
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(reverse('editors.themes.deleted'))
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         eq_(pq(r.content)('tbody td:nth-child(3)').text(),
             self.deleted.name.localized_string)
 
     def test_perm(self):
         self.login('persona_reviewer@mozilla.com')
         r = self.client.get(reverse('editors.themes.deleted'))
-        eq_(r.status_code, 403)
+        assert r.status_code == 403
 
 
 class TestThemeSearch(amo.tests.ESTestCase):
@@ -745,7 +745,7 @@ class TestDashboard(amo.tests.TestCase):
         RereviewQueueTheme.objects.create(theme=rereview.persona)
 
         r = home(self.request)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         doc = pq(r.content)
         titles = doc('#editors-stats-charts .editor-stats-title a')
@@ -760,7 +760,7 @@ class TestDashboard(amo.tests.TestCase):
                     user=UserProfile.objects.get())
 
         r = home(self.request)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
         doc = pq(r.content)
         # Total reviews.
