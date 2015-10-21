@@ -1,6 +1,5 @@
 import pytest
 from array import array
-from nose.tools import eq_
 
 from lib import recommend
 
@@ -10,7 +9,8 @@ pytestmark = pytest.mark.django_db
 
 def test_symmetric_diff_count():
     def check(a, b, val):
-        eq_(recommend.symmetric_diff_count(a, b), val)
+        assert recommend.symmetric_diff_count(a, b) == val
+
     vals = [
         ([], [], 0),
         ([], [1], 1),
@@ -28,10 +28,11 @@ def test_symmetric_diff_count():
     # Flip the inputs so we test in both directions.
     vals.extend([(b, a, n) for a, b, n in vals])
     vals.extend([(array('l', a), array('l', b), n) for a, b, n in vals])
+
     for a, b, val in vals:
         yield check, a, b, val
 
 
 # The algorithm is in flux so this is minimal coverage.
 def test_similarity():
-    eq_(1 / 2., recommend.similarity([1], [1, 2]))
+    assert 1 / 2. == recommend.similarity([1], [1, 2])

@@ -4,8 +4,6 @@ import tempfile
 
 import pytest
 from mock import Mock, patch
-from nose import SkipTest
-from nose.tools import eq_
 import waffle
 
 from django.conf import settings
@@ -67,15 +65,15 @@ class TestFFmpegVideo(amo.tests.TestCase):
         super(TestFFmpegVideo, self).setUp()
         self.video = ffmpeg.Video(files['good'])
         if not ffmpeg.Video.library_available():
-            raise SkipTest
+            raise pytest.skip('ffmpeg is not available')
         self.video._call = Mock()
         self.video._call.return_value = older_output
 
     def test_meta(self):
         self.video.get_meta()
-        eq_(self.video.meta['formats'], ['matroska', 'webm'])
-        eq_(self.video.meta['duration'], 10.0)
-        eq_(self.video.meta['dimensions'], (640, 360))
+        assert self.video.meta['formats'] == ['matroska', 'webm']
+        assert self.video.meta['duration'] == 10.0
+        assert self.video.meta['dimensions'] == (640, 360)
 
     def test_valid(self):
         self.video.get_meta()
@@ -84,12 +82,10 @@ class TestFFmpegVideo(amo.tests.TestCase):
     def test_dev_valid(self):
         self.video._call.return_value = other_output
         self.video.get_meta()
-        eq_(self.video.meta['formats'], ['webm'])
+        assert self.video.meta['formats'] == ['webm']
 
-    # These tests can be a little bit slow, to say the least so they are
-    # skipped. Un-skip them if you want.
+    @pytest.mark.slowtest
     def test_screenshot(self):
-        raise SkipTest
         self.video.get_meta()
         try:
             screenshot = self.video.get_screenshot(amo.ADDON_PREVIEW_SIZES[0])
@@ -97,8 +93,8 @@ class TestFFmpegVideo(amo.tests.TestCase):
         finally:
             os.remove(screenshot)
 
+    @pytest.mark.slowtest
     def test_encoded(self):
-        raise SkipTest
         self.video.get_meta()
         try:
             video = self.video.get_encoded(amo.ADDON_PREVIEW_SIZES[0])
@@ -113,11 +109,11 @@ class TestBadFFmpegVideo(amo.tests.TestCase):
         super(TestBadFFmpegVideo, self).setUp()
         self.video = ffmpeg.Video(files['bad'])
         if not self.video.library_available():
-            raise SkipTest
+            raise pytest.skip('ffmpeg is not available')
         self.video.get_meta()
 
     def test_meta(self):
-        eq_(self.video.meta['formats'], ['image2'])
+        assert self.video.meta['formats'] == ['image2']
         assert not self.video.is_valid()
 
     def test_valid(self):
@@ -142,8 +138,8 @@ class TestTotemVideo(amo.tests.TestCase):
     def test_meta(self):
         self.video._call_indexer.return_value = totem_indexer_good
         self.video.get_meta()
-        eq_(self.video.meta['formats'], 'VP8')
-        eq_(self.video.meta['duration'], '10')
+        assert self.video.meta['formats'] == 'VP8'
+        assert self.video.meta['duration'] == '10'
 
     def test_valid(self):
         self.video._call_indexer = Mock()
@@ -156,10 +152,8 @@ class TestTotemVideo(amo.tests.TestCase):
         self.video.get_meta()
         assert not self.video.is_valid()
 
-    # These tests can be a little bit slow, to say the least so they are
-    # skipped. Un-skip them if you want.
+    @pytest.mark.slowtest
     def test_screenshot(self):
-        raise SkipTest
         self.video.get_meta()
         try:
             screenshot = self.video.get_screenshot(amo.ADDON_PREVIEW_SIZES[0])
@@ -167,8 +161,8 @@ class TestTotemVideo(amo.tests.TestCase):
         finally:
             os.remove(screenshot)
 
+    @pytest.mark.slowtest
     def test_encoded(self):
-        raise SkipTest
         self.video.get_meta()
         try:
             video = self.video.get_encoded(amo.ADDON_PREVIEW_SIZES[0])
@@ -184,11 +178,11 @@ class TestTotemVideo(amo.tests.TestCase):
 def test_choose(ffmpeg_, totem_):
     ffmpeg_.return_value = True
     totem_.return_value = True
-    eq_(get_library(), totem.Video)
+    assert get_library() == totem.Video
     totem_.return_value = False
-    eq_(get_library(), ffmpeg.Video)
+    assert get_library() == ffmpeg.Video
     ffmpeg_.return_value = False
-    eq_(get_library(), None)
+    assert get_library() is None
 
 
 class TestTask(amo.tests.TestCase):
@@ -220,23 +214,23 @@ class TestTask(amo.tests.TestCase):
         resize_video(files['good'], self.mock, user=user)
         assert self.mock.delete.called
 
+    @pytest.mark.slowtest
     @patch('lib.video.ffmpeg.Video.get_encoded')
     def test_resize_video_no_encode(self, get_encoded):
-        raise SkipTest
         waffle.models.Switch.objects.update(name='video-encode', active=False)
         resize_video(files['good'], self.mock)
         assert not get_encoded.called
         assert isinstance(self.mock.sizes, dict)
         assert self.mock.save.called
 
+    @pytest.mark.slowtest
     def test_resize_video(self):
-        raise SkipTest
         resize_video(files['good'], self.mock)
         assert isinstance(self.mock.sizes, dict)
         assert self.mock.save.called
 
+    @pytest.mark.slowtest
     def test_resize_image(self):
-        raise SkipTest
         resize_video(files['bad'], self.mock)
         assert not isinstance(self.mock.sizes, dict)
         assert not self.mock.save.called

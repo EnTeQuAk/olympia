@@ -10,7 +10,6 @@ from django.core.cache import cache
 
 import mock
 from nose.plugins.attrib import attr
-from nose.tools import eq_
 from piston.models import Consumer
 from pyquery import PyQuery as pq
 
@@ -50,9 +49,9 @@ class TestSiteEvents(amo.tests.TestCase):
     def test_get(self):
         url = reverse('zadmin.site_events')
         response = self.client.get(url)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         events = response.context['events']
-        eq_(len(events), 1)
+        assert len(events) == 1
 
     def test_add(self):
         url = reverse('zadmin.site_events')
@@ -62,9 +61,9 @@ class TestSiteEvents(amo.tests.TestCase):
             'description': 'foo',
         }
         response = self.client.post(url, new_event, follow=True)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         events = response.context['events']
-        eq_(len(events), 2)
+        assert len(events) == 2
 
     def test_edit(self):
         url = reverse('zadmin.site_events', args=[1])
@@ -74,16 +73,16 @@ class TestSiteEvents(amo.tests.TestCase):
             'description': 'bar',
         }
         response = self.client.post(url, modified_event, follow=True)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         events = response.context['events']
-        eq_(events[0].description, 'bar')
+        assert events[0].description == 'bar'
 
     def test_delete(self):
         url = reverse('zadmin.site_events.delete', args=[1])
         response = self.client.get(url, follow=True)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         events = response.context['events']
-        eq_(len(events), 0)
+        assert len(events) == 0
 
 
 class TestFlagged(amo.tests.TestCase):
@@ -98,29 +97,33 @@ class TestFlagged(amo.tests.TestCase):
         response = self.client.get(self.url, follow=True)
 
         addons = dict((a.id, a) for a in response.context['addons'])
-        eq_(len(addons), 3)
+        assert len(addons) == 3
 
         # 1. an addon should have latest version and approval attached
         addon = Addon.objects.get(id=1)
-        eq_(addons[1], addon)
-        eq_(addons[1].version.id,
-            Version.objects.filter(addon=addon).latest().id)
-        eq_(addons[1].approval.id,
-            Approval.objects.filter(addon=addon).latest().id)
+        assert addons[1] == addon
+        assert (
+            addons[1].version.id
+            == Version.objects.filter(addon=addon).latest().id)
+        assert (
+            addons[1].approval.id
+            == Approval.objects.filter(addon=addon).latest().id)
 
         # 2. missing approval is ok
         addon = Addon.objects.get(id=2)
-        eq_(addons[2], addon)
-        eq_(addons[2].version.id,
-            Version.objects.filter(addon=addon).latest().id)
-        eq_(addons[2].approval, None)
+        assert addons[2] == addon
+        assert (
+            addons[2].version.id
+            == Version.objects.filter(addon=addon).latest().id)
+        assert addons[2].approval is None
 
         # 3. missing approval is ok
         addon = Addon.objects.get(id=3)
-        eq_(addons[3], addon)
-        eq_(addons[3].approval.id,
-            Approval.objects.filter(addon=addon).latest().id)
-        eq_(addons[3].version, None)
+        assert addons[3] == addon
+        assert (
+            addons[3].approval.id
+            == Approval.objects.filter(addon=addon).latest().id)
+        assert addons[3].version is None
 
     def test_post(self):
         response = self.client.post(self.url, {'addon_id': ['1', '2']},
@@ -131,13 +134,13 @@ class TestFlagged(amo.tests.TestCase):
         assert not Addon.objects.no_cache().get(id=2).admin_review
 
         addons = response.context['addons']
-        eq_(len(addons), 1)
-        eq_(addons[0], Addon.objects.get(id=3))
+        assert len(addons) == 1
+        assert addons[0] == Addon.objects.get(id=3)
 
     def test_empty(self):
         Addon.objects.update(admin_review=False)
         res = self.client.get(self.url)
-        eq_(set(res.context['addons']), set([]))
+        assert set(res.context['addons']) == set([])
 
 
 class BulkValidationTest(amo.tests.TestCase):
@@ -211,7 +214,7 @@ class BulkValidationTest(amo.tests.TestCase):
                               'target_version': self.new_max.id,
                               'finish_email': 'fliggy@mozilla.com'},
                              follow=True)
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
 
 
 class TestBulkValidation(BulkValidationTest):
@@ -228,13 +231,14 @@ class TestBulkValidation(BulkValidationTest):
         self.assertNoFormErrors(r)
         self.assertRedirects(r, reverse('zadmin.validation'))
         job = ValidationJob.objects.get()
-        eq_(job.application, amo.FIREFOX.id)
-        eq_(job.curr_max_version.version, self.curr_max.version)
-        eq_(job.target_version.version, new_max.version)
-        eq_(job.finish_email, 'fliggy@mozilla.com')
-        eq_(job.completed, None)
-        eq_(job.result_set.all().count(),
-            len(self.version.all_files))
+        assert job.application == amo.FIREFOX.id
+        assert job.curr_max_version.version == self.curr_max.version
+        assert job.target_version.version == new_max.version
+        assert job.finish_email == 'fliggy@mozilla.com'
+        assert job.completed is None
+        assert (
+            job.result_set.all().count()
+            == len(self.version.all_files))
         assert bulk_validate_file.delay.called
 
     @mock.patch('zadmin.tasks.bulk_validate_file')
@@ -318,19 +322,19 @@ class TestBulkValidation(BulkValidationTest):
         r = self.client.get(reverse('zadmin.validation'))
         eq_(r.status_code, 200)
         doc = pq(r.content)
-        eq_(doc('table tr td').eq(0).text(), str(job.pk))  # ID
-        eq_(doc('table tr td').eq(3).text(), 'Firefox')  # Application
-        eq_(doc('table tr td').eq(4).text(), self.curr_max.version)
-        eq_(doc('table tr td').eq(5).text(), '3.7a3')
-        eq_(doc('table tr td').eq(6).text(), '2')  # tested
-        eq_(doc('table tr td').eq(7).text(), '1')  # failing
-        eq_(doc('table tr td').eq(8).text()[0], '1')  # passing
-        eq_(doc('table tr td').eq(9).text(), '0')  # exceptions
+        assert doc('table tr td').eq(0).text() == str(job.pk)  # ID
+        assert doc('table tr td').eq(3).text() == 'Firefox'  # Application
+        assert doc('table tr td').eq(4).text() == self.curr_max.version
+        assert doc('table tr td').eq(5).text() == '3.7a3'
+        assert doc('table tr td').eq(6).text() == '2'  # tested
+        assert doc('table tr td').eq(7).text() == '1'  # failing
+        assert doc('table tr td').eq(8).text()[0] == '1'  # passing
+        assert doc('table tr td').eq(9).text() == '0'  # exceptions
 
     def test_application_versions_json(self):
         r = self.client.post(reverse('zadmin.application_versions_json'),
                              {'application': amo.FIREFOX.id})
-        eq_(r.status_code, 200)
+        assert r.status_code == 200
         data = json.loads(r.content)
         empty = True
         for id, ver in data['choices']:
