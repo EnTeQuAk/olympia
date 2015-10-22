@@ -80,21 +80,21 @@ class TestFindJetpacks(amo.tests.TestCase):
 
     def test_success(self):
         files = find_jetpacks('1.0', '1.1')
-        eq_(files, [self.file])
+        assert files == [self.file]
 
     def test_skip_autorepackage(self):
         Addon.objects.update(auto_repackage=False)
-        eq_(find_jetpacks('1.0', '1.1'), [])
+        assert find_jetpacks('1.0', '1.1') == []
 
     def test_minver(self):
         files = find_jetpacks('1.1', '1.2')
-        eq_(files, [self.file])
-        eq_(files[0].needs_upgrade, False)
+        assert files == [self.file]
+        assert files[0].needs_upgrade == False
 
     def test_maxver(self):
         files = find_jetpacks('.1', '1.0')
-        eq_(files, [self.file])
-        eq_(files[0].needs_upgrade, False)
+        assert files == [self.file]
+        assert files[0].needs_upgrade == False
 
     def test_unreviewed_files_plus_reviewed_file(self):
         # We upgrade unreviewed files up to the latest reviewed file.
@@ -102,18 +102,18 @@ class TestFindJetpacks(amo.tests.TestCase):
         new_file = File.objects.create(version=v, jetpack_version='1.0')
         Version.objects.create(addon_id=3615)
         new_file2 = File.objects.create(version=v, jetpack_version='1.0')
-        eq_(new_file.status, amo.STATUS_UNREVIEWED)
-        eq_(new_file2.status, amo.STATUS_UNREVIEWED)
+        assert new_file.status == amo.STATUS_UNREVIEWED
+        assert new_file2.status == amo.STATUS_UNREVIEWED
 
         files = find_jetpacks('1.0', '1.1')
-        eq_(files, [self.file, new_file, new_file2])
+        assert files, [self.file, new_file == new_file2]
         assert all(f.needs_upgrade for f in files)
 
         # Now self.file will not need an upgrade since we skip old versions.
         new_file.update(status=amo.STATUS_PUBLIC)
         files = find_jetpacks('1.0', '1.1')
-        eq_(files, [self.file, new_file, new_file2])
-        eq_(files[0].needs_upgrade, False)
+        assert files, [self.file, new_file == new_file2]
+        assert files[0].needs_upgrade == False
         assert all(f.needs_upgrade for f in files[1:])
 
 
@@ -133,48 +133,48 @@ class TestPackageJSONExtractor(amo.tests.TestCase):
     def test_guid(self):
         """Use id for the guid."""
         with self.extractor({'id': 'some-id'}) as extractor:
-            eq_(extractor.parse()['guid'], 'some-id')
+            assert extractor.parse()['guid'] == 'some-id'
 
     def test_name_for_guid_if_no_id(self):
         """Use the name for the guid if there is no id."""
         with self.extractor({'name': 'addon-name'}) as extractor:
-            eq_(extractor.parse()['guid'], 'addon-name')
+            assert extractor.parse()['guid'] == 'addon-name'
 
     def test_type(self):
         """Package.json addons are always ADDON_EXTENSION."""
         with self.extractor({}) as extractor:
-            eq_(extractor.parse()['type'], amo.ADDON_EXTENSION)
+            assert extractor.parse()['type'] == amo.ADDON_EXTENSION
 
     def test_no_restart(self):
         """Package.json addons are always no-restart."""
         with self.extractor({}) as extractor:
-            eq_(extractor.parse()['no_restart'], True)
+            assert extractor.parse()['no_restart'] == True
 
     def test_name_from_title_with_name(self):
         """Use the title for the name."""
         data = {'title': 'The Addon Title', 'name': 'the-addon-name'}
         with self.extractor(data) as extractor:
-            eq_(extractor.parse()['name'], 'The Addon Title')
+            assert extractor.parse()['name'] == 'The Addon Title'
 
     def test_name_from_name_without_title(self):
         """Use the name for the name if there is no title."""
         with self.extractor({'name': 'the-addon-name'}) as extractor:
-            eq_(extractor.parse()['name'], 'the-addon-name')
+            assert extractor.parse()['name'] == 'the-addon-name'
 
     def test_version(self):
         """Use version for the version."""
         with self.extractor({'version': '23.0.1'}) as extractor:
-            eq_(extractor.parse()['version'], '23.0.1')
+            assert extractor.parse()['version'] == '23.0.1'
 
     def test_homepage(self):
         """Use homepage for the homepage."""
         with self.extractor({'homepage': 'http://my-addon.org'}) as extractor:
-            eq_(extractor.parse()['homepage'], 'http://my-addon.org')
+            assert extractor.parse()['homepage'] == 'http://my-addon.org'
 
     def test_summary(self):
         """Use description for the summary."""
         with self.extractor({'description': 'An addon.'}) as extractor:
-            eq_(extractor.parse()['summary'], 'An addon.')
+            assert extractor.parse()['summary'] == 'An addon.'
 
     def test_apps(self):
         """Use engines for apps."""
@@ -222,10 +222,10 @@ class TestPackageJSONExtractor(amo.tests.TestCase):
         }
         with self.extractor(data) as extractor:
             apps = extractor.parse()['apps']
-            eq_(len(apps), 1)
-            eq_(apps[0].appdata.short, 'firefox')
-            eq_(apps[0].min, firefox_version)
-            eq_(apps[0].max, firefox_version)
+            assert len(apps) == 1
+            assert apps[0].appdata.short == 'firefox'
+            assert apps[0].min == firefox_version
+            assert apps[0].max == firefox_version
 
     def test_fennec_is_treated_as_android(self):
         """Treat the fennec engine as android."""
@@ -238,6 +238,6 @@ class TestPackageJSONExtractor(amo.tests.TestCase):
         }
         with self.extractor(data) as extractor:
             apps = extractor.parse()['apps']
-            eq_(apps[0].appdata.short, 'android')
-            eq_(apps[0].min, android_version)
-            eq_(apps[0].max, android_version)
+            assert apps[0].appdata.short == 'android'
+            assert apps[0].min == android_version
+            assert apps[0].max == android_version

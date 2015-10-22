@@ -34,12 +34,12 @@ class Test403(amo.tests.TestCase):
 
     def test_403_no_app(self):
         response = self.client.get('/en-US/admin/')
-        eq_(response.status_code, 403)
+        assert response.status_code == 403
         self.assertTemplateUsed(response, 'amo/403.html')
 
     def test_403_app(self):
         response = self.client.get('/en-US/thunderbird/admin/', follow=True)
-        eq_(response.status_code, 403)
+        assert response.status_code == 403
         self.assertTemplateUsed(response, 'amo/403.html')
 
 
@@ -50,7 +50,7 @@ class Test404(amo.tests.TestCase):
         # That could happen if helpers or templates expect APP to be defined.
         url = reverse('amo.monitor')
         response = self.client.get(url + 'nonsense')
-        eq_(response.status_code, 404)
+        assert response.status_code == 404
         self.assertTemplateUsed(response, 'amo/404.html')
 
     def test_404_app_links(self):
@@ -58,7 +58,7 @@ class Test404(amo.tests.TestCase):
         assert res.status_code == 404
         self.assertTemplateUsed(res, 'amo/404.html')
         links = pq(res.content)('[role=main] ul a[href^="/en-US/thunderbird"]')
-        eq_(links.length, 4)
+        assert links.length == 4
 
 
 class TestCommon(amo.tests.TestCase):
@@ -78,7 +78,7 @@ class TestCommon(amo.tests.TestCase):
     def test_tools_regular_user(self):
         self.login('regular')
         r = self.client.get(self.url, follow=True)
-        eq_(r.context['request'].amo_user.is_developer, False)
+        assert r.context['request'].amo_user.is_developer == False
 
         expected = [
             ('Tools', '#'),
@@ -98,7 +98,7 @@ class TestCommon(amo.tests.TestCase):
         GroupUser.objects.create(group=group, user=user)
 
         r = self.client.get(self.url, follow=True)
-        eq_(r.context['request'].amo_user.is_developer, True)
+        assert r.context['request'].amo_user.is_developer == True
 
         expected = [
             ('Tools', '#'),
@@ -114,8 +114,8 @@ class TestCommon(amo.tests.TestCase):
         self.login('editor')
         r = self.client.get(self.url, follow=True)
         request = r.context['request']
-        eq_(request.amo_user.is_developer, False)
-        eq_(acl.action_allowed(request, 'Addons', 'Review'), True)
+        assert request.amo_user.is_developer == False
+        assert acl.action_allowed(request, 'Addons', 'Review') == True
 
         expected = [
             ('Tools', '#'),
@@ -134,8 +134,8 @@ class TestCommon(amo.tests.TestCase):
 
         r = self.client.get(self.url, follow=True)
         request = r.context['request']
-        eq_(request.amo_user.is_developer, True)
-        eq_(acl.action_allowed(request, 'Addons', 'Review'), True)
+        assert request.amo_user.is_developer == True
+        assert acl.action_allowed(request, 'Addons', 'Review') == True
 
         expected = [
             ('Tools', '#'),
@@ -152,10 +152,10 @@ class TestCommon(amo.tests.TestCase):
         self.login('admin')
         r = self.client.get(self.url, follow=True)
         request = r.context['request']
-        eq_(request.amo_user.is_developer, False)
-        eq_(acl.action_allowed(request, 'Addons', 'Review'), True)
-        eq_(acl.action_allowed(request, 'Localizer', '%'), True)
-        eq_(acl.action_allowed(request, 'Admin', '%'), True)
+        assert request.amo_user.is_developer == False
+        assert acl.action_allowed(request, 'Addons', 'Review') == True
+        assert acl.action_allowed(request, 'Localizer', '%') == True
+        assert acl.action_allowed(request, 'Admin', '%') == True
 
         expected = [
             ('Tools', '#'),
@@ -176,10 +176,10 @@ class TestCommon(amo.tests.TestCase):
 
         r = self.client.get(self.url, follow=True)
         request = r.context['request']
-        eq_(request.amo_user.is_developer, True)
-        eq_(acl.action_allowed(request, 'Addons', 'Review'), True)
-        eq_(acl.action_allowed(request, 'Localizer', '%'), True)
-        eq_(acl.action_allowed(request, 'Admin', '%'), True)
+        assert request.amo_user.is_developer == True
+        assert acl.action_allowed(request, 'Addons', 'Review') == True
+        assert acl.action_allowed(request, 'Localizer', '%') == True
+        assert acl.action_allowed(request, 'Admin', '%') == True
 
         expected = [
             ('Tools', '#'),
@@ -202,40 +202,40 @@ class TestOtherStuff(amo.tests.TestCase):
     def test_balloons_no_readonly(self):
         response = self.client.get('/en-US/firefox/')
         doc = pq(response.content)
-        eq_(doc('#site-notice').length, 0)
-        eq_(doc('#site-nonfx').length, 1)
-        eq_(doc('#site-welcome').length, 1)
+        assert doc('#site-notice').length == 0
+        assert doc('#site-nonfx').length == 1
+        assert doc('#site-welcome').length == 1
 
     @mock.patch.object(settings, 'READ_ONLY', True)
     def test_balloons_readonly(self):
         response = self.client.get('/en-US/firefox/')
         doc = pq(response.content)
-        eq_(doc('#site-notice').length, 1)
-        eq_(doc('#site-nonfx').length, 1)
-        eq_(doc('#site-welcome').length, 1)
+        assert doc('#site-notice').length == 1
+        assert doc('#site-nonfx').length == 1
+        assert doc('#site-welcome').length == 1
 
     @mock.patch.object(settings, 'READ_ONLY', False)
     def test_thunderbird_balloons_no_readonly(self):
         response = self.client.get('/en-US/thunderbird/')
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
-        eq_(doc('#site-notice').length, 0)
+        assert doc('#site-notice').length == 0
 
     @mock.patch.object(settings, 'READ_ONLY', True)
     def test_thunderbird_balloons_readonly(self):
         response = self.client.get('/en-US/thunderbird/')
         doc = pq(response.content)
-        eq_(doc('#site-notice').length, 1)
+        assert doc('#site-notice').length == 1
         eq_(doc('#site-nonfx').length, 0,
             'This balloon should appear for Firefox only')
-        eq_(doc('#site-welcome').length, 1)
+        assert doc('#site-welcome').length == 1
 
     def test_heading(self):
         def title_eq(url, alt, text):
             response = self.client.get(url, follow=True)
             doc = PyQuery(response.content)
-            eq_(alt, doc('.site-title img').attr('alt'))
-            eq_(text, doc('.site-title').text())
+            assert alt == doc('.site-title img').attr('alt')
+            assert text == doc('.site-title').text()
 
         title_eq('/firefox/', 'Firefox', 'Add-ons')
         title_eq('/thunderbird/', 'Thunderbird', 'Add-ons')
@@ -251,18 +251,18 @@ class TestOtherStuff(amo.tests.TestCase):
 
     def test_tools_loggedout(self):
         r = self.client.get(reverse('home'), follow=True)
-        eq_(pq(r.content)('#aux-nav .tools').length, 0)
+        assert pq(r.content)('#aux-nav .tools').length == 0
 
     def test_language_selector(self):
         doc = pq(test.Client().get('/en-US/firefox/').content)
-        eq_(doc('form.languages option[selected]').attr('value'), 'en-us')
+        assert doc('form.languages option[selected]').attr('value') == 'en-us'
 
     def test_language_selector_variables(self):
         r = self.client.get('/en-US/firefox/?foo=fooval&bar=barval')
         doc = pq(r.content)('form.languages')
 
-        eq_(doc('input[type=hidden][name=foo]').attr('value'), 'fooval')
-        eq_(doc('input[type=hidden][name=bar]').attr('value'), 'barval')
+        assert doc('input[type=hidden][name=foo]').attr('value') == 'fooval'
+        assert doc('input[type=hidden][name=bar]').attr('value') == 'barval'
 
     @patch.object(settings, 'KNOWN_PROXIES', ['127.0.0.1'])
     def test_remote_addr(self):
@@ -271,7 +271,7 @@ class TestOtherStuff(amo.tests.TestCase):
         # Send X-Forwarded-For as it shows up in a wsgi request.
         client.get('/en-US/firefox/', follow=True,
                    HTTP_X_FORWARDED_FOR='1.1.1.1')
-        eq_(commonware.log.get_remote_addr(), '1.1.1.1')
+        assert commonware.log.get_remote_addr() == '1.1.1.1'
 
     def test_jsi18n_caching(self):
         # The jsi18n catalog should be cached for a long time.
@@ -307,23 +307,23 @@ class TestOtherStuff(amo.tests.TestCase):
 
     def test_mobile_link_firefox(self):
         doc = pq(test.Client().get('/firefox', follow=True).content)
-        eq_(doc('#site-nav #more .more-mobile a').length, 1)
+        assert doc('#site-nav #more .more-mobile a').length == 1
 
     def test_mobile_link_nonfirefox(self):
         for app in ('thunderbird', 'mobile'):
             doc = pq(test.Client().get('/' + app, follow=True).content)
-            eq_(doc('#site-nav #more .more-mobile').length, 0)
+            assert doc('#site-nav #more .more-mobile').length == 0
 
     def test_opensearch(self):
         client = test.Client()
         page = client.get('/en-US/firefox/opensearch.xml')
 
         wanted = ('Content-Type', 'text/xml')
-        eq_(page._headers['content-type'], wanted)
+        assert page._headers['content-type'] == wanted
 
         doc = etree.fromstring(page.content)
         e = doc.find("{http://a9.com/-/spec/opensearch/1.1/}ShortName")
-        eq_(e.text, "Firefox Add-ons")
+        assert e.text == "Firefox Add-ons"
 
     def test_login_link_encoding(self):
         # Test that the login link encodes parameters correctly.
@@ -366,7 +366,7 @@ class TestCSP(amo.tests.TestCase):
         self.create_sample(name='csp-store-reports')
 
     def test_get_document(self, log_cef):
-        eq_(self.client.get(self.url).status_code, 405)
+        assert self.client.get(self.url).status_code == 405
 
     def test_malformed(self, log_cef):
         res = self.client.post(self.url, 'f', content_type='application/json')
@@ -377,12 +377,12 @@ class TestCSP(amo.tests.TestCase):
         self.client.post(self.url,
                          json.dumps({'csp-report': {'document-uri': url}}),
                          content_type='application/json')
-        eq_(log_cef.call_args[0][2]['PATH_INFO'], url)
+        assert log_cef.call_args[0][2]['PATH_INFO'] == url
 
     def test_no_document_uri(self, log_cef):
         self.client.post(self.url, json.dumps({'csp-report': {}}),
                          content_type='application/json')
-        eq_(log_cef.call_args[0][2]['PATH_INFO'], '/services/csp/report')
+        assert log_cef.call_args[0][2]['PATH_INFO'] == '/services/csp/report'
 
 
 class TestContribute(amo.tests.TestCase):
@@ -390,7 +390,7 @@ class TestContribute(amo.tests.TestCase):
     def test_contribute_json(self):
         res = self.client.get('/contribute.json')
         assert res.status_code == 200
-        eq_(res._headers['content-type'], ('Content-Type', 'application/json'))
+        assert res._headers['content-type'], ('Content-Type' == 'application/json')
 
 
 class TestRobots(amo.tests.TestCase):
@@ -400,5 +400,5 @@ class TestRobots(amo.tests.TestCase):
         """Make sure /en-US/firefox/collections/ gets disabled"""
         url = reverse('collections.list')
         response = self.client.get('/robots.txt')
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         assert 'Disallow: %s' % url in response.content

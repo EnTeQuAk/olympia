@@ -88,7 +88,7 @@ class TestEventLog(EditorTest):
 
         r = self.client.get(self.url, dict(end='2011-01-01'))
         assert r.status_code == 200
-        eq_(pq(r.content)('tbody td').eq(0).text(), 'Jan 1, 2011 12:00:00 AM')
+        assert pq(r.content)('tbody td').eq(0).text(), 'Jan 1 == 2011 12:00:00 AM'
 
     def test_action_filter(self):
         """
@@ -100,7 +100,7 @@ class TestEventLog(EditorTest):
             amo.log(amo.LOG.APPROVE_REVIEW, review, review.addon)
             amo.log(amo.LOG.DELETE_REVIEW, review.id, review.addon)
         r = self.client.get(self.url, dict(filter='deleted'))
-        eq_(pq(r.content)('tbody tr').length, 2)
+        assert pq(r.content)('tbody tr').length == 2
 
     def test_no_results(self):
         r = self.client.get(self.url, dict(end='2004-01-01'))
@@ -250,8 +250,8 @@ class TestReviewLog(EditorTest):
         r = self.client.get(self.url, dict(end=date))
         assert r.status_code == 200
         doc = pq(r.content)('#log-listing tbody')
-        eq_(doc('tr:not(.hide)').length, 2)
-        eq_(doc('tr.hide').eq(0).text(), 'youwin')
+        assert doc('tr:not(.hide)').length == 2
+        assert doc('tr.hide').eq(0).text() == 'youwin'
 
     def test_end_filter_wrong(self):
         """
@@ -262,28 +262,28 @@ class TestReviewLog(EditorTest):
         r = self.client.get(self.url, dict(end='wrong!'))
         # If this is broken, we'll get a traceback.
         assert r.status_code == 200
-        eq_(pq(r.content)('#log-listing tr:not(.hide)').length, 3)
+        assert pq(r.content)('#log-listing tr:not(.hide)').length == 3
 
     def test_search_comment_exists(self):
         """Search by comment."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='hello'))
         assert r.status_code == 200
-        eq_(pq(r.content)('#log-listing tbody tr.hide').eq(0).text(), 'hello')
+        assert pq(r.content)('#log-listing tbody tr.hide').eq(0).text() == 'hello'
 
     def test_search_comment_case_exists(self):
         """Search by comment, with case."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='HeLlO'))
         assert r.status_code == 200
-        eq_(pq(r.content)('#log-listing tbody tr.hide').eq(0).text(), 'hello')
+        assert pq(r.content)('#log-listing tbody tr.hide').eq(0).text() == 'hello'
 
     def test_search_comment_doesnt_exist(self):
         """Search by comment, with no results."""
         self.make_an_approval(amo.LOG.REQUEST_SUPER_REVIEW, comment='hello')
         r = self.client.get(self.url, dict(search='bye'))
         assert r.status_code == 200
-        eq_(pq(r.content)('.no-results').length, 1)
+        assert pq(r.content)('.no-results').length == 1
 
     def test_search_author_exists(self):
         """Search by author."""
@@ -295,8 +295,8 @@ class TestReviewLog(EditorTest):
         assert r.status_code == 200
         rows = pq(r.content)('#log-listing tbody tr')
 
-        eq_(rows.filter(':not(.hide)').length, 1)
-        eq_(rows.filter('.hide').eq(0).text(), 'hi')
+        assert rows.filter(':not(.hide)').length == 1
+        assert rows.filter('.hide').eq(0).text() == 'hi'
 
     def test_search_author_case_exists(self):
         """Search by author, with case."""
@@ -308,8 +308,8 @@ class TestReviewLog(EditorTest):
         assert r.status_code == 200
         rows = pq(r.content)('#log-listing tbody tr')
 
-        eq_(rows.filter(':not(.hide)').length, 1)
-        eq_(rows.filter('.hide').eq(0).text(), 'hi')
+        assert rows.filter(':not(.hide)').length == 1
+        assert rows.filter('.hide').eq(0).text() == 'hi'
 
     def test_search_author_doesnt_exist(self):
         """Search by author, with no results."""
@@ -318,7 +318,7 @@ class TestReviewLog(EditorTest):
 
         r = self.client.get(self.url, dict(search='wrong'))
         assert r.status_code == 200
-        eq_(pq(r.content)('.no-results').length, 1)
+        assert pq(r.content)('.no-results').length == 1
 
     def test_search_addon_exists(self):
         """Search by add-on name."""
@@ -327,8 +327,8 @@ class TestReviewLog(EditorTest):
         r = self.client.get(self.url, dict(search=addon.name))
         assert r.status_code == 200
         tr = pq(r.content)('#log-listing tr[data-addonid="%s"]' % addon.id)
-        eq_(tr.length, 1)
-        eq_(tr.siblings('.comments').text(), 'youwin')
+        assert tr.length == 1
+        assert tr.siblings('.comments').text() == 'youwin'
 
     def test_search_addon_case_exists(self):
         """Search by add-on name, with case."""
@@ -337,15 +337,15 @@ class TestReviewLog(EditorTest):
         r = self.client.get(self.url, dict(search=str(addon.name).swapcase()))
         assert r.status_code == 200
         tr = pq(r.content)('#log-listing tr[data-addonid="%s"]' % addon.id)
-        eq_(tr.length, 1)
-        eq_(tr.siblings('.comments').text(), 'youwin')
+        assert tr.length == 1
+        assert tr.siblings('.comments').text() == 'youwin'
 
     def test_search_addon_doesnt_exist(self):
         """Search by add-on name, with no results."""
         self.make_approvals()
         r = self.client.get(self.url, dict(search='xxx'))
         assert r.status_code == 200
-        eq_(pq(r.content)('.no-results').length, 1)
+        assert pq(r.content)('.no-results').length == 1
 
     def test_breadcrumbs(self):
         self._test_breadcrumbs([('Add-on Review Log', None)])
@@ -430,12 +430,12 @@ class TestHome(EditorTest):
             ('Review Text', 'bar'),
         ]
         for (dt, dd), texts in zip(elems, expected):
-            eq_(dt.text, texts[0])
-            eq_(dd.text, texts[1])
+            assert dt.text == texts[0]
+            assert dd.text == texts[1]
 
     def undelete_review(self, review, allowed):
         al = ActivityLog.objects.order_by('-id')[0]
-        eq_(al.arguments[1], review)
+        assert al.arguments[1] == review
 
         url = reverse('editors.eventlog.detail', args=[al.id])
         doc = pq(self.client.get(url).content)
@@ -447,7 +447,7 @@ class TestHome(EditorTest):
         assert r.status_code in (302, 403)
         post = r.status_code == 302
 
-        eq_(post, allowed)
+        assert post == allowed
 
     def test_undelete_review_own(self):
         review = self.delete_review()
@@ -476,8 +476,8 @@ class TestHome(EditorTest):
         doc = pq(self.client.get(self.url).content)
 
         cols = doc('#editors-stats .editor-stats-table:eq(1)').find('td')
-        eq_(cols.eq(0).text(), self.user.display_name)
-        eq_(int(cols.eq(1).text()), 2, 'Approval count should be 2')
+        assert cols.eq(0).text() == self.user.display_name
+        assert int(cols.eq(1).text()), 2 == 'Approval count should be 2'
 
     def test_stats_total_admin(self):
         self.login_as_admin()
@@ -501,8 +501,8 @@ class TestHome(EditorTest):
         doc = pq(self.client.get(self.url).content)
 
         cols = doc('#editors-stats .editor-stats-table:eq(1)').find('td')
-        eq_(cols.eq(0).text(), self.user.display_name)
-        eq_(int(cols.eq(1).text()), 2, 'Approval count should be 2')
+        assert cols.eq(0).text() == self.user.display_name
+        assert int(cols.eq(1).text()), 2 == 'Approval count should be 2'
 
     @override_settings(EDITOR_REVIEWS_MAX_DISPLAY=0)
     def test_stats_user_position_ranked(self):
@@ -519,9 +519,9 @@ class TestHome(EditorTest):
         self.approve_reviews()
         doc = pq(self.client.get(self.url).content)
         p = doc('#editors-stats .editor-stats-table p:eq(0)')
-        eq_(p.text(), None)
+        assert p.text() is None
         p = doc('#editors-stats .editor-stats-table p:eq(1)')
-        eq_(p.text(), None, 'Monthly reviews should not be displayed')
+        assert p.text(), None == 'Monthly reviews should not be displayed'
 
     def test_new_editors(self):
         amo.log(amo.LOG.GROUP_USER_ADDED,
@@ -530,7 +530,7 @@ class TestHome(EditorTest):
         doc = pq(self.client.get(self.url).content)
 
         anchors = doc('#editors-stats .editor-stats-table:eq(2)').find('td a')
-        eq_(anchors.eq(0).text(), self.user.display_name)
+        assert anchors.eq(0).text() == self.user.display_name
 
     def test_unlisted_queues_only_for_senior_reviewers(self):
         listed_queues_links = [
@@ -674,7 +674,7 @@ class QueueTest(EditorTest):
 
     def get_queue(self, addon):
         version = addon.latest_version.reload()
-        eq_(version.current_queue.objects.filter(id=addon.id).count(), 1)
+        assert version.current_queue.objects.filter(id=addon.id).count() == 1
 
     def _test_get_queue(self):
         self.generate_files()
@@ -686,8 +686,8 @@ class QueueTest(EditorTest):
         r = self.client.get(self.url)
         assert r.status_code == 200
         a = pq(r.content)('.tabnav li a:eq(%s)' % eq)
-        eq_(a.text(), '%s (%s)' % (name, count))
-        eq_(a.attr('href'), self.url)
+        assert a.text(), '%s (%s)' % (name == count)
+        assert a.attr('href') == self.url
 
     def _test_results(self):
         r = self.client.get(self.url)
@@ -729,7 +729,7 @@ class TestQueueBasics(QueueTest):
     def test_invalid_page(self):
         r = self.client.get(self.url, {'page': 999})
         assert r.status_code == 200
-        eq_(r.context['page'].number, 1)
+        assert r.context['page'].number == 1
 
     def test_invalid_per_page(self):
         r = self.client.get(self.url, {'per_page': '<garbage>'})
@@ -772,17 +772,17 @@ class TestQueueBasics(QueueTest):
             # Update expected GET parameters with sort type.
             params.update(sort=[sort])
             # Parse querystring of link to make sure `sort` type is correct.
-            eq_(urlparse.parse_qs(a.attr('href').split('?')[1]), params)
+            assert urlparse.parse_qs(a.attr('href').split('?')[1]) == params
 
     def test_no_results(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        eq_(pq(r.content)('.queue-outer .no-results').length, 1)
+        assert pq(r.content)('.queue-outer .no-results').length == 1
 
     def test_no_paginator_when_on_single_page(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        eq_(pq(r.content)('.pagination').length, 0)
+        assert pq(r.content)('.pagination').length == 0
 
     def test_paginator_when_many_pages(self):
         # 'Pending One' and 'Pending Two' should be the only add-ons in
@@ -816,7 +816,7 @@ class TestQueueBasics(QueueTest):
         for key, text in sorts:
             r = self.client.get(self.url, {'sort': key})
             assert r.status_code == 200
-            eq_(pq(r.content)('th.ordered a').text(), text)
+            assert pq(r.content)('th.ordered a').text() == text
 
     def test_full_reviews_bar(self):
         self.generate_files()
@@ -862,9 +862,9 @@ class TestQueueBasics(QueueTest):
                                                 else '-unlisted')
         div = doc('{0} .editor-stats-table:eq({1})'.format(sel, eq))
 
-        eq_(div('.waiting_old').attr('style'), style(widths[0]))
-        eq_(div('.waiting_med').attr('style'), style(widths[1]))
-        eq_(div('.waiting_new').attr('style'), style(widths[2]))
+        assert div('.waiting_old').attr('style') == style(widths[0])
+        assert div('.waiting_med').attr('style') == style(widths[1])
+        assert div('.waiting_new').attr('style') == style(widths[2])
 
     def test_flags_jetpack(self):
         ad = create_addon_file('Jetpack', '0.1', amo.STATUS_NOMINATED,
@@ -875,11 +875,11 @@ class TestQueueBasics(QueueTest):
         r = self.client.get(reverse('editors.queue_nominated'))
 
         rows = pq(r.content)('#addon-queue tr.addon-row')
-        eq_(rows.length, 1)
-        eq_(rows.attr('data-addon'), str(ad['addon'].id))
-        eq_(rows.find('td').eq(1).text(), 'Jetpack 0.1')
-        eq_(rows.find('.ed-sprite-jetpack').length, 1)
-        eq_(rows.find('.ed-sprite-restartless').length, 0)
+        assert rows.length == 1
+        assert rows.attr('data-addon') == str(ad['addon'].id)
+        assert rows.find('td').eq(1).text() == 'Jetpack 0.1'
+        assert rows.find('.ed-sprite-jetpack').length == 1
+        assert rows.find('.ed-sprite-restartless').length == 0
 
     def test_flags_restartless(self):
         ad = create_addon_file('Restartless', '0.1', amo.STATUS_NOMINATED,
@@ -890,11 +890,11 @@ class TestQueueBasics(QueueTest):
         r = self.client.get(reverse('editors.queue_nominated'))
 
         rows = pq(r.content)('#addon-queue tr.addon-row')
-        eq_(rows.length, 1)
-        eq_(rows.attr('data-addon'), str(ad['addon'].id))
-        eq_(rows.find('td').eq(1).text(), 'Restartless 0.1')
-        eq_(rows.find('.ed-sprite-jetpack').length, 0)
-        eq_(rows.find('.ed-sprite-restartless').length, 1)
+        assert rows.length == 1
+        assert rows.attr('data-addon') == str(ad['addon'].id)
+        assert rows.find('td').eq(1).text() == 'Restartless 0.1'
+        assert rows.find('.ed-sprite-jetpack').length == 0
+        assert rows.find('.ed-sprite-restartless').length == 1
 
     def test_flags_restartless_and_jetpack(self):
         ad = create_addon_file('Restartless Jetpack', '0.1',
@@ -905,13 +905,13 @@ class TestQueueBasics(QueueTest):
         r = self.client.get(reverse('editors.queue_nominated'))
 
         rows = pq(r.content)('#addon-queue tr.addon-row')
-        eq_(rows.length, 1)
-        eq_(rows.attr('data-addon'), str(ad['addon'].id))
-        eq_(rows.find('td').eq(1).text(), 'Restartless Jetpack 0.1')
+        assert rows.length == 1
+        assert rows.attr('data-addon') == str(ad['addon'].id)
+        assert rows.find('td').eq(1).text() == 'Restartless Jetpack 0.1'
 
         # Show only jetpack if it's both.
-        eq_(rows.find('.ed-sprite-jetpack').length, 1)
-        eq_(rows.find('.ed-sprite-restartless').length, 0)
+        assert rows.find('.ed-sprite-jetpack').length == 1
+        assert rows.find('.ed-sprite-restartless').length == 0
 
     def test_theme_redirect(self):
         users = []
@@ -1120,10 +1120,10 @@ class TestModeratedQueue(QueueTest):
         url_flag = reverse('addons.reviews.flag', args=['a1865', 218468])
 
         response = self.client.post(url_flag, {'flag': ReviewFlag.SPAM})
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
 
-        eq_(ReviewFlag.objects.filter(flag=ReviewFlag.SPAM).count(), 1)
-        eq_(Review.objects.filter(editorreview=True).count(), 1)
+        assert ReviewFlag.objects.filter(flag=ReviewFlag.SPAM).count() == 1
+        assert Review.objects.filter(editorreview=True).count() == 1
 
     def test_results(self):
         r = self.client.get(self.url)
@@ -1131,11 +1131,11 @@ class TestModeratedQueue(QueueTest):
         doc = pq(r.content)('#reviews-flagged')
 
         rows = doc('.review-flagged:not(.review-saved)')
-        eq_(rows.length, 1)
-        eq_(rows.find('h3').text(), ": Don't use Firefox 2.0!")
+        assert rows.length == 1
+        assert rows.find('h3').text() == ": Don't use Firefox 2.0!"
 
         # Default is "Skip."
-        eq_(doc('#id_form-0-action_1:checked').length, 1)
+        assert doc('#id_form-0-action_1:checked').length == 1
 
         flagged = doc('.reviews-flagged-reasons span.light').text()
         editor = ReviewFlag.objects.all()[0].user.name
@@ -1146,7 +1146,7 @@ class TestModeratedQueue(QueueTest):
         ctx = self.client.get(self.url).context
         fs = initial(ctx['reviews_formset'].forms[0])
 
-        eq_(Review.objects.filter(addon=1865).count(), 2)
+        assert Review.objects.filter(addon=1865).count() == 2
 
         data_formset = formset(fs)
         data_formset['form-0-action'] = action
@@ -1161,7 +1161,7 @@ class TestModeratedQueue(QueueTest):
         r = self.client.get(self.url)
         doc = pq(r.content)
         rows = doc('#reviews-flagged .review-flagged:not(.review-saved)')
-        eq_(rows.length, 1)
+        assert rows.length == 1
 
     def test_skip_score(self):
         self.setup_actions(reviews.REVIEW_MODERATE_SKIP)
@@ -1176,20 +1176,20 @@ class TestModeratedQueue(QueueTest):
         """Make sure the editor tools can delete a review."""
         self.setup_actions(reviews.REVIEW_MODERATE_DELETE)
         logs = self.get_logs(amo.LOG.DELETE_REVIEW)
-        eq_(logs.count(), 1)
+        assert logs.count() == 1
 
         # Make sure it's removed from the queue.
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#reviews-flagged .no-results').length, 1)
+        assert pq(r.content)('#reviews-flagged .no-results').length == 1
 
         r = self.client.get(reverse('editors.eventlog'))
         eq_(pq(r.content)('table .more-details').attr('href'),
             reverse('editors.eventlog.detail', args=[logs[0].id]))
 
         # Make sure it was actually deleted.
-        eq_(Review.objects.filter(addon=1865).count(), 1)
+        assert Review.objects.filter(addon=1865).count() == 1
         # But make sure it wasn't *actually* deleted.
-        eq_(Review.unfiltered.filter(addon=1865).count(), 2)
+        assert Review.unfiltered.filter(addon=1865).count() == 2
 
     def test_remove_fails_for_own_addon(self):
         """
@@ -1201,18 +1201,18 @@ class TestModeratedQueue(QueueTest):
         AddonUser(addon=a, user=u).save()
 
         # Make sure the initial count is as expected
-        eq_(Review.objects.filter(addon=1865).count(), 2)
+        assert Review.objects.filter(addon=1865).count() == 2
 
         self.setup_actions(reviews.REVIEW_MODERATE_DELETE)
         logs = self.get_logs(amo.LOG.DELETE_REVIEW)
-        eq_(logs.count(), 0)
+        assert logs.count() == 0
 
         # Make sure it's not removed from the queue.
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#reviews-flagged .no-results').length, 0)
+        assert pq(r.content)('#reviews-flagged .no-results').length == 0
 
         # Make sure it was not actually deleted.
-        eq_(Review.objects.filter(addon=1865).count(), 2)
+        assert Review.objects.filter(addon=1865).count() == 2
 
     def test_remove_score(self):
         self.setup_actions(reviews.REVIEW_MODERATE_DELETE)
@@ -1224,19 +1224,19 @@ class TestModeratedQueue(QueueTest):
         """Make sure the editor tools can remove flags and keep a review."""
         self.setup_actions(reviews.REVIEW_MODERATE_KEEP)
         logs = self.get_logs(amo.LOG.APPROVE_REVIEW)
-        eq_(logs.count(), 1)
+        assert logs.count() == 1
 
         # Make sure it's removed from the queue.
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#reviews-flagged .no-results').length, 1)
+        assert pq(r.content)('#reviews-flagged .no-results').length == 1
 
         review = Review.objects.filter(addon=1865)
 
         # Make sure it's NOT deleted...
-        eq_(review.count(), 2)
+        assert review.count() == 2
 
         # ...but it's no longer flagged.
-        eq_(review.filter(editorreview=1).count(), 0)
+        assert review.filter(editorreview=1).count() == 0
 
     def test_keep_score(self):
         self.setup_actions(reviews.REVIEW_MODERATE_KEEP)
@@ -1258,8 +1258,8 @@ class TestModeratedQueue(QueueTest):
         assert r.status_code == 200
         doc = pq(r.content)('#reviews-flagged')
 
-        eq_(doc('.no-results').length, 1)
-        eq_(doc('.review-saved button').length, 1)  # Show only one button.
+        assert doc('.no-results').length == 1
+        assert doc('.review-saved button').length == 1  # Show only one button.
 
     def test_do_not_show_reviews_for_non_public_addons(self):
         Addon.objects.all().update(status=amo.STATUS_NULL)
@@ -1374,7 +1374,7 @@ class TestPerformance(QueueTest):
                         u'usercount': num, u'teamamt': 1,
                         u'label': datetime.now().strftime('%b %Y')}}
 
-        eq_(json.loads(doc('#monthly').attr('data-chart')), data)
+        assert json.loads(doc('#monthly').attr('data-chart')) == data
 
     def test_performance_chart_editor(self):
         self.setUpEditor()
@@ -1398,7 +1398,7 @@ class TestPerformance(QueueTest):
         doc = pq(r.content)
         data = json.loads(doc('#monthly').attr('data-chart'))
         label = datetime.now().strftime('%Y-%m')
-        eq_(data[label]['usercount'], 18)
+        assert data[label]['usercount'] == 18
 
     def _test_performance_other_user_as_admin(self):
         userid = amo.get_user().pk
@@ -1406,10 +1406,10 @@ class TestPerformance(QueueTest):
         r = self.client.get(self.get_url([10482]))
         doc = pq(r.content)
 
-        eq_(doc('#select_user').length, 1)  # Let them choose editors.
+        assert doc('#select_user').length == 1  # Let them choose editors.
         options = doc('#select_user option')
-        eq_(options.length, 3)
-        eq_(options.eq(2).val(), str(userid))
+        assert options.length == 3
+        assert options.eq(2).val() == str(userid)
 
         assert 'clouserw' in doc('#reviews_user').text()
 
@@ -1429,8 +1429,8 @@ class TestPerformance(QueueTest):
         r = self.client.get(self.get_url([10482]))
         doc = pq(r.content)
 
-        eq_(doc('#select_user').length, 0)  # Don't let them choose editors.
-        eq_(doc('#reviews_user').text(), 'Your Reviews')
+        assert doc('#select_user').length == 0  # Don't let them choose editors.
+        assert doc('#reviews_user').text() == 'Your Reviews'
 
 
 class SearchTest(EditorTest):
@@ -1445,7 +1445,7 @@ class SearchTest(EditorTest):
     def search(self, *args, **kw):
         r = self.client.get(self.url, kw)
         assert r.status_code == 200
-        eq_(r.context['search_form'].errors.as_text(), '')
+        assert r.context['search_form'].errors.as_text() == ''
         return r
 
 
@@ -1518,7 +1518,7 @@ class TestQueueSearch(SearchTest):
         self.login_as_admin()
         self.generate_files(['Not Admin Reviewed', 'Admin Reviewed'])
         r = self.search(admin_review=1)
-        eq_(self.named_addons(r), ['Admin Reviewed'])
+        assert self.named_addons(r) == ['Admin Reviewed']
 
     def test_queue_counts_admin(self):
         self.login_as_admin()
@@ -1539,7 +1539,7 @@ class TestQueueSearch(SearchTest):
     def test_not_searching(self):
         self.generate_files(['Not Admin Reviewed', 'Admin Reviewed'])
         r = self.search()
-        eq_(sorted(self.named_addons(r)), ['Not Admin Reviewed'])
+        assert sorted(self.named_addons(r)) == ['Not Admin Reviewed']
 
     def test_search_by_nothing(self):
         self.generate_files(['Not Admin Reviewed', 'Admin Reviewed'])
@@ -1550,7 +1550,7 @@ class TestQueueSearch(SearchTest):
     def test_search_by_admin_reviewed(self):
         self.generate_files(['Not Admin Reviewed', 'Admin Reviewed'])
         r = self.search(admin_review=1, searching='True')
-        eq_(self.named_addons(r), ['Admin Reviewed'])
+        assert self.named_addons(r) == ['Admin Reviewed']
 
     def test_queue_counts(self):
         self.generate_files(['Not Admin Reviewed',
@@ -1577,7 +1577,7 @@ class TestQueueSearch(SearchTest):
         r = self.client.get('/ja/' + self.url, {'text_query': uni},
                             follow=True)
         assert r.status_code == 200
-        eq_(self.named_addons(r), [name])
+        assert self.named_addons(r) == [name]
 
     def test_search_by_addon_author(self):
         name = 'Not Admin Reviewed'
@@ -1589,11 +1589,11 @@ class TestQueueSearch(SearchTest):
             author.role = role
             author.save()
             r = self.search(text_query=email)
-            eq_(self.named_addons(r), [name])
+            assert self.named_addons(r) == [name]
         author.role = amo.AUTHOR_ROLE_VIEWER
         author.save()
         r = self.search(text_query=email)
-        eq_(self.named_addons(r), [])
+        assert self.named_addons(r) == []
 
     def test_search_by_supported_email_in_locale(self):
         name = 'Not Admin Reviewed'
@@ -1605,13 +1605,13 @@ class TestQueueSearch(SearchTest):
         r = self.client.get('/ja/' + self.url, {'text_query': uni},
                             follow=True)
         assert r.status_code == 200
-        eq_(self.named_addons(r), [name])
+        assert self.named_addons(r) == [name]
 
     def test_search_by_addon_type(self):
         self.generate_files(['Not Admin Reviewed', 'Justin Bieber Theme',
                              'Justin Bieber Search Bar'])
         r = self.search(addon_type_ids=[amo.ADDON_THEME])
-        eq_(self.named_addons(r), ['Justin Bieber Theme'])
+        assert self.named_addons(r) == ['Justin Bieber Theme']
 
     def test_search_by_addon_type_any(self):
         self.generate_file('Not Admin Reviewed')
@@ -1631,14 +1631,14 @@ class TestQueueSearch(SearchTest):
                              'Mac Widget'])
         r = self.search(platform_ids=[amo.PLATFORM_MAC.id])
         assert r.status_code == 200
-        eq_(self.named_addons(r), ['Mac Widget'])
+        assert self.named_addons(r) == ['Mac Widget']
 
     def test_search_by_platform_linux(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget',
                              'Mac Widget'])
         r = self.search(platform_ids=[amo.PLATFORM_LINUX.id])
         assert r.status_code == 200
-        eq_(self.named_addons(r), ['Linux Widget'])
+        assert self.named_addons(r) == ['Linux Widget']
 
     def test_search_by_platform_mac_linux(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget',
@@ -1646,7 +1646,7 @@ class TestQueueSearch(SearchTest):
         r = self.search(platform_ids=[amo.PLATFORM_MAC.id,
                                       amo.PLATFORM_LINUX.id])
         assert r.status_code == 200
-        eq_(sorted(self.named_addons(r)), ['Linux Widget', 'Mac Widget'])
+        assert sorted(self.named_addons(r)), ['Linux Widget' == 'Mac Widget']
 
     def test_preserve_multi_platform_files(self):
         for plat in (amo.PLATFORM_WIN, amo.PLATFORM_MAC):
@@ -1657,8 +1657,8 @@ class TestQueueSearch(SearchTest):
         assert r.status_code == 200
         # Should not say Windows only.
         td = pq(r.content)('#addon-queue tbody td').eq(5)
-        eq_(td.find('div').attr('title'), 'Firefox')
-        eq_(td.text(), '')
+        assert td.find('div').attr('title') == 'Firefox'
+        assert td.text() == ''
 
     def test_preserve_single_platform_files(self):
         create_addon_file('Windows', '0.1',
@@ -1673,7 +1673,7 @@ class TestQueueSearch(SearchTest):
         self.generate_files(['Bieber For Mobile', 'Linux Widget'])
         r = self.search(application_id=[amo.MOBILE.id])
         assert r.status_code == 200
-        eq_(self.named_addons(r), ['Bieber For Mobile'])
+        assert self.named_addons(r) == ['Bieber For Mobile']
 
     def test_preserve_multi_apps(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget'])
@@ -1685,9 +1685,9 @@ class TestQueueSearch(SearchTest):
         r = self.search(application_id=[amo.MOBILE.id])
         doc = pq(r.content)
         td = doc('#addon-queue tr').eq(2).children('td').eq(5)
-        eq_(td.children().length, 2)
-        eq_(td.children('.ed-sprite-firefox').length, 1)
-        eq_(td.children('.ed-sprite-mobile').length, 1)
+        assert td.children().length == 2
+        assert td.children('.ed-sprite-firefox').length == 1
+        assert td.children('.ed-sprite-mobile').length == 1
 
     def test_search_by_version_requires_app(self):
         r = self.client.get(self.url, {'max_version': '3.6'})
@@ -1707,7 +1707,7 @@ class TestQueueSearch(SearchTest):
         (ApplicationsVersions.objects.filter(
             application=amo.MOBILE.id, version=d['version']).update(max=max))
         r = self.search(application_id=amo.MOBILE.id, max_version='4.0b2pre')
-        eq_(self.named_addons(r), [u'Bieber For Mobile 4.0b2pre'])
+        assert self.named_addons(r) == [u'Bieber For Mobile 4.0b2pre']
 
     def test_age_of_submission(self):
         self.generate_files(['Not Admin Reviewed', 'Admin Reviewed',
@@ -1769,12 +1769,12 @@ class TestQueueSearch(SearchTest):
     def test_clear_search_visible(self):
         r = self.search(text_query='admin', searching=True)
         assert r.status_code == 200
-        eq_(pq(r.content)('.clear-queue-search').text(), 'clear search')
+        assert pq(r.content)('.clear-queue-search').text() == 'clear search'
 
     def test_clear_search_hidden(self):
         r = self.search(text_query='admin')
         assert r.status_code == 200
-        eq_(pq(r.content)('.clear-queue-search').text(), None)
+        assert pq(r.content)('.clear-queue-search').text() is None
 
     def test_clear_search_uses_correct_queue(self):
         # The "clear search" link points to the right listed or unlisted queue.
@@ -1865,7 +1865,7 @@ class ReviewBase(QueueTest):
 class TestReview(ReviewBase):
 
     def test_reviewer_required(self):
-        eq_(self.client.head(self.url).status_code, 200)
+        assert self.client.head(self.url).status_code == 200
 
     def test_not_anonymous(self):
         self.client.logout()
@@ -1876,7 +1876,7 @@ class TestReview(ReviewBase):
     @patch.object(settings, 'ALLOW_SELF_REVIEWS', False)
     def test_not_author(self):
         AddonUser.objects.create(addon=self.addon, user=self.editor)
-        eq_(self.client.head(self.url).status_code, 302)
+        assert self.client.head(self.url).status_code == 302
 
     def test_needs_unlisted_reviewer_for_unlisted_addons(self):
         self.addon.update(is_listed=False)
@@ -1886,13 +1886,13 @@ class TestReview(ReviewBase):
 
     def test_not_flags(self):
         response = self.client.get(self.url)
-        eq_(response.status_code, 200)
-        eq_(len(response.context['flags']), 0)
+        assert response.status_code == 200
+        assert len(response.context['flags']) == 0
 
     def test_flags(self):
         self.addon.update(admin_review=True)
         response = self.client.get(self.url)
-        eq_(len(response.context['flags']), 1)
+        assert len(response.context['flags']) == 1
 
     def test_info_comments_requested(self):
         response = self.client.post(self.url, {'action': 'info'})
@@ -1902,24 +1902,24 @@ class TestReview(ReviewBase):
     def test_comment(self):
         response = self.client.post(self.url, {'action': 'comment',
                                                'comments': 'hello sailor'})
-        eq_(response.status_code, 302)
-        eq_(len(mail.outbox), 0)
+        assert response.status_code == 302
+        assert len(mail.outbox) == 0
 
         comment_version = amo.LOG.COMMENT_VERSION
-        eq_(ActivityLog.objects.filter(action=comment_version.id).count(), 1)
+        assert ActivityLog.objects.filter(action=comment_version.id).count() == 1
 
     def test_info_requested(self):
         response = self.client.post(self.url, {'action': 'info',
                                                'comments': 'hello sailor'})
-        eq_(response.status_code, 302)
-        eq_(len(mail.outbox), 1)
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
         self.assertTemplateUsed(response, 'editors/emails/info.ltxt')
 
     def test_super_review_requested(self):
         response = self.client.post(self.url, {'action': 'super',
                                                'comments': 'hello sailor'})
-        eq_(response.status_code, 302)
-        eq_(len(mail.outbox), 2)
+        assert response.status_code == 302
+        assert len(mail.outbox) == 2
         self.assertTemplateUsed(response,
                                 'editors/emails/author_super_review.ltxt')
         self.assertTemplateUsed(response, 'editors/emails/super_review.ltxt')
@@ -1928,26 +1928,26 @@ class TestReview(ReviewBase):
         response = self.client.post(self.url, {'action': 'info',
                                                'comments': 'hello sailor',
                                                'canned_response': 'foo'})
-        eq_(response.status_code, 302)
-        eq_(len(mail.outbox), 1)
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
         self.assertTemplateUsed(response, 'editors/emails/info.ltxt')
 
     def test_notify(self):
         response = self.client.post(self.url, {'action': 'info',
                                                'comments': 'hello sailor',
                                                'notify': True})
-        eq_(response.status_code, 302)
-        eq_(EditorSubscription.objects.count(), 1)
+        assert response.status_code == 302
+        assert EditorSubscription.objects.count() == 1
 
     def test_no_notify(self):
         response = self.client.post(self.url, {'action': 'info',
                                                'comments': 'hello sailor'})
-        eq_(response.status_code, 302)
-        eq_(EditorSubscription.objects.count(), 0)
+        assert response.status_code == 302
+        assert EditorSubscription.objects.count() == 0
 
     def test_page_title(self):
         response = self.client.get(self.url)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
         eq_(doc('title').text(),
             '%s :: Editor Tools :: Add-ons for Firefox' % self.addon.name)
@@ -1976,7 +1976,7 @@ class TestReview(ReviewBase):
         assert r.status_code == 200
 
         items = pq(r.content)('#review-files .files .file-info')
-        eq_(items.length, 1)
+        assert items.length == 1
 
         f = self.version.all_files[0]
         expected = [
@@ -1990,7 +1990,7 @@ class TestReview(ReviewBase):
     def test_item_history(self):
         self.addon_file(u'something', u'0.2', amo.STATUS_PUBLIC,
                         amo.STATUS_UNREVIEWED)
-        eq_(self.addon.versions.count(), 1)
+        assert self.addon.versions.count() == 1
         self.review_version(self.version, self.url)
 
         v2 = self.addons['something'].versions.all()[0]
@@ -1998,28 +1998,28 @@ class TestReview(ReviewBase):
         v2.created = v2.created + timedelta(days=1)
         v2.save()
         self.review_version(v2, self.url)
-        eq_(self.addon.versions.count(), 2)
+        assert self.addon.versions.count() == 2
 
         r = self.client.get(self.url)
         table = pq(r.content)('#review-files')
 
         # Check the history for both versions.
         ths = table.children('tr > th')
-        eq_(ths.length, 2)
+        assert ths.length == 2
         assert '0.1' in ths.eq(0).text()
         assert '0.2' in ths.eq(1).text()
 
         rows = table('td.files')
-        eq_(rows.length, 2)
+        assert rows.length == 2
 
         comments = rows.siblings('td')
-        eq_(comments.length, 2)
+        assert comments.length == 2
 
         for idx in xrange(comments.length):
             td = comments.eq(idx)
-            eq_(td.find('.history-comment').text(), 'something')
-            eq_(td.find('th').text(), 'Preliminarily approved')
-            eq_(td.find('td a').text(), self.editor.display_name)
+            assert td.find('.history-comment').text() == 'something'
+            assert td.find('th').text() == 'Preliminarily approved'
+            assert td.find('td a').text() == self.editor.display_name
 
     def generate_deleted_versions(self):
         self.addon = Addon.objects.create(type=amo.ADDON_EXTENSION,
@@ -2057,17 +2057,17 @@ class TestReview(ReviewBase):
 
         # Check the history for all versions.
         ths = table.children('tr > th')
-        eq_(ths.length, 3)  # The two with the same number will be coalesced
-        eq_('0.1' in ths.eq(0).text(), True)
-        eq_('0.2' in ths.eq(1).text(), True)
-        eq_('0.3' in ths.eq(2).text(), True)
+        assert ths.length == 3  # The two with the same number will be coalesced
+        assert '0.1' in ths.eq(0).text() == True
+        assert '0.2' in ths.eq(1).text() == True
+        assert '0.3' in ths.eq(2).text() == True
         for idx in xrange(2):
-            eq_('Deleted' in ths.eq(idx).text(), True)
+            assert 'Deleted' in ths.eq(idx).text() == True
 
         bodies = table.children('.listing-body')
-        eq_('millenium hand and shrimp' in bodies.eq(0).text(), True)
-        eq_('buggrit' in bodies.eq(0).text(), True)
-        eq_('I told em' in bodies.eq(1).text(), True)
+        assert 'millenium hand and shrimp' in bodies.eq(0).text() == True
+        assert 'buggrit' in bodies.eq(0).text() == True
+        assert 'I told em' in bodies.eq(1).text() == True
 
         assert mock_sign.called
 
@@ -2085,14 +2085,14 @@ class TestReview(ReviewBase):
         ApplicationsVersions.objects.create(
             version=v, application=amo.SEAMONKEY.id, min=av, max=av)
 
-        eq_(self.addon.versions.count(), 1)
+        assert self.addon.versions.count() == 1
         url = reverse('editors.review', args=[self.addon.slug])
 
         doc = pq(self.client.get(url).content)
         icons = doc('.listing-body .app-icon')
-        eq_(icons.eq(0).attr('title'), "Firefox")
-        eq_(icons.eq(1).attr('title'), "SeaMonkey")
-        eq_(icons.eq(2).attr('title'), "Thunderbird")
+        assert icons.eq(0).attr('title') == "Firefox"
+        assert icons.eq(1).attr('title') == "SeaMonkey"
+        assert icons.eq(2).attr('title') == "Thunderbird"
 
     def test_item_history_notes(self):
         v = self.addon.versions.all()[0]
@@ -2104,12 +2104,12 @@ class TestReview(ReviewBase):
         doc = pq(r.content)('#review-files')
 
         version = doc('.activity_version')
-        eq_(version.length, 1)
-        eq_(version.text(), 'hi')
+        assert version.length == 1
+        assert version.text() == 'hi'
 
         approval = doc('.activity_approval')
-        eq_(approval.length, 1)
-        eq_(approval.text(), 'secret hi')
+        assert approval.length == 1
+        assert approval.text() == 'secret hi'
 
     def test_item_history_header(self):
         doc = pq(self.client.get(self.url).content)
@@ -2125,8 +2125,8 @@ class TestReview(ReviewBase):
 
         r = self.client.get(self.url)
         doc = pq(r.content)('#review-files')
-        eq_(doc('th').eq(1).text(), 'Comment')
-        eq_(doc('.history-comment').text(), 'hello sailor')
+        assert doc('th').eq(1).text() == 'Comment'
+        assert doc('.history-comment').text() == 'hello sailor'
 
     def test_files_in_item_history(self):
         data = {'action': 'public', 'operating_systems': 'win',
@@ -2135,12 +2135,12 @@ class TestReview(ReviewBase):
 
         r = self.client.get(self.url)
         items = pq(r.content)('#review-files .files .file-info')
-        eq_(items.length, 1)
-        eq_(items.find('a.editors-install').text(), 'All Platforms')
+        assert items.length == 1
+        assert items.find('a.editors-install').text() == 'All Platforms'
 
     def test_no_items(self):
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#review-files .no-activity').length, 1)
+        assert pq(r.content)('#review-files .no-activity').length == 1
 
     def test_hide_beta(self):
         version = self.addon.latest_version
@@ -2150,7 +2150,7 @@ class TestReview(ReviewBase):
         version.save()
 
         doc = pq(self.client.get(self.url).content)
-        eq_(doc('#review-files tr.listing-header').length, 2)
+        assert doc('#review-files tr.listing-header').length == 2
 
         f.pk = None
         f.status = amo.STATUS_BETA
@@ -2158,7 +2158,7 @@ class TestReview(ReviewBase):
         f.save()
 
         doc = pq(self.client.get(self.url).content)
-        eq_(doc('#review-files tr.listing-header').length, 1)
+        assert doc('#review-files tr.listing-header').length == 1
 
     def test_action_links(self):
         r = self.client.get(self.url)
@@ -2197,7 +2197,7 @@ class TestReview(ReviewBase):
 
         doc = pq(response.content)
         admin = doc('#actions-addon li')
-        eq_(admin.length, 1)
+        assert admin.length == 1
 
     def test_unflag_option_forflagged_as_admin(self):
         self.login_as_admin()
@@ -2205,7 +2205,7 @@ class TestReview(ReviewBase):
         response = self.client.get(self.url)
 
         doc = pq(response.content)
-        eq_(doc('#id_adminflag').length, 1)
+        assert doc('#id_adminflag').length == 1
 
     def test_unflag_option_forflagged_as_editor(self):
         self.login_as_editor()
@@ -2213,7 +2213,7 @@ class TestReview(ReviewBase):
         response = self.client.get(self.url)
 
         doc = pq(response.content)
-        eq_(doc('#id_adminflag').length, 0)
+        assert doc('#id_adminflag').length == 0
 
     def test_unflag_option_notflagged_as_admin(self):
         self.login_as_admin()
@@ -2221,7 +2221,7 @@ class TestReview(ReviewBase):
         response = self.client.get(self.url)
 
         doc = pq(response.content)
-        eq_(doc('#id_adminflag').length, 0)
+        assert doc('#id_adminflag').length == 0
 
     def test_unadmin_flag_as_admin(self):
         self.addon.update(admin_review=True)
@@ -2266,16 +2266,16 @@ class TestReview(ReviewBase):
         response = self.client.get(self.url)
 
         validation = pq(response.content).find('.files')
-        eq_(validation.find('a').eq(1).text(), "Validation")
-        eq_(validation.find('a').eq(2).text(), "Contents")
+        assert validation.find('a').eq(1).text() == "Validation"
+        assert validation.find('a').eq(2).text() == "Contents"
 
-        eq_(validation.find('a').length, 3)
+        assert validation.find('a').length == 3
 
     def test_public_search(self):
         self.version.files.update(status=amo.STATUS_PUBLIC)
         self.addon.update(type=amo.ADDON_SEARCH)
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#review-files .files ul .file-info').length, 1)
+        assert pq(r.content)('#review-files .files ul .file-info').length == 1
 
     def test_version_deletion(self):
         """
@@ -2285,7 +2285,7 @@ class TestReview(ReviewBase):
         self.addon_file(u'something', u'0.2', amo.STATUS_PUBLIC,
                         amo.STATUS_UNREVIEWED)
 
-        eq_(self.addon.versions.count(), 1)
+        assert self.addon.versions.count() == 1
 
         self.review_version(self.version, self.url)
 
@@ -2294,7 +2294,7 @@ class TestReview(ReviewBase):
         v2.created = v2.created + timedelta(days=1)
         v2.save()
         self.review_version(v2, self.url)
-        eq_(self.addon.versions.count(), 2)
+        assert self.addon.versions.count() == 2
 
         r = self.client.get(self.url)
         doc = pq(r.content)
@@ -2311,7 +2311,7 @@ class TestReview(ReviewBase):
         doc = pq(r.content)
         ths = doc('table#review-files > tr > th:first-child')
 
-        eq_(ths.length, 2)
+        assert ths.length == 2
         assert '0.1' in ths.text()
 
     @patch('editors.helpers.sign_file')
@@ -2328,25 +2328,25 @@ class TestReview(ReviewBase):
                                        dependent_addon=self.addon)
         r = self.client.get(self.url)
         deps = pq(r.content)('#addon-summary .addon-dependencies')
-        eq_(deps.length, 1)
-        eq_(deps.find('li').length, 1)
-        eq_(deps.find('a').attr('href'), self.addon.get_url_path())
+        assert deps.length == 1
+        assert deps.find('li').length == 1
+        assert deps.find('a').attr('href') == self.addon.get_url_path()
 
     def test_eula_displayed(self):
-        eq_(bool(self.addon.has_eula), False)
+        assert bool(self.addon.has_eula) == False
         r = self.client.get(self.url)
         assert r.status_code == 200
         self.assertNotContains(r, 'View End-User License Agreement')
 
         self.addon.eula = 'Test!'
         self.addon.save()
-        eq_(bool(self.addon.has_eula), True)
+        assert bool(self.addon.has_eula) == True
         r = self.client.get(self.url)
         assert r.status_code == 200
         self.assertContains(r, 'View End-User License Agreement')
 
     def test_privacy_policy_displayed(self):
-        eq_(self.addon.privacy_policy, None)
+        assert self.addon.privacy_policy is None
         r = self.client.get(self.url)
         assert r.status_code == 200
         self.assertNotContains(r, 'View Privacy Policy')
@@ -2367,38 +2367,38 @@ class TestReview(ReviewBase):
             for qid in queue_ids:
                 self.addon.update(status=qid)
                 doc = pq(self.client.get(self.url).content)
-                eq_(doc('#breadcrumbs li:eq(1)').text(), text)
+                assert doc('#breadcrumbs li:eq(1)').text() == text
 
     def test_viewing(self):
         url = reverse('editors.review_viewing')
         r = self.client.post(url, {'addon_id': self.addon.id})
         data = json.loads(r.content)
-        eq_(data['current'], self.editor.id)
-        eq_(data['current_name'], self.editor.name)
-        eq_(data['is_user'], 1)
+        assert data['current'] == self.editor.id
+        assert data['current_name'] == self.editor.name
+        assert data['is_user'] == 1
 
         # Now, login as someone else and test.
         self.login_as_admin()
         r = self.client.post(url, {'addon_id': self.addon.id})
         data = json.loads(r.content)
-        eq_(data['current'], self.editor.id)
-        eq_(data['current_name'], self.editor.name)
-        eq_(data['is_user'], 0)
+        assert data['current'] == self.editor.id
+        assert data['current_name'] == self.editor.name
+        assert data['is_user'] == 0
 
     def test_viewing_queue(self):
         r = self.client.post(reverse('editors.review_viewing'),
                              {'addon_id': self.addon.id})
         data = json.loads(r.content)
-        eq_(data['current'], self.editor.id)
-        eq_(data['current_name'], self.editor.name)
-        eq_(data['is_user'], 1)
+        assert data['current'] == self.editor.id
+        assert data['current_name'] == self.editor.name
+        assert data['is_user'] == 1
 
         # Now, login as someone else and test.
         self.login_as_admin()
         r = self.client.post(reverse('editors.queue_viewing'),
                              {'addon_ids': self.addon.id})
         data = json.loads(r.content)
-        eq_(data[str(self.addon.id)], self.editor.display_name)
+        assert data[str(self.addon.id)] == self.editor.display_name
 
     def test_display_same_files_only_once(self):
         """
@@ -2422,8 +2422,8 @@ class TestReview(ReviewBase):
         r = self.client.get(self.url)
         assert r.status_code == 200
         info = pq(r.content)('#review-files .file-info')
-        eq_(info.length, 1)
-        eq_(info.find('a.compare').length, 0)
+        assert info.length == 1
+        assert info.find('a.compare').length == 0
 
     def test_compare_link(self):
         version = Version.objects.create(addon=self.addon, version='0.2')
@@ -2436,7 +2436,7 @@ class TestReview(ReviewBase):
 
         f2 = File.objects.create(version=version, status=amo.STATUS_PUBLIC)
         self.addon.update(_current_version=version)
-        eq_(self.addon.current_version, version)
+        assert self.addon.current_version == version
 
         r = self.client.get(self.url)
         assert r.context['show_diff']
@@ -2475,8 +2475,8 @@ class TestReview(ReviewBase):
         self.login_as_admin()
         response = self.client.post(self.url, self.get_dict(action='public'),
                                     follow=True)
-        eq_(response.status_code, 200)
-        eq_(self.get_addon().status, amo.STATUS_PUBLIC)
+        assert response.status_code == 200
+        assert self.get_addon().status == amo.STATUS_PUBLIC
 
         assert mock_sign_file.called
 
@@ -2485,10 +2485,10 @@ class TestReview(ReviewBase):
         self.version.files.update(status=amo.STATUS_UNREVIEWED)
         self.login_as_editor()
         response = self.client.post(self.url, self.get_dict(action='public'))
-        eq_(response.status_code, 200)  # Form error.
+        assert response.status_code == 200  # Form error.
         # The add-on status must not change as non-admin editors are not
         # allowed to review admin-flagged add-ons.
-        eq_(self.get_addon().status, amo.STATUS_NOMINATED)
+        assert self.get_addon().status == amo.STATUS_NOMINATED
         eq_(response.context['form'].errors['action'],
             [u'Select a valid choice. public is not one of the available '
              u'choices.'])
@@ -2573,8 +2573,8 @@ class TestReviewPreliminary(ReviewBase):
         self.addon.update(status=amo.STATUS_LITE)
         self.version.files.all()[0].update(status=amo.STATUS_UNREVIEWED)
         response = self.client.post(self.url, self.prelim_dict())
-        eq_(response.status_code, 302)
-        eq_(self.get_addon().status, amo.STATUS_LITE)
+        assert response.status_code == 302
+        assert self.get_addon().status == amo.STATUS_LITE
 
         assert mock_sign.called
 
@@ -2587,14 +2587,14 @@ class TestReviewPreliminary(ReviewBase):
     def test_prelim_from_lite_files(self):
         self.addon.update(status=amo.STATUS_LITE)
         self.client.post(self.url, self.prelim_dict())
-        eq_(self.get_addon().status, amo.STATUS_LITE)
+        assert self.get_addon().status == amo.STATUS_LITE
 
     @patch('editors.helpers.sign_file')
     def test_prelim_from_unreviewed(self, mock_sign):
         self.addon.update(status=amo.STATUS_UNREVIEWED)
         response = self.client.post(self.url, self.prelim_dict())
-        eq_(response.status_code, 302)
-        eq_(self.get_addon().status, amo.STATUS_LITE)
+        assert response.status_code == 302
+        assert self.get_addon().status == amo.STATUS_LITE
 
         assert mock_sign.called
 
@@ -2711,7 +2711,7 @@ class TestEditorMOTD(EditorTest):
         url = self.get_url()
         self.assertRedirects(r, url)
         r = self.client.get(url)
-        eq_(pq(r.content)('.daily-message p').text(), motd)
+        assert pq(r.content)('.daily-message p').text() == motd
 
     def test_require_editor_to_view(self):
         url = self.get_url()
@@ -2729,8 +2729,8 @@ class TestEditorMOTD(EditorTest):
         set_config('editors_review_motd', motd)
         self.login_as_editor()
         r = self.client.get(self.get_url())
-        eq_(pq(r.content)('.daily-message p').text(), motd)
-        eq_(r.context['form'], None)
+        assert pq(r.content)('.daily-message p').text() == motd
+        assert r.context['form'] is None
 
     def test_motd_edit_group(self):
         user = UserProfile.objects.get(email='editor@mozilla.com')
@@ -2741,13 +2741,13 @@ class TestEditorMOTD(EditorTest):
         r = self.client.post(reverse('editors.save_motd'),
                              {'motd': 'I am the keymaster.'})
         assert r.status_code == 302
-        eq_(get_config('editors_review_motd'), 'I am the keymaster.')
+        assert get_config('editors_review_motd') == 'I am the keymaster.'
 
     def test_form_errors(self):
         self.login_as_admin()
         r = self.client.post(self.get_url(save=True))
         doc = pq(r.content)
-        eq_(doc('#editor-motd .errorlist').text(), 'This field is required.')
+        assert doc('#editor-motd .errorlist').text() == 'This field is required.'
 
 
 class TestStatusFile(ReviewBase):
@@ -2757,7 +2757,7 @@ class TestStatusFile(ReviewBase):
 
     def check_status(self, expected):
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#review-files .file-info div').text(), expected)
+        assert pq(r.content)('#review-files .file-info div').text() == expected
 
     def test_status_prelim(self):
         self.get_file().update(status=amo.STATUS_UNREVIEWED)
@@ -2824,7 +2824,7 @@ class TestAbuseReports(amo.tests.TestCase):
         r = self.client.get(reverse('editors.abuse_reports', args=['a3615']))
         assert r.status_code == 200
         # We see the two abuse reports created in setUp.
-        eq_(len(r.context['reports']), 2)
+        assert len(r.context['reports']) == 2
 
     def test_no_abuse_reports_link_for_unlisted_addons(self):
         """Unlisted addons aren't public, and thus have no abuse reports."""

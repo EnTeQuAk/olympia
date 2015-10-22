@@ -58,7 +58,7 @@ class HubTest(amo.tests.TestCase):
         self.url = reverse('devhub.index')
         assert self.client.login(username='regular@mozilla.com',
                                  password='password')
-        eq_(self.client.get(self.url).status_code, 200)
+        assert self.client.get(self.url).status_code == 200
         self.user_profile = UserProfile.objects.get(id=999)
 
     def clone_addon(self, num, addon_id=57132):
@@ -78,7 +78,7 @@ class TestNav(HubTest):
     def test_navbar(self):
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(doc('#site-nav').length, 1)
+        assert doc('#site-nav').length == 1
 
     def test_no_addons(self):
         """Check that no add-ons are displayed for this user."""
@@ -101,7 +101,7 @@ class TestNav(HubTest):
         doc = pq(r.content)
 
         # Check the anchor for the 'My Add-ons' menu item.
-        eq_(doc('#site-nav ul li.top a').eq(0).text(), 'My Add-ons')
+        assert doc('#site-nav ul li.top a').eq(0).text() == 'My Add-ons'
 
         # Check the anchor for the single add-on.
         eq_(doc('#site-nav ul li.top li a').eq(0).attr('href'),
@@ -114,7 +114,7 @@ class TestNav(HubTest):
         doc = pq(r.content)
 
         # There should be 8 items in this menu.
-        eq_(doc('#site-nav ul li.top').eq(0).find('ul li').length, 8)
+        assert doc('#site-nav ul li.top').eq(0).find('ul li').length == 8
 
         # This should be the 8th anchor, after the 7 addons.
         eq_(doc('#site-nav ul li.top').eq(0).find('li a').eq(7).text(),
@@ -150,7 +150,7 @@ class TestDashboard(HubTest):
         super(TestDashboard, self).setUp()
         self.url = reverse('devhub.addons')
         self.themes_url = reverse('devhub.themes')
-        eq_(self.client.get(self.url).status_code, 200)
+        assert self.client.get(self.url).status_code == 200
         self.addon = Addon.objects.get(pk=57132)
         self.addon.name = 'some addon'
         self.addon.save()
@@ -160,9 +160,9 @@ class TestDashboard(HubTest):
         doc = pq(self.client.get(self.url).content)
         eq_(doc('title').text(),
             'Manage My Submissions :: Developer Hub :: Add-ons for Firefox')
-        eq_(doc('#social-footer').length, 1)
-        eq_(doc('#copyright').length, 1)
-        eq_(doc('#footer-links .mobile-link').length, 0)
+        assert doc('#social-footer').length == 1
+        assert doc('#copyright').length == 1
+        assert doc('#footer-links .mobile-link').length == 0
 
     def get_action_links(self, addon_id):
         r = self.client.get(self.url)
@@ -175,7 +175,7 @@ class TestDashboard(HubTest):
         """Check that no add-ons are displayed for this user."""
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(doc('.item item').length, 0)
+        assert doc('.item item').length == 0
 
     def test_addon_pagination(self):
         """Check that the correct info. is displayed for each add-on:
@@ -188,15 +188,15 @@ class TestDashboard(HubTest):
         self.clone_addon(9)
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(len(doc('.item .item-info')), 10)
-        eq_(doc('nav.paginator').length, 0)
+        assert len(doc('.item .item-info')) == 10
+        assert doc('nav.paginator').length == 0
 
         # Create 5 add-ons.
         self.clone_addon(5)
         r = self.client.get(self.url, dict(page=2))
         doc = pq(r.content)
-        eq_(len(doc('.item .item-info')), 5)
-        eq_(doc('nav.paginator').length, 1)
+        assert len(doc('.item .item-info')) == 5
+        assert doc('nav.paginator').length == 1
 
     def test_themes(self):
         """Check themes show on dashboard."""
@@ -206,7 +206,7 @@ class TestDashboard(HubTest):
             addon.addonuser_set.create(user=self.user_profile)
         r = self.client.get(self.themes_url)
         doc = pq(r.content)
-        eq_(len(doc('.item .item-info')), 2)
+        assert len(doc('.item .item-info')) == 2
 
     def test_show_hide_statistics(self):
         # when Active and Public show statistics
@@ -221,10 +221,10 @@ class TestDashboard(HubTest):
         assert 'Statistics' not in links, ('Unexpected: %r' % links)
 
     def test_public_addon(self):
-        eq_(self.addon.status, amo.STATUS_PUBLIC)
+        assert self.addon.status == amo.STATUS_PUBLIC
         doc = pq(self.client.get(self.url).content)
         item = doc('.item[data-addonid=%s]' % self.addon.id)
-        eq_(item.find('h3 a').attr('href'), self.addon.get_dev_url())
+        assert item.find('h3 a').attr('href') == self.addon.get_dev_url()
         assert item.find('p.downloads'), 'Expected weekly downloads'
         assert item.find('p.users'), 'Expected ADU'
         assert item.find('.item-details'), 'Expected item details'
@@ -239,26 +239,26 @@ class TestDashboard(HubTest):
         r = self.client.get(self.url)
         doc = pq(r.content)
 
-        eq_(doc('.blog-posts').length, 1)
-        eq_(doc('.blog-posts li').length, 5)
-        eq_(doc('.blog-posts li a').eq(0).text(), "hi 0")
-        eq_(doc('.blog-posts li a').eq(4).text(), "hi 4")
+        assert doc('.blog-posts').length == 1
+        assert doc('.blog-posts li').length == 5
+        assert doc('.blog-posts li a').eq(0).text() == "hi 0"
+        assert doc('.blog-posts li a').eq(4).text() == "hi 4"
 
     def test_sort_created_filter(self):
         response = self.client.get(self.url + '?sort=created')
         doc = pq(response.content)
-        eq_(doc('.item-details').length, 1)
+        assert doc('.item-details').length == 1
         d = doc('.item-details .date-created')
-        eq_(d.length, 1)
+        assert d.length == 1
         eq_(d.remove('strong').text(),
             datetime_filter(self.addon.created, '%b %e, %Y'))
 
     def test_sort_updated_filter(self):
         response = self.client.get(self.url)
         doc = pq(response.content)
-        eq_(doc('.item-details').length, 1)
+        assert doc('.item-details').length == 1
         d = doc('.item-details .date-updated')
-        eq_(d.length, 1)
+        assert d.length == 1
         eq_(d.remove('strong').text(),
             strip_whitespace(datetime_filter(self.addon.last_updated,
                                              '%b %e, %Y')))
@@ -271,12 +271,12 @@ class TestDashboard(HubTest):
         # There's no "updated" sort filter, so order by the default: "Name".
         response = self.client.get(self.themes_url + '?sort=updated')
         doc = pq(response.content)
-        eq_(doc('#sorter li.selected').text(), 'Name')
+        assert doc('#sorter li.selected').text() == 'Name'
         sorts = doc('#sorter li a.opt')
         assert not any('?sort=updated' in a.attrib['href'] for a in sorts)
 
         # There's no "last updated" for themes, so always display "created".
-        eq_(doc('.item-details .date-updated'), [])  # No "updated" in details.
+        assert doc('.item-details .date-updated') == []  # No "updated" in details.
         d = doc('.item-details .date-created')
         eq_(d.remove('strong').text(),
             strip_whitespace(datetime_filter(addon.created)))
@@ -323,7 +323,7 @@ class TestUpdateCompatibility(amo.tests.TestCase):
 
         update_url = reverse('devhub.ajax.compat.update',
                              args=[a.slug, a.current_version.id])
-        eq_(cu.attr('data-updateurl'), update_url)
+        assert cu.attr('data-updateurl') == update_url
 
         status_url = reverse('devhub.ajax.compat.status', args=[a.slug])
         eq_(doc('.item[data-addonid=3615] li.compat').attr('data-src'),
@@ -359,7 +359,7 @@ class TestDevRequired(amo.tests.TestCase):
         self.post_url = self.addon.get_dev_url('payments.disable')
         assert self.client.login(username='del@icio.us', password='password')
         self.au = self.addon.addonuser_set.get(user__email='del@icio.us')
-        eq_(self.au.role, amo.AUTHOR_ROLE_OWNER)
+        assert self.au.role == amo.AUTHOR_ROLE_OWNER
 
     def test_anon(self):
         self.client.logout()
@@ -368,7 +368,7 @@ class TestDevRequired(amo.tests.TestCase):
         self.assertRedirects(r, '%s?to=%s' % (login, self.get_url))
 
     def test_dev_get(self):
-        eq_(self.client.get(self.get_url).status_code, 200)
+        assert self.client.get(self.get_url).status_code == 200
 
     def test_dev_post(self):
         self.assertRedirects(self.client.post(self.post_url), self.get_url)
@@ -376,16 +376,16 @@ class TestDevRequired(amo.tests.TestCase):
     def test_viewer_get(self):
         self.au.role = amo.AUTHOR_ROLE_VIEWER
         self.au.save()
-        eq_(self.client.get(self.get_url).status_code, 200)
+        assert self.client.get(self.get_url).status_code == 200
 
     def test_viewer_post(self):
         self.au.role = amo.AUTHOR_ROLE_VIEWER
         self.au.save()
-        eq_(self.client.post(self.get_url).status_code, 403)
+        assert self.client.post(self.get_url).status_code == 403
 
     def test_disabled_post_dev(self):
         self.addon.update(status=amo.STATUS_DISABLED)
-        eq_(self.client.post(self.get_url).status_code, 403)
+        assert self.client.post(self.get_url).status_code == 403
 
     def test_disabled_post_admin(self):
         self.addon.update(status=amo.STATUS_DISABLED)
@@ -439,12 +439,12 @@ class TestEditPayments(amo.tests.TestCase):
 
     def post(self, *args, **kw):
         d = dict(*args, **kw)
-        eq_(self.client.post(self.url, d).status_code, 302)
+        assert self.client.post(self.url, d).status_code == 302
 
     def check(self, **kw):
         addon = self.get_addon()
         for k, v in kw.items():
-            eq_(getattr(addon, k), v)
+            assert getattr(addon, k) == v
         assert addon.wants_contributions
         assert addon.takes_contributions
 
@@ -452,7 +452,7 @@ class TestEditPayments(amo.tests.TestCase):
         count = ActivityLog.objects.all().count()
         self.post(recipient='dev', suggested_amount=2, paypal_id='greed@dev',
                   annoying=amo.CONTRIB_AFTER)
-        eq_(ActivityLog.objects.all().count(), count + 1)
+        assert ActivityLog.objects.all().count() == count + 1
 
     def test_success_dev(self):
         self.post(recipient='dev', suggested_amount=2, paypal_id='greed@dev',
@@ -479,7 +479,7 @@ class TestEditPayments(amo.tests.TestCase):
     def test_dev_paypal_id_length(self):
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(int(doc('#id_paypal_id').attr('size')), 50)
+        assert int(doc('#id_paypal_id').attr('size')) == 50
 
     def test_dev_paypal_reqd(self):
         d = dict(recipient='dev', suggested_amount=2,
@@ -531,13 +531,13 @@ class TestEditPayments(amo.tests.TestCase):
         r = self.client.post(self.url, d)
         self.assertFormError(r, 'charity_form', 'name',
                              'This field is required.')
-        eq_(self.get_addon().suggested_amount, None)
+        assert self.get_addon().suggested_amount is None
 
     def test_switch_charity_to_dev(self):
         self.test_success_charity()
         self.test_success_dev()
-        eq_(self.get_addon().charity, None)
-        eq_(self.get_addon().charity_id, None)
+        assert self.get_addon().charity is None
+        assert self.get_addon().charity_id is None
 
     def test_switch_charity_to_foundation(self):
         self.test_success_charity()
@@ -550,20 +550,20 @@ class TestEditPayments(amo.tests.TestCase):
         self.test_success_foundation()
         self.test_success_charity()
         moz = Charity.objects.get(id=self.foundation.id)
-        eq_(moz.name, 'moz')
-        eq_(moz.url, '$$.moz')
-        eq_(moz.paypal, 'moz.pal')
+        assert moz.name == 'moz'
+        assert moz.url == '$$.moz'
+        assert moz.paypal == 'moz.pal'
 
     def test_contrib_form_initial(self):
-        eq_(ContribForm.initial(self.addon)['recipient'], 'dev')
+        assert ContribForm.initial(self.addon)['recipient'] == 'dev'
         self.addon.charity = self.foundation
-        eq_(ContribForm.initial(self.addon)['recipient'], 'moz')
+        assert ContribForm.initial(self.addon)['recipient'] == 'moz'
         self.addon.charity_id = amo.FOUNDATION_ORG + 1
-        eq_(ContribForm.initial(self.addon)['recipient'], 'org')
+        assert ContribForm.initial(self.addon)['recipient'] == 'org'
 
-        eq_(ContribForm.initial(self.addon)['annoying'], amo.CONTRIB_PASSIVE)
+        assert ContribForm.initial(self.addon)['annoying'] == amo.CONTRIB_PASSIVE
         self.addon.annoying = amo.CONTRIB_AFTER
-        eq_(ContribForm.initial(self.addon)['annoying'], amo.CONTRIB_AFTER)
+        assert ContribForm.initial(self.addon)['annoying'] == amo.CONTRIB_AFTER
 
     def test_enable_thankyou(self):
         d = dict(enable_thankyou='on', thankyou_note='woo',
@@ -571,8 +571,8 @@ class TestEditPayments(amo.tests.TestCase):
         r = self.client.post(self.url, d)
         assert r.status_code == 302
         addon = self.get_addon()
-        eq_(addon.enable_thankyou, True)
-        eq_(unicode(addon.thankyou_note), 'woo')
+        assert addon.enable_thankyou == True
+        assert unicode(addon.thankyou_note) == 'woo'
 
     def test_enable_thankyou_unchecked_with_text(self):
         d = dict(enable_thankyou='', thankyou_note='woo',
@@ -580,8 +580,8 @@ class TestEditPayments(amo.tests.TestCase):
         r = self.client.post(self.url, d)
         assert r.status_code == 302
         addon = self.get_addon()
-        eq_(addon.enable_thankyou, False)
-        eq_(addon.thankyou_note, None)
+        assert addon.enable_thankyou == False
+        assert addon.thankyou_note is None
 
     def test_contribution_link(self):
         self.test_success_foundation()
@@ -589,15 +589,18 @@ class TestEditPayments(amo.tests.TestCase):
         doc = pq(r.content)
 
         span = doc('#status-bar').find('span')
-        eq_(span.length, 1)
+        assert span.length == 1
         assert span.text().startswith('Your contribution page: ')
 
         a = span.find('a')
-        eq_(a.length, 1)
-        eq_(a.attr('href'), reverse('addons.about',
-                                    args=[self.get_addon().slug]))
-        eq_(a.text(), url_reverse('addons.about', self.get_addon().slug,
-                                  host=settings.SITE_URL))
+        assert a.length == 1
+
+        expected = reverse('addons.about', args=[self.get_addon().slug])
+        assert a.attr('href') == expected
+
+        expected = url_reverse(
+            'addons.about', self.get_addon().slug, host=settings.SITE_URL)
+        assert a.text() == expected
 
     def test_enable_thankyou_no_text(self):
         d = dict(enable_thankyou='on', thankyou_note='',
@@ -605,26 +608,26 @@ class TestEditPayments(amo.tests.TestCase):
         r = self.client.post(self.url, d)
         assert r.status_code == 302
         addon = self.get_addon()
-        eq_(addon.enable_thankyou, False)
-        eq_(addon.thankyou_note, None)
+        assert addon.enable_thankyou == False
+        assert addon.thankyou_note is None
 
     def test_no_future(self):
         self.get_addon().update(the_future=None)
         res = self.client.get(self.url)
         err = pq(res.content)('p.error').text()
-        eq_('completed developer profile' in err, True)
+        assert 'completed developer profile' in err == True
 
     def test_addon_public(self):
         self.get_addon().update(status=amo.STATUS_PUBLIC)
         res = self.client.get(self.url)
         doc = pq(res.content)
-        eq_(doc('#do-setup').text(), 'Set up Contributions')
+        assert doc('#do-setup').text() == 'Set up Contributions'
 
     def test_voluntary_contributions_addons(self):
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(doc('.intro').length, 1)
-        eq_(doc('.intro.full-intro').length, 0)
+        assert doc('.intro').length == 1
+        assert doc('.intro.full-intro').length == 0
 
     def test_no_voluntary_contributions_for_unlisted_addons(self):
         self.addon.update(is_listed=False)
@@ -662,7 +665,7 @@ class TestDisablePayments(amo.tests.TestCase):
         r = self.client.post(self.disable_url)
         assert r.status_code == 302
         assert(r['Location'].endswith(self.pay_url))
-        eq_(Addon.objects.no_cache().get(id=3615).wants_contributions, False)
+        assert Addon.objects.no_cache().get(id=3615).wants_contributions == False
 
 
 class TestPaymentsProfile(amo.tests.TestCase):
@@ -715,9 +718,9 @@ class TestPaymentsProfile(amo.tests.TestCase):
         assert not doc('#trans-the_future')
 
         addon = self.get_addon()
-        eq_(unicode(addon.the_reason), 'xxx')
-        eq_(unicode(addon.the_future), 'yyy')
-        eq_(addon.wants_contributions, True)
+        assert unicode(addon.the_reason) == 'xxx'
+        assert unicode(addon.the_future) == 'yyy'
+        assert addon.wants_contributions == True
 
     def test_profile_required(self):
         def check_page(request):
@@ -737,7 +740,7 @@ class TestPaymentsProfile(amo.tests.TestCase):
         self.assertFormError(r, 'profile_form', 'the_future',
                              'This field is required.')
         check_page(r)
-        eq_(self.get_addon().wants_contributions, False)
+        assert self.get_addon().wants_contributions == False
 
         d = dict(recipient='dev', suggested_amount=2, paypal_id='xx@yy',
                  annoying=amo.CONTRIB_ROADBLOCK, the_reason='xxx')
@@ -746,7 +749,7 @@ class TestPaymentsProfile(amo.tests.TestCase):
         self.assertFormError(r, 'profile_form', 'the_future',
                              'This field is required.')
         check_page(r)
-        eq_(self.get_addon().wants_contributions, False)
+        assert self.get_addon().wants_contributions == False
 
 
 class TestDelete(amo.tests.TestCase):
@@ -762,20 +765,20 @@ class TestDelete(amo.tests.TestCase):
         r = self.client.post(self.get_url(), follow=True)
         eq_(pq(r.content)('.notification-box').text(),
             'Password was incorrect. Add-on was not deleted.')
-        eq_(self.get_addon().exists(), True)
+        assert self.get_addon().exists() == True
 
     def test_post(self):
         r = self.client.post(self.get_url(), {'password': 'password'},
                              follow=True)
-        eq_(pq(r.content)('.notification-box').text(), 'Add-on deleted.')
-        eq_(self.get_addon().exists(), False)
+        assert pq(r.content)('.notification-box').text() == 'Add-on deleted.'
+        assert self.get_addon().exists() == False
 
     def test_post_theme(self):
         Addon.objects.get(id=3615).update(type=amo.ADDON_PERSONA)
         r = self.client.post(self.get_url(), {'password': 'password'},
                              follow=True)
-        eq_(pq(r.content)('.notification-box').text(), 'Theme deleted.')
-        eq_(self.get_addon().exists(), False)
+        assert pq(r.content)('.notification-box').text() == 'Theme deleted.'
+        assert self.get_addon().exists() == False
 
 
 class TestHome(amo.tests.TestCase):
@@ -798,12 +801,12 @@ class TestHome(amo.tests.TestCase):
         self.assertTemplateUsed(r, 'devhub/index.html')
 
     def test_editor_promo(self):
-        eq_(self.get_pq()('#devhub-sidebar #editor-promo').length, 1)
+        assert self.get_pq()('#devhub-sidebar #editor-promo').length == 1
 
     def test_no_editor_promo(self):
         Addon.objects.all().delete()
         # Regular users (non-devs) should not see this promo.
-        eq_(self.get_pq()('#devhub-sidebar #editor-promo').length, 0)
+        assert self.get_pq()('#devhub-sidebar #editor-promo').length == 0
 
     def test_my_addons(self):
         statuses = [(amo.STATUS_NOMINATED, amo.STATUS_NOMINATED),
@@ -818,7 +821,7 @@ class TestHome(amo.tests.TestCase):
 
             doc = self.get_pq()
             addon_item = doc('#my-addons .addon-item')
-            eq_(addon_item.length, 1)
+            assert addon_item.length == 1
             eq_(addon_item.find('.addon-name').attr('href'),
                 self.addon.get_dev_url('edit'))
             if self.addon.is_listed:
@@ -826,7 +829,7 @@ class TestHome(amo.tests.TestCase):
                 # unlisted addons.
                 eq_(addon_item.find('p').eq(3).find('a').attr('href'),
                     self.addon.current_version.get_url_path())
-            eq_('Queue Position: 1 of 1', addon_item.find('p').eq(4).text())
+            assert 'Queue Position: 1 of 1' == addon_item.find('p').eq(4).text()
             eq_(addon_item.find('.upload-new-version a').attr('href'),
                 self.addon.get_dev_url('versions') + '#version-upload')
 
@@ -839,7 +842,7 @@ class TestHome(amo.tests.TestCase):
                 addon_item.find('p').eq(1).text())
 
         Addon.with_unlisted.all().delete()
-        eq_(self.get_pq()('#my-addons').length, 0)
+        assert self.get_pq()('#my-addons').length == 0
 
     def test_my_unlisted_addons(self):
         self.addon.update(is_listed=False)
@@ -849,8 +852,8 @@ class TestHome(amo.tests.TestCase):
         def no_link():
             doc = self.get_pq()
             addon_item = doc('#my-addons .addon-item')
-            eq_(addon_item.length, 1)
-            eq_(addon_item.find('.upload-new-version').length, 0)
+            assert addon_item.length == 1
+            assert addon_item.find('.upload-new-version').length == 0
 
         self.addon.update(status=amo.STATUS_NULL)
         submit_step = SubmitStep.objects.create(addon=self.addon, step=6)
@@ -877,8 +880,8 @@ class TestActivityFeed(amo.tests.TestCase):
         r = self.client.get(reverse('devhub.feed_all'))
         assert r.status_code == 200
         doc = pq(r.content)
-        eq_(doc('header h2').text(), 'Recent Activity for My Add-ons')
-        eq_(doc('#breadcrumbs li:eq(2)').text(), 'Recent Activity')
+        assert doc('header h2').text() == 'Recent Activity for My Add-ons'
+        assert doc('#breadcrumbs li:eq(2)').text() == 'Recent Activity'
 
     def test_feed_for_addon(self):
         r = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
@@ -886,7 +889,7 @@ class TestActivityFeed(amo.tests.TestCase):
         doc = pq(r.content)
         eq_(doc('header h2').text(),
             'Recent Activity for %s' % self.addon.name)
-        eq_(doc('#breadcrumbs li:eq(3)').text(), self.addon.slug)
+        assert doc('#breadcrumbs li:eq(3)').text() == self.addon.slug
 
     def test_feed_disabled(self):
         self.addon.update(status=amo.STATUS_DISABLED)
@@ -910,14 +913,14 @@ class TestActivityFeed(amo.tests.TestCase):
         self.add_hidden_log(amo.LOG.OBJECT_ADDED)
         res = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
         doc = pq(res.content)
-        eq_(len(doc('#recent-activity li.item')), 0)
+        assert len(doc('#recent-activity li.item')) == 0
 
     def test_addons_hidden(self):
         self.add_hidden_log()
         self.add_hidden_log(amo.LOG.OBJECT_ADDED)
         res = self.client.get(reverse('devhub.addons'))
         doc = pq(res.content)
-        eq_(len(doc('.recent-activity li.item')), 0)
+        assert len(doc('.recent-activity li.item')) == 0
 
     def test_unlisted_addons_dashboard(self):
         """Unlisted addons are displayed in the feed on the dashboard page."""
@@ -925,7 +928,7 @@ class TestActivityFeed(amo.tests.TestCase):
         self.add_log()
         res = self.client.get(reverse('devhub.addons'))
         doc = pq(res.content)
-        eq_(len(doc('.recent-activity li.item')), 1)
+        assert len(doc('.recent-activity li.item')) == 1
 
     def test_unlisted_addons_feed_sidebar(self):
         """Unlisted addons are displayed in the left side in the feed page."""
@@ -933,7 +936,7 @@ class TestActivityFeed(amo.tests.TestCase):
         self.add_log()
         res = self.client.get(reverse('devhub.feed_all'))
         doc = pq(res.content)
-        eq_(len(doc('#refine-addon li')), 2)  # First li is "All My Add-ons".
+        assert len(doc('#refine-addon li')) == 2  # First li is "All My Add-ons".
 
     def test_unlisted_addons_feed(self):
         """Unlisted addons are displayed in the feed page."""
@@ -941,7 +944,7 @@ class TestActivityFeed(amo.tests.TestCase):
         self.add_log()
         res = self.client.get(reverse('devhub.feed_all'))
         doc = pq(res.content)
-        eq_(len(doc('#recent-activity .item')), 1)
+        assert len(doc('#recent-activity .item')) == 1
 
     def test_unlisted_addons_feed_filter(self):
         """Feed page can be filtered on unlisted addon."""
@@ -949,7 +952,7 @@ class TestActivityFeed(amo.tests.TestCase):
         self.add_log()
         res = self.client.get(reverse('devhub.feed', args=[self.addon.slug]))
         doc = pq(res.content)
-        eq_(len(doc('#recent-activity .item')), 1)
+        assert len(doc('#recent-activity .item')) == 1
 
 
 class TestProfileBase(amo.tests.TestCase):
@@ -972,15 +975,15 @@ class TestProfileBase(amo.tests.TestCase):
 
     def post(self, *args, **kw):
         d = dict(*args, **kw)
-        eq_(self.client.post(self.url, d).status_code, 302)
+        assert self.client.post(self.url, d).status_code == 302
 
     def check(self, **kw):
         addon = self.get_addon()
         for k, v in kw.items():
             if k in ('the_reason', 'the_future'):
-                eq_(getattr(getattr(addon, k), 'localized_string'), unicode(v))
+                assert getattr(getattr(addon, k), 'localized_string') == unicode(v)
             else:
-                eq_(getattr(addon, k), v)
+                assert getattr(addon, k) == v
 
 
 class TestProfileStatusBar(TestProfileBase):
@@ -1000,7 +1003,7 @@ class TestProfileStatusBar(TestProfileBase):
         self.addon.save()
         doc = pq(self.client.get(self.url).content)
         assert doc('#status-bar')
-        eq_(doc('#status-bar button').text(), 'Remove Profile')
+        assert doc('#status-bar button').text() == 'Remove Profile'
 
     def test_status_bar_with_contrib(self):
         self.addon.the_reason = self.addon.the_future = '...'
@@ -1009,17 +1012,17 @@ class TestProfileStatusBar(TestProfileBase):
         self.addon.save()
         doc = pq(self.client.get(self.url).content)
         assert doc('#status-bar')
-        eq_(doc('#status-bar button').text(), 'Remove Both')
+        assert doc('#status-bar button').text() == 'Remove Both'
 
     def test_remove_profile(self):
         self.addon.the_reason = self.addon.the_future = '...'
         self.addon.save()
         self.client.post(self.remove_url)
         addon = self.get_addon()
-        eq_(addon.the_reason, None)
-        eq_(addon.the_future, None)
-        eq_(addon.takes_contributions, False)
-        eq_(addon.wants_contributions, False)
+        assert addon.the_reason is None
+        assert addon.the_future is None
+        assert addon.takes_contributions == False
+        assert addon.wants_contributions == False
 
     def test_remove_profile_without_content(self):
         # See bug 624852
@@ -1027,8 +1030,8 @@ class TestProfileStatusBar(TestProfileBase):
         self.addon.save()
         self.client.post(self.remove_url)
         addon = self.get_addon()
-        eq_(addon.the_reason, None)
-        eq_(addon.the_future, None)
+        assert addon.the_reason is None
+        assert addon.the_future is None
 
     def test_remove_both(self):
         self.addon.the_reason = self.addon.the_future = '...'
@@ -1037,10 +1040,10 @@ class TestProfileStatusBar(TestProfileBase):
         self.addon.save()
         self.client.post(self.remove_url)
         addon = self.get_addon()
-        eq_(addon.the_reason, None)
-        eq_(addon.the_future, None)
-        eq_(addon.takes_contributions, False)
-        eq_(addon.wants_contributions, False)
+        assert addon.the_reason is None
+        assert addon.the_future is None
+        assert addon.takes_contributions == False
+        assert addon.wants_contributions == False
 
 
 class TestProfile(TestProfileBase):
@@ -1049,8 +1052,8 @@ class TestProfile(TestProfileBase):
         r = self.client.get(self.url)
         assert r.status_code == 200
         doc = pq(r.content)
-        eq_(doc('label[for=the_reason] .optional').length, 1)
-        eq_(doc('label[for=the_future] .optional').length, 1)
+        assert doc('label[for=the_reason] .optional').length == 1
+        assert doc('label[for=the_future] .optional').length == 1
 
     def test_without_contributions_fields_optional(self):
         self.post(the_reason='', the_future='')
@@ -1078,9 +1081,9 @@ class TestProfile(TestProfileBase):
         self.enable_addon_contributions()
         d = dict(the_reason='because', the_future='i can')
         o = ActivityLog.objects
-        eq_(o.count(), 0)
+        assert o.count() == 0
         self.client.post(self.url, d)
-        eq_(o.filter(action=amo.LOG.EDIT_PROPERTIES.id).count(), 1)
+        assert o.filter(action=amo.LOG.EDIT_PROPERTIES.id).count() == 1
 
     def test_with_contributions_fields_required(self):
         self.enable_addon_contributions()
@@ -1219,9 +1222,9 @@ class TestSubmitStep1(TestSubmitBase):
     def test_step1_submit(self):
         self.user.update(read_dev_agreement=None)
         response = self.client.get(reverse('devhub.submit.1'))
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
-        eq_(doc('#breadcrumbs a').eq(1).attr('href'), reverse('devhub.addons'))
+        assert doc('#breadcrumbs a').eq(1).attr('href') == reverse('devhub.addons')
         links = doc('#agreement-container a')
         assert links
         for ln in links:
@@ -1270,7 +1273,7 @@ class TestSubmitStep2(amo.tests.TestCase):
         # There is a checkbox for the "is_listed" addon field.
         self.client.post(reverse('devhub.submit.1'))
         response = self.client.get(reverse('devhub.submit.2'))
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
         assert doc('.list-addon input#id_is_unlisted[type=checkbox]')
         # There also is a checkbox to select full review (side-load) or prelim.
@@ -1311,13 +1314,13 @@ class TestSubmitStep3(TestSubmitBase):
         d = self.get_dict()
         r = self.client.post(self.url, d)
         assert r.status_code == 302
-        eq_(self.get_step().step, 4)
+        assert self.get_step().step == 4
 
         addon = self.get_addon()
-        eq_(addon.name, 'Test name')
-        eq_(addon.slug, 'testname')
-        eq_(addon.description, 'desc')
-        eq_(addon.summary, 'Hello!')
+        assert addon.name == 'Test name'
+        assert addon.slug == 'testname'
+        assert addon.description == 'desc'
+        assert addon.summary == 'Hello!'
         # Test add-on log activity.
         log_items = ActivityLog.objects.for_addons(addon)
         assert not log_items.filter(action=amo.LOG.EDIT_DESCRIPTIONS.id), (
@@ -1437,7 +1440,7 @@ class TestSubmitStep3(TestSubmitBase):
             ['This field is required.'])
 
     def test_submit_categories_max(self):
-        eq_(amo.MAX_CATEGORIES, 2)
+        assert amo.MAX_CATEGORIES == 2
         self.cat_initial['categories'] = [22, 23, 24]
         r = self.client.post(self.url,
                              self.get_dict(cat_initial=self.cat_initial))
@@ -1445,39 +1448,39 @@ class TestSubmitStep3(TestSubmitBase):
             ['You can have only 2 categories.'])
 
     def test_submit_categories_add(self):
-        eq_([c.id for c in self.get_addon().all_categories], [22])
+        assert [c.id for c in self.get_addon().all_categories] == [22]
         self.cat_initial['categories'] = [22, 23]
 
         self.client.post(self.url, self.get_dict())
 
         addon_cats = self.get_addon().categories.values_list('id', flat=True)
-        eq_(sorted(addon_cats), [22, 23])
+        assert sorted(addon_cats), [22 == 23]
 
     def test_submit_categories_addandremove(self):
         AddonCategory(addon=self.addon, category_id=23).save()
-        eq_([c.id for c in self.get_addon().all_categories], [22, 23])
+        assert [c.id for c in self.get_addon().all_categories], [22 == 23]
 
         self.cat_initial['categories'] = [22, 24]
         self.client.post(self.url, self.get_dict(cat_initial=self.cat_initial))
         category_ids_new = [c.id for c in self.get_addon().all_categories]
-        eq_(category_ids_new, [22, 24])
+        assert category_ids_new, [22 == 24]
 
     def test_submit_categories_remove(self):
         c = Category.objects.get(id=23)
         AddonCategory(addon=self.addon, category=c).save()
-        eq_([a.id for a in self.get_addon().all_categories], [22, 23])
+        assert [a.id for a in self.get_addon().all_categories], [22 == 23]
 
         self.cat_initial['categories'] = [22]
         self.client.post(self.url, self.get_dict(cat_initial=self.cat_initial))
         category_ids_new = [cat.id for cat in self.get_addon().all_categories]
-        eq_(category_ids_new, [22])
+        assert category_ids_new == [22]
 
     def test_check_version(self):
         r = self.client.get(self.url)
         doc = pq(r.content)
         version = doc("#current_version").val()
 
-        eq_(version, self.addon.current_version.version)
+        assert version == self.addon.current_version.version
 
 
 class TestSubmitStep4(TestSubmitBase):
@@ -1493,14 +1496,14 @@ class TestSubmitStep4(TestSubmitBase):
                                       args=['a3615'])
 
     def test_get(self):
-        eq_(self.client.get(self.url).status_code, 200)
+        assert self.client.get(self.url).status_code == 200
 
     def test_post(self):
         data = dict(icon_type='')
         data_formset = self.formset_media(**data)
         r = self.client.post(self.url, data_formset)
         assert r.status_code == 302
-        eq_(self.get_step().step, 5)
+        assert self.get_step().step == 5
 
     def formset_new_form(self, *args, **kw):
         ctx = self.client.get(self.url).context
@@ -1519,10 +1522,10 @@ class TestSubmitStep4(TestSubmitBase):
     def test_icon_upload_attributes(self):
         doc = pq(self.client.get(self.url).content)
         field = doc('input[name=icon_upload]')
-        eq_(field.length, 1)
+        assert field.length == 1
         eq_(sorted(field.attr('data-allowed-types').split('|')),
             ['image/jpeg', 'image/png'])
-        eq_(field.attr('data-upload-url'), self.icon_upload)
+        assert field.attr('data-upload-url') == self.icon_upload
 
     def test_edit_media_defaulticon(self):
         data = dict(icon_type='')
@@ -1535,7 +1538,7 @@ class TestSubmitStep4(TestSubmitBase):
         assert addon.get_icon_url(64).endswith('icons/default-64.png')
 
         for k in data:
-            eq_(unicode(getattr(addon, k)), data[k])
+            assert unicode(getattr(addon, k)) == data[k]
 
     def test_edit_media_preuploadedicon(self):
         data = dict(icon_type='icon/appearance')
@@ -1548,7 +1551,7 @@ class TestSubmitStep4(TestSubmitBase):
             'addon-icons/appearance-64.png')
 
         for k in data:
-            eq_(unicode(getattr(addon, k)), data[k])
+            assert unicode(getattr(addon, k)) == data[k]
 
     def test_edit_media_uploadedicon(self):
         with open(get_image_path('mozilla.png'), 'rb') as filehandle:
@@ -1570,7 +1573,7 @@ class TestSubmitStep4(TestSubmitBase):
         _url = addon.get_icon_url(64).split('?')[0]
         assert _url.endswith('addon_icons/3/%s-64.png' % addon.id)
 
-        eq_(data['icon_type'], 'image/png')
+        assert data['icon_type'] == 'image/png'
 
         # Check that it was actually uploaded
         dirname = os.path.join(user_media_path('addon_icons'),
@@ -1579,7 +1582,7 @@ class TestSubmitStep4(TestSubmitBase):
 
         assert storage.exists(dest)
 
-        eq_(Image.open(storage.open(dest)).size, (32, 12))
+        assert Image.open(storage.open(dest)).size, (32 == 12)
 
     def test_edit_media_uploadedicon_noresize(self):
         with open('static/img/notifications/error.png', 'rb') as filehandle:
@@ -1600,7 +1603,7 @@ class TestSubmitStep4(TestSubmitBase):
         _url = addon.get_icon_url(64).split('?')[0]
         assert _url.endswith('addon_icons/3/%s-64.png' % addon.id)
 
-        eq_(data['icon_type'], 'image/png')
+        assert data['icon_type'] == 'image/png'
 
         # Check that it was actually uploaded
         dirname = os.path.join(user_media_path('addon_icons'),
@@ -1609,14 +1612,14 @@ class TestSubmitStep4(TestSubmitBase):
 
         assert storage.exists(dest)
 
-        eq_(Image.open(storage.open(dest)).size, (48, 48))
+        assert Image.open(storage.open(dest)).size, (48 == 48)
 
     def test_client_lied(self):
         with open(get_image_path('non-animated.gif'), 'rb') as filehandle:
             data = {'upload_image': filehandle}
             res = self.client.post(self.preview_upload, data)
         response_json = json.loads(res.content)
-        eq_(response_json['errors'][0], u'Images must be either PNG or JPG.')
+        assert response_json['errors'][0] == u'Images must be either PNG or JPG.'
 
     def test_client_error_triggers_tmp_image_cleanup(self):
         with open(get_image_path('non-animated.gif'), 'rb') as filehandle:
@@ -1629,7 +1632,7 @@ class TestSubmitStep4(TestSubmitBase):
             data = {'upload_image': filehandle}
             res = self.client.post(self.preview_upload, data)
         response_json = json.loads(res.content)
-        eq_(response_json['errors'][0], u'Images cannot be animated.')
+        assert response_json['errors'][0] == u'Images cannot be animated.'
 
     def test_icon_non_animated(self):
         with open(get_image_path('non-animated.png'), 'rb') as filehandle:
@@ -1637,7 +1640,7 @@ class TestSubmitStep4(TestSubmitBase):
             data_formset = self.formset_media(**data)
             res = self.client.post(self.url, data_formset)
         assert res.status_code == 302
-        eq_(self.get_step().step, 5)
+        assert self.get_step().step == 5
 
 
 class Step5TestBase(TestSubmitBase):
@@ -1654,13 +1657,13 @@ class TestSubmitStep5(Step5TestBase):
     """License submission."""
 
     def test_get(self):
-        eq_(self.client.get(self.url).status_code, 200)
+        assert self.client.get(self.url).status_code == 200
 
     def test_set_license(self):
         r = self.client.post(self.url, {'builtin': 3})
         self.assertRedirects(r, self.next_step)
-        eq_(self.get_addon().current_version.license.builtin, 3)
-        eq_(self.get_step().step, 6)
+        assert self.get_addon().current_version.license.builtin == 3
+        assert self.get_step().step == 6
         log_items = ActivityLog.objects.for_addons(self.get_addon())
         assert not log_items.filter(action=amo.LOG.CHANGE_LICENSE.id), (
             "Initial license choice:6 needn't be logged.")
@@ -1671,15 +1674,15 @@ class TestSubmitStep5(Step5TestBase):
         self.assertFormError(r, 'license_form', 'builtin',
                              'Select a valid choice. 4 is not one of '
                              'the available choices.')
-        eq_(self.get_step().step, 5)
+        assert self.get_step().step == 5
 
     def test_set_eula(self):
         self.get_addon().update(eula=None, privacy_policy=None)
         r = self.client.post(self.url, dict(builtin=3, has_eula=True,
                                             eula='xxx'))
         self.assertRedirects(r, self.next_step)
-        eq_(unicode(self.get_addon().eula), 'xxx')
-        eq_(self.get_step().step, 6)
+        assert unicode(self.get_addon().eula) == 'xxx'
+        assert self.get_step().step == 6
 
     def test_set_eula_nomsg(self):
         """
@@ -1690,7 +1693,7 @@ class TestSubmitStep5(Step5TestBase):
         self.get_addon().update(eula=None, privacy_policy=None)
         r = self.client.post(self.url, dict(builtin=3, has_eula=True))
         self.assertRedirects(r, self.next_step)
-        eq_(self.get_step().step, 6)
+        assert self.get_step().step == 6
 
 
 class TestSubmitStep6(TestSubmitBase):
@@ -1722,7 +1725,7 @@ class TestSubmitStep6(TestSubmitBase):
         d = dict(review_type=amo.STATUS_UNREVIEWED)
         r = self.client.post(self.url, d)
         assert r.status_code == 302
-        eq_(self.get_addon().status, amo.STATUS_UNREVIEWED)
+        assert self.get_addon().status == amo.STATUS_UNREVIEWED
         assert_raises(SubmitStep.DoesNotExist, self.get_step)
 
     def test_full_review(self):
@@ -1731,7 +1734,7 @@ class TestSubmitStep6(TestSubmitBase):
         r = self.client.post(self.url, d)
         assert r.status_code == 302
         addon = self.get_addon()
-        eq_(addon.status, amo.STATUS_NOMINATED)
+        assert addon.status == amo.STATUS_NOMINATED
         self.assertCloseToNow(self.get_version().nomination)
         assert_raises(SubmitStep.DoesNotExist, self.get_step)
 
@@ -1779,7 +1782,7 @@ class TestSubmitStep7(TestSubmitBase):
 
     @mock.patch('devhub.tasks.send_welcome_email.delay', new=mock.Mock)
     def test_finish_submitting_addon(self):
-        eq_(self.addon.current_version.supported_platforms, [amo.PLATFORM_ALL])
+        assert self.addon.current_version.supported_platforms == [amo.PLATFORM_ALL]
 
         r = self.client.get(self.url)
         assert r.status_code == 200
@@ -1787,16 +1790,16 @@ class TestSubmitStep7(TestSubmitBase):
 
         a = doc('a#submitted-addon-url')
         url = self.addon.get_url_path()
-        eq_(a.attr('href'), url)
-        eq_(a.text(), absolutify(url))
+        assert a.attr('href') == url
+        assert a.text() == absolutify(url)
 
         next_steps = doc('.done-next-steps li a')
 
         # edit listing of freshly submitted add-on...
-        eq_(next_steps.eq(0).attr('href'), self.addon.get_dev_url())
+        assert next_steps.eq(0).attr('href') == self.addon.get_dev_url()
 
         # edit your developer profile...
-        eq_(next_steps.eq(1).attr('href'), self.addon.get_dev_url('profile'))
+        assert next_steps.eq(1).attr('href') == self.addon.get_dev_url('profile')
 
     @mock.patch('devhub.tasks.send_welcome_email.delay', new=mock.Mock)
     def test_finish_submitting_unlisted_addon(self):
@@ -1846,14 +1849,14 @@ class TestSubmitStep7(TestSubmitBase):
                                 version_id=addon.current_version.id)))
 
         # edit listing of freshly submitted add-on...
-        eq_(next_steps.eq(1).attr('href'), addon.get_dev_url())
+        assert next_steps.eq(1).attr('href') == addon.get_dev_url()
 
     @mock.patch('devhub.tasks.send_welcome_email.delay', new=mock.Mock)
     def test_finish_addon_for_prelim_review(self):
         self.addon.update(status=amo.STATUS_UNREVIEWED)
 
         response = self.client.get(self.url)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
         intro = doc('.addon-submission-process p').text().strip()
         assert 'Preliminary Review' in intro, ('Unexpected intro: %s' % intro)
@@ -1863,7 +1866,7 @@ class TestSubmitStep7(TestSubmitBase):
         self.addon.update(status=amo.STATUS_NOMINATED)
 
         response = self.client.get(self.url)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         doc = pq(response.content)
         intro = doc('.addon-submission-process p').text().strip()
         assert 'Full Review' in intro, ('Unexpected intro: %s' % intro)
@@ -1935,7 +1938,7 @@ class TestSubmitBump(TestSubmitBase):
                                  password='password')
         r = self.client.post(self.url, {'step': 4}, follow=True)
         self.assertRedirects(r, reverse('devhub.submit.4', args=['a3615']))
-        eq_(self.get_step().step, 4)
+        assert self.get_step().step == 4
 
 
 class TestSubmitSteps(amo.tests.TestCase):
@@ -1949,19 +1952,19 @@ class TestSubmitSteps(amo.tests.TestCase):
     def assert_linked(self, doc, numbers):
         """Check that the nth <li> in the steps list is a link."""
         lis = doc('.submit-addon-progress li')
-        eq_(len(lis), 7)
+        assert len(lis) == 7
         for idx, li in enumerate(lis):
             links = pq(li)('a')
             if (idx + 1) in numbers:
-                eq_(len(links), 1)
+                assert len(links) == 1
             else:
-                eq_(len(links), 0)
+                assert len(links) == 0
 
     def assert_highlight(self, doc, num):
         """Check that the nth <li> is marked as .current."""
         lis = doc('.submit-addon-progress li')
         assert pq(lis[num - 1]).hasClass('current')
-        eq_(len(pq('.current', lis)), 1)
+        assert len(pq('.current', lis)) == 1
 
     def test_step_1(self):
         self.user.update(read_dev_agreement=None)
@@ -2068,13 +2071,13 @@ class TestUpload(BaseUploadTest):
         upload = FileUpload.objects.filter().order_by('-created').first()
         assert 'animated.png' in upload.name
         data = open(self.image_path, 'rb').read()
-        eq_(storage.open(upload.path).read(), data)
+        assert storage.open(upload.path).read() == data
 
     def test_fileupload_user(self):
         self.client.login(username='regular@mozilla.com', password='password')
         self.post()
         user = UserProfile.objects.get(email='regular@mozilla.com')
-        eq_(FileUpload.objects.get().user, user)
+        assert FileUpload.objects.get().user == user
 
     @attr('validator')
     def test_fileupload_validation(self):
@@ -2083,15 +2086,15 @@ class TestUpload(BaseUploadTest):
         assert fu.validation
         validation = json.loads(fu.validation)
 
-        eq_(validation['success'], False)
+        assert validation['success'] == False
         # The current interface depends on this JSON structure:
-        eq_(validation['errors'], 1)
-        eq_(validation['warnings'], 0)
+        assert validation['errors'] == 1
+        assert validation['warnings'] == 0
         assert len(validation['messages'])
         msg = validation['messages'][0]
         assert 'uid' in msg, "Unexpected: %r" % msg
-        eq_(msg['type'], u'error')
-        eq_(msg['message'], u'The package is not of a recognized type.')
+        assert msg['type'] == u'error'
+        assert msg['message'] == u'The package is not of a recognized type.'
         assert not msg['description'], 'Found unexpected description.'
 
     def test_redirect(self):
@@ -2162,7 +2165,7 @@ class TestUploadDetail(BaseUploadTest):
         # We must have tiers
         assert len(data['validation']['messages'])
         msg = data['validation']['messages'][0]
-        eq_(msg['tier'], 1)
+        assert msg['tier'] == 1
 
     def test_detail_view(self):
         self.post()
@@ -2186,7 +2189,7 @@ class TestUploadDetail(BaseUploadTest):
                                     args=[upload.uuid, 'json']))
         assert r.status_code == 200
         data = json.loads(r.content)
-        eq_(sorted(data['platforms_to_exclude']), sorted(platforms))
+        assert sorted(data['platforms_to_exclude']) == sorted(platforms)
 
     def test_multi_app_addon_can_have_all_platforms(self):
         self.check_excluded_platforms('mobile-2.9.10-fx+fn.xpi', [])
@@ -2218,26 +2221,28 @@ class TestUploadDetail(BaseUploadTest):
         r = self.client.get(reverse('devhub.upload_detail',
                                     args=[upload.uuid, 'json']))
         data = json.loads(r.content)
-        eq_([(m['message'], m.get('fatal', False))
-             for m in data['validation']['messages']],
-            [(u'Could not parse install.rdf.', True)])
+
+        result = [
+            (m['message'], m.get('fatal', False))
+            for m in data['validation']['messages']]
+        assert result == [(u'Could not parse install.rdf.', True)])
 
 
 def assert_json_error(request, field, msg):
-    eq_(request.status_code, 400)
-    eq_(request['Content-Type'], 'application/json')
+    assert request.status_code == 400
+    assert request['Content-Type'] == 'application/json'
     field = '__all__' if field is None else field
     content = json.loads(request.content)
     assert field in content, '%r not in %r' % (field, content)
-    eq_(content[field], [msg])
+    assert content[field] == [msg]
 
 
 def assert_json_field(request, field, msg):
-    eq_(request.status_code, 200)
-    eq_(request['Content-Type'], 'application/json')
+    assert request.status_code == 200
+    assert request['Content-Type'] == 'application/json'
     content = json.loads(request.content)
     assert field in content, '%r not in %r' % (field, content)
-    eq_(content[field], msg)
+    assert content[field] == msg
 
 
 class UploadTest(BaseUploadTest, amo.tests.TestCase):
@@ -2269,8 +2274,8 @@ class TestQueuePosition(UploadTest):
     def test_not_in_queue(self):
         r = self.client.get(self.addon.get_dev_url('versions'))
 
-        eq_(self.addon.status, amo.STATUS_PUBLIC)
-        eq_(pq(r.content)('.version-status-actions .dark').length, 0)
+        assert self.addon.status == amo.STATUS_PUBLIC
+        assert pq(r.content)('.version-status-actions .dark').length == 0
 
     def test_in_queue(self):
         statuses = [(amo.STATUS_NOMINATED, amo.STATUS_UNREVIEWED),
@@ -2334,14 +2339,14 @@ class TestVersionAddFile(UploadTest):
 
         r = self.client.get(self.edit_url)
         doc = pq(r.content)('#file-list')
-        eq_(doc.find('a.remove').length, 1)
-        eq_(doc.find('span.remove.tooltip').length, 0)
+        assert doc.find('a.remove').length == 1
+        assert doc.find('span.remove.tooltip').length == 0
 
     def test_delete_button_disabled(self):
         r = self.client.get(self.edit_url)
         doc = pq(r.content)('#file-list')
-        eq_(doc.find('a.remove').length, 0)
-        eq_(doc.find('span.remove.tooltip').length, 1)
+        assert doc.find('a.remove').length == 0
+        assert doc.find('span.remove.tooltip').length == 1
 
         tip = doc.find('span.remove.tooltip')
         assert "You cannot remove an individual file" in tip.attr('title')
@@ -2397,7 +2402,7 @@ class TestVersionAddFile(UploadTest):
         r = self.client.post(self.edit_url, data)
         doc = pq(r.content)
 
-        eq_(doc('.errorlist li').length, 0)
+        assert doc('.errorlist li').length == 0
 
     def test_platform_limits(self):
         r = self.post(platform=amo.PLATFORM_BSD)
@@ -2441,10 +2446,10 @@ class TestVersionAddFile(UploadTest):
     def test_file_platform(self):
         # Check that we're creating a new file with the requested platform.
         qs = self.version.files
-        eq_(len(qs.all()), 1)
+        assert len(qs.all()) == 1
         assert not qs.filter(platform=amo.PLATFORM_MAC.id)
         self.post()
-        eq_(len(qs.all()), 2)
+        assert len(qs.all()) == 2
         assert qs.get(platform=amo.PLATFORM_MAC.id)
 
     def test_upload_not_found(self):
@@ -2466,7 +2471,7 @@ class TestVersionAddFile(UploadTest):
         r = self.post()
         assert r.status_code == 200
         new_file = self.version.files.get(platform=amo.PLATFORM_MAC.id)
-        eq_(r.context['form'].instance, new_file)
+        assert r.context['form'].instance == new_file
 
     def test_show_item_history(self):
         version = self.addon.current_version
@@ -2480,14 +2485,14 @@ class TestVersionAddFile(UploadTest):
         doc = pq(self.client.get(self.edit_url).content)
         appr = doc('#approval_status')
 
-        eq_(appr.length, 1)
-        eq_(appr.find('strong').eq(0).text(), "File  (Linux)")
-        eq_(appr.find('.version-comments').length, 1)
+        assert appr.length == 1
+        assert appr.find('strong').eq(0).text() == "File  (Linux)"
+        assert appr.find('.version-comments').length == 1
 
         comment = appr.find('.version-comments').eq(0)
-        eq_(comment.find('strong a').text(), 'Delicious Bookmarks Version 0.1')
-        eq_(comment.find('pre.email_comment').length, 1)
-        eq_(comment.find('pre.email_comment').text(), 'yo')
+        assert comment.find('strong a').text() == 'Delicious Bookmarks Version 0.1'
+        assert comment.find('pre.email_comment').length == 1
+        assert comment.find('pre.email_comment').text() == 'yo'
 
     def test_show_item_history_hide_message(self):
         """ Test to make sure comments not to the user aren't shown. """
@@ -2502,7 +2507,7 @@ class TestVersionAddFile(UploadTest):
         doc = pq(self.client.get(self.edit_url).content)
         comment = doc('#approval_status').find('.version-comments').eq(0)
 
-        eq_(comment.find('pre.email_comment').length, 0)
+        assert comment.find('pre.email_comment').length == 0
 
     def test_show_item_history_multiple(self):
         version = self.addon.current_version
@@ -2520,7 +2525,7 @@ class TestVersionAddFile(UploadTest):
         doc = pq(self.client.get(self.edit_url).content)
         comments = doc('#approval_status').find('.version-comments')
 
-        eq_(comments.length, 2)
+        assert comments.length == 2
 
     def test_with_source(self):
         tdir = temp.gettempdir()
@@ -2528,7 +2533,7 @@ class TestVersionAddFile(UploadTest):
         source.write('a' * (2 ** 21))
         source.seek(0)
         response = self.post(source=source)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         assert self.addon.versions.get(pk=self.addon.current_version.pk).source
         assert Addon.objects.get(pk=self.addon.pk).admin_review
 
@@ -2538,7 +2543,7 @@ class TestVersionAddFile(UploadTest):
         source.write('a' * (2 ** 21))
         source.seek(0)
         response = self.post(source=source)
-        eq_(response.status_code, 400)
+        assert response.status_code == 400
         assert 'source' in json.loads(response.content)
 
     @mock.patch('editors.helpers.sign_file')
@@ -2718,7 +2723,7 @@ class AddVersionTest(UploadTest):
                  supported_platforms=[p.id for p in supported_platforms],
                  admin_override_validation=override_validation, beta=beta)
         r = self.client.post(self.url, d)
-        eq_(r.status_code, expected_status)
+        assert r.status_code == expected_status
         return r
 
     def setUp(self):
@@ -2745,12 +2750,12 @@ class TestAddVersion(AddVersionTest):
         self.version.reload()
         version = Version.objects.latest()
         ok_(version.pk != self.version.pk)
-        eq_(version.version, self.version.version)
+        assert version.version == self.version.version
 
         # We reuse the release and approval notes from the last rejected
         # version with the same version number.
-        eq_(version.releasenotes, self.version.releasenotes)
-        eq_(version.approvalnotes, self.version.approvalnotes)
+        assert version.releasenotes == self.version.releasenotes
+        assert version.approvalnotes == self.version.approvalnotes
 
     def test_success(self):
         r = self.post()
@@ -2762,7 +2767,7 @@ class TestAddVersion(AddVersionTest):
     def test_public(self):
         self.post()
         fle = File.objects.latest()
-        eq_(fle.status, amo.STATUS_PUBLIC)
+        assert fle.status == amo.STATUS_PUBLIC
 
     def test_not_public(self):
         self.addon.update(trusted=False)
@@ -2775,7 +2780,7 @@ class TestAddVersion(AddVersionTest):
                                            amo.PLATFORM_LINUX])
         assert r.status_code == 200
         version = self.addon.versions.get(version='0.1')
-        eq_(len(version.all_files), 2)
+        assert len(version.all_files) == 2
 
     @mock.patch('devhub.views.auto_sign_file')
     def test_multiple_platforms_unlisted_addon(self, mock_auto_sign_file):
@@ -2784,7 +2789,7 @@ class TestAddVersion(AddVersionTest):
                                            amo.PLATFORM_LINUX])
         assert r.status_code == 200
         version = self.addon.versions.get(version='0.1')
-        eq_(len(version.all_files), 2)
+        assert len(version.all_files) == 2
         mock_auto_sign_file.assert_has_calls(
             [mock.call(f, is_beta=False, admin_override=False)
              for f in version.all_files])
@@ -2795,7 +2800,7 @@ class TestAddVersion(AddVersionTest):
         source.write('a' * (2 ** 21))
         source.seek(0)
         response = self.post(source=source)
-        eq_(response.status_code, 200)
+        assert response.status_code == 200
         assert self.addon.versions.get(version='0.1').source
         assert Addon.objects.get(pk=self.addon.pk).admin_review
 
@@ -2896,7 +2901,7 @@ class TestAddBetaVersion(AddVersionTest):
 
         # Make sure that the first file is beta
         fle = File.objects.all().order_by('-id')[0]
-        eq_(fle.status, amo.STATUS_BETA)
+        assert fle.status == amo.STATUS_BETA
 
         self.do_upload()
         r = self.post_additional(version, platform=amo.PLATFORM_LINUX)
@@ -2904,7 +2909,7 @@ class TestAddBetaVersion(AddVersionTest):
 
         # Make sure that the additional files are beta
         fle = File.objects.all().order_by('-id')[0]
-        eq_(fle.status, amo.STATUS_BETA)
+        assert fle.status == amo.STATUS_BETA
 
     def test_force_not_beta(self):
         self.post(beta=False)
@@ -3003,7 +3008,7 @@ class TestAddVersionValidation(AddVersionTest):
         assert not self.addon.admin_review
         self.post(override_validation=True, expected_status=200)
 
-        eq_(self.addon.reload().admin_review, True)
+        assert self.addon.reload().admin_review == True
 
     def test_admin_validation_sans_override(self):
         self.login_as_admin()
@@ -3033,11 +3038,11 @@ class UploadAddon(object):
                  supported_platforms=[p.id for p in supported_platforms],
                  is_unlisted=not is_listed, is_sideload=is_sideload)
         r = self.client.post(self.url, d, follow=True)
-        eq_(r.status_code, status_code)
+        assert r.status_code == status_code
         if not expect_errors:
             # Show any unexpected form errors.
             if r.context and 'new_addon_form' in r.context:
-                eq_(r.context['new_addon_form'].errors.as_text(), '')
+                assert r.context['new_addon_form'].errors.as_text() == ''
         return r
 
 
@@ -3090,7 +3095,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
         assert get_addon_count('xpi name') == 2
 
     def test_success_listed(self):
-        eq_(Addon.objects.count(), 0)
+        assert Addon.objects.count() == 0
         r = self.post()
         addon = Addon.objects.get()
         assert addon.is_listed
@@ -3102,7 +3107,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
     @mock.patch('editors.helpers.sign_file')
     def test_success_unlisted(self, mock_sign_file):
         """Sign automatically."""
-        eq_(Addon.with_unlisted.count(), 0)
+        assert Addon.with_unlisted.count() == 0
         # No validation errors or warning.
         self.upload = self.get_upload(
             'extension.xpi',
@@ -3121,7 +3126,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
 
     @mock.patch('editors.helpers.sign_file')
     def test_success_unlisted_fail_validation(self, mock_sign_file):
-        eq_(Addon.with_unlisted.count(), 0)
+        assert Addon.with_unlisted.count() == 0
         self.upload = self.get_upload(
             'extension.xpi',
             validation=json.dumps(dict(errors=0, warnings=0, notices=2,
@@ -3139,7 +3144,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
 
     @mock.patch('editors.helpers.sign_file')
     def test_success_unlisted_sideload(self, mock_sign_file):
-        eq_(Addon.with_unlisted.count(), 0)
+        assert Addon.with_unlisted.count() == 0
         self.post(is_listed=False, is_sideload=True)
         addon = Addon.with_unlisted.get()
         assert not addon.is_listed
@@ -3157,7 +3162,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
             'Need at least one platform.')
 
     def test_one_xpi_for_multiple_platforms(self):
-        eq_(Addon.objects.count(), 0)
+        assert Addon.objects.count() == 0
         r = self.post(supported_platforms=[amo.PLATFORM_MAC,
                                            amo.PLATFORM_LINUX])
         addon = Addon.objects.get()
@@ -3169,7 +3174,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
     @mock.patch('devhub.views.auto_sign_file')
     def test_one_xpi_for_multiple_platforms_unlisted_addon(
             self, mock_auto_sign_file):
-        eq_(Addon.objects.count(), 0)
+        assert Addon.objects.count() == 0
         r = self.post(supported_platforms=[amo.PLATFORM_MAC,
                                            amo.PLATFORM_LINUX],
                       is_listed=False)
@@ -3186,7 +3191,7 @@ class TestCreateAddon(BaseUploadTest, UploadAddon, amo.tests.TestCase):
         source = temp.NamedTemporaryFile(suffix=".zip", dir=tdir)
         source.write('a' * (2 ** 21))
         source.seek(0)
-        eq_(Addon.objects.count(), 0)
+        assert Addon.objects.count() == 0
         r = self.post(source=source)
         addon = Addon.objects.get()
         self.assertRedirects(r, reverse('devhub.submit.3', args=[addon.slug]))
@@ -3208,13 +3213,13 @@ class TestDeleteAddon(amo.tests.TestCase):
         self.assertRedirects(r, self.addon.get_dev_url('versions'))
         eq_(r.context['title'],
             'Password was incorrect. Add-on was not deleted.')
-        eq_(Addon.objects.count(), 1)
+        assert Addon.objects.count() == 1
 
     def test_success(self):
         r = self.client.post(self.url, dict(password='password'))
         self.assertRedirects(r, reverse('devhub.addons'))
-        eq_(r.context['title'], 'Add-on deleted.')
-        eq_(Addon.objects.count(), 0)
+        assert r.context['title'] == 'Add-on deleted.'
+        assert Addon.objects.count() == 0
 
 
 class TestRequestReview(amo.tests.TestCase):
@@ -3244,7 +3249,7 @@ class TestRequestReview(amo.tests.TestCase):
         self.addon.update(status=old_status)
         r = self.client.post(url)
         self.assertRedirects(r, self.redirect_url)
-        eq_(self.get_addon().status, new_status)
+        assert self.get_addon().status == new_status
 
     def check_400(self, url):
         r = self.client.post(url)
@@ -3252,7 +3257,7 @@ class TestRequestReview(amo.tests.TestCase):
 
     def test_404(self):
         bad_url = self.public_url.replace(str(amo.STATUS_PUBLIC), '0')
-        eq_(self.client.post(bad_url).status_code, 404)
+        assert self.client.post(bad_url).status_code == 404
 
     def test_public(self):
         self.addon.update(status=amo.STATUS_PUBLIC)
@@ -3272,7 +3277,7 @@ class TestRequestReview(amo.tests.TestCase):
         self.check_400(self.lite_url)
 
     def test_lite_to_public(self):
-        eq_(self.version.nomination, None)
+        assert self.version.nomination is None
         self.check(amo.STATUS_LITE, self.public_url,
                    amo.STATUS_LITE_AND_NOMINATED)
         self.assertCloseToNow(self.get_version().nomination)
@@ -3281,7 +3286,7 @@ class TestRequestReview(amo.tests.TestCase):
         self.check(amo.STATUS_PURGATORY, self.lite_url, amo.STATUS_UNREVIEWED)
 
     def test_purgatory_to_public(self):
-        eq_(self.version.nomination, None)
+        assert self.version.nomination is None
         self.check(amo.STATUS_PURGATORY, self.public_url,
                    amo.STATUS_NOMINATED)
         self.assertCloseToNow(self.get_version().nomination)
@@ -3357,8 +3362,8 @@ class TestRedirects(amo.tests.TestCase):
 class TestDocs(amo.tests.TestCase):
 
     def test_doc_urls(self):
-        eq_('/en-US/developers/docs/', reverse('devhub.docs', args=[]))
-        eq_('/en-US/developers/docs/te', reverse('devhub.docs', args=['te']))
+        assert '/en-US/developers/docs/', reverse('devhub.docs' == args=[])
+        assert '/en-US/developers/docs/te', reverse('devhub.docs' == args=['te'])
         eq_('/en-US/developers/docs/te/st', reverse('devhub.docs',
                                                     args=['te/st']))
 
@@ -3373,7 +3378,7 @@ class TestDocs(amo.tests.TestCase):
 
         for url in urls:
             r = self.client.get(url[0])
-            eq_(r.status_code, url[1])
+            assert r.status_code == url[1]
 
             if url[1] == 302:  # Redirect to the index page
                 self.assertRedirects(r, index)
@@ -3400,7 +3405,7 @@ class TestRemoveLocale(amo.tests.TestCase):
               .values_list('locale', flat=True))
         r = self.client.post(self.url, {'locale': 'el'})
         assert r.status_code == 200
-        eq_(sorted(qs.filter(id=self.addon.name_id)), ['en-US'])
+        assert sorted(qs.filter(id=self.addon.name_id)) == ['en-US']
 
     def test_delete_default_locale(self):
         r = self.client.post(self.url, {'locale': self.addon.default_locale})
@@ -3416,7 +3421,7 @@ class TestRemoveLocale(amo.tests.TestCase):
                                       args=[self.addon.slug, version.pk]))
         doc = pq(res.content)
         # There's 2 fields, one for en-us, one for init.
-        eq_(len(doc('div.trans textarea')), 2)
+        assert len(doc('div.trans textarea')) == 2
 
 
 class TestSearch(amo.tests.TestCase):

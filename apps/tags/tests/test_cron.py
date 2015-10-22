@@ -19,17 +19,17 @@ class TestTagJetpacks(amo.tests.TestCase):
     def test_jetpack(self):
         File.objects.update(jetpack_version='1.0')
         cron.tag_jetpacks()
-        eq_(['jetpack'], [t.tag_text for t in self.addon.tags.all()])
+        assert ['jetpack'] == [t.tag_text for t in self.addon.tags.all()]
 
     def test_restartless(self):
         File.objects.update(no_restart=True)
         cron.tag_jetpacks()
-        eq_(['restartless'], [t.tag_text for t in self.addon.tags.all()])
+        assert ['restartless'] == [t.tag_text for t in self.addon.tags.all()]
 
     def test_no_change(self):
         File.objects.update(no_restart=False, jetpack_version=None)
         cron.tag_jetpacks()
-        eq_([], [t.tag_text for t in self.addon.tags.all()])
+        assert [] == [t.tag_text for t in self.addon.tags.all()]
 
     def test_reverse(self):
         File.objects.update(no_restart=True, jetpack_version='1.0')
@@ -39,4 +39,4 @@ class TestTagJetpacks(amo.tests.TestCase):
 
         File.objects.update(no_restart=False, jetpack_version=None)
         cron.tag_jetpacks()
-        eq_([], [t.tag_text for t in self.addon.tags.all()])
+        assert [] == [t.tag_text for t in self.addon.tags.all()]

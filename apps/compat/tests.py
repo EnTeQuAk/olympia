@@ -28,7 +28,7 @@ incoming_data = {
 class TestCompatReportModel(amo.tests.TestCase):
 
     def test_none(self):
-        eq_(CompatReport.get_counts('xxx'), {'success': 0, 'failure': 0})
+        assert CompatReport.get_counts('xxx') == {'success': 0, 'failure': 0}
 
     def test_some(self):
         guid = '{2fa4ed95-0317-4c6a-a74c-5f3e3912c1f9}'
@@ -37,7 +37,7 @@ class TestCompatReportModel(amo.tests.TestCase):
         CompatReport.objects.create(guid=guid, works_properly=False)
         CompatReport.objects.create(guid='ballin', works_properly=True)
         CompatReport.objects.create(guid='ballin', works_properly=False)
-        eq_(CompatReport.get_counts(guid), {'success': 2, 'failure': 1})
+        assert CompatReport.get_counts(guid) == {'success': 2, 'failure': 1}
 
 
 class TestIndex(amo.tests.TestCase):
@@ -83,15 +83,15 @@ class TestIncoming(amo.tests.TestCase):
         count = CompatReport.objects.count()
         r = self.client.post(self.url, self.json,
                              content_type='application/json')
-        eq_(r.status_code, 204)
-        eq_(CompatReport.objects.count(), count + 1)
+        assert r.status_code == 204
+        assert CompatReport.objects.count() == count + 1
 
         cr = CompatReport.objects.order_by('-id')[0]
-        eq_(cr.app_build, incoming_data['appBuild'])
-        eq_(cr.app_guid, incoming_data['appGUID'])
-        eq_(cr.works_properly, incoming_data['worksProperly'])
-        eq_(cr.comments, incoming_data['comments'])
-        eq_(cr.client_ip, '127.0.0.1')
+        assert cr.app_build == incoming_data['appBuild']
+        assert cr.app_guid == incoming_data['appGUID']
+        assert cr.works_properly == incoming_data['worksProperly']
+        assert cr.comments == incoming_data['comments']
+        assert cr.client_ip == '127.0.0.1'
 
         # Check that the other_addons field is stored as json.
         vals = CompatReport.objects.filter(id=cr.id).values('other_addons')
@@ -101,13 +101,13 @@ class TestIncoming(amo.tests.TestCase):
     def test_bad_json(self):
         r = self.client.post(self.url, 'wuuu#$',
                              content_type='application/json')
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
     def test_bad_field(self):
         self.data['save'] = 1
         js = json.dumps(self.data)
         r = self.client.post(self.url, js, content_type='application/json')
-        eq_(r.status_code, 400)
+        assert r.status_code == 400
 
 
 class TestReporter(amo.tests.TestCase):
@@ -207,16 +207,16 @@ class TestReporterDetail(amo.tests.TestCase):
             sorted(self.reports[pk] for pk in report_pks))
 
         doc = pq(r.content)
-        eq_(doc('.compat-info tbody tr').length, good + bad)
+        assert doc('.compat-info tbody tr').length == good + bad
 
         reports = doc('#reports')
         if good == 0 and bad == 0:
-            eq_(reports.find('.good, .bad').length, 0)
-            eq_(doc('.no-results').length, 1)
+            assert reports.find('.good, .bad').length == 0
+            assert doc('.no-results').length == 1
         else:
             # Check "X success reports" and "X failure reports" buttons.
-            eq_(reports.find('.good').text().split()[0], str(good))
-            eq_(reports.find('.bad').text().split()[0], str(bad))
+            assert reports.find('.good').text().split()[0] == str(good)
+            assert reports.find('.bad').text().split()[0] == str(bad)
 
             # Check "Filter by Application" field.
             eq_(doc('#compat-form select[name=appver] option[selected]').val(),

@@ -22,7 +22,7 @@ def test_showing_helper():
     c['query'] = ''
     c['tag'] = ''
     c['pager'] = pager
-    eq_('Showing 1 - 20 of 1000 results', render(tpl, c))
+    assert 'Showing 1 - 20 of 1000 results', render(tpl == c)
     c['tag'] = 'foo'
     eq_('Showing 1 - 20 of 1000 results tagged with <strong>foo</strong>',
         render(tpl, c))

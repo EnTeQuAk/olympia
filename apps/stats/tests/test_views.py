@@ -207,7 +207,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.downloads_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count
                                  2009-09-03,10
                                  2009-08-03,10
@@ -225,7 +225,7 @@ class TestCSVs(ESStatsTest):
             response = self.get_view_response('stats.usage_series',
                                               group='month', format='csv')
 
-            eq_(response.status_code, 200, 'unexpected http status')
+            assert response.status_code, 200 == 'unexpected http status'
             self.csv_eq(response, """date,count
                                      2009-06-02,1500
                                      2009-06-01,1000""")
@@ -234,7 +234,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.contributions_series',
                                           group='day', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,total,count,average
                                  2009-06-02,4.98,2,2.49
                                  2009-06-01,5.0,1,5.0""")
@@ -243,7 +243,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.sources_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count,search,api
                                  2009-09-03,10,3,2
                                  2009-08-03,10,3,2
@@ -258,7 +258,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.os_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count,Windows,Linux
                                  2009-06-02,1500,500,400
                                  2009-06-01,1000,400,300""")
@@ -267,7 +267,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.locales_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(
             response,
             """date,count,English (US) (en-us),"""
@@ -280,7 +280,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.statuses_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count,userEnabled,userDisabled
                                  2009-06-02,1500,1370,130
                                  2009-06-01,1000,950,50""")
@@ -289,7 +289,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.versions_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count,2.0,1.0
                                  2009-06-02,1500,950,550
                                  2009-06-01,1000,800,200""")
@@ -298,7 +298,7 @@ class TestCSVs(ESStatsTest):
         response = self.get_view_response('stats.apps_series',
                                           group='month', format='csv')
 
-        eq_(response.status_code, 200, 'unexpected http status')
+        assert response.status_code, 200 == 'unexpected http status'
         self.csv_eq(response, """date,count,Firefox 4.0
                                  2009-06-02,1500,1500
                                  2009-06-01,1000,1000""")
@@ -308,12 +308,12 @@ class TestCSVs(ESStatsTest):
         self.url_args = {'start': '20200101', 'end': '20200130', 'addon_id': 4}
         response = self.get_view_response('stats.versions_series', head=True,
                                           group='day', format='csv')
-        eq_(response["cache-control"], 'max-age=0')
+        assert response["cache-control"] == 'max-age=0'
 
         self.url_args = {'start': '20200101', 'end': '20200130', 'addon_id': 4}
         response = self.get_view_response('stats.versions_series', head=True,
                                           group='day', format='json')
-        eq_(response["cache-control"], 'max-age=0')
+        assert response["cache-control"] == 'max-age=0'
 
     def test_usage_series_no_data(self):
         url_args = [
@@ -326,7 +326,7 @@ class TestCSVs(ESStatsTest):
             response = self.get_view_response('stats.usage_series',
                                               group='day', format='csv')
 
-            eq_(response.status_code, 200)
+            assert response.status_code == 200
             self.csv_eq(response, """date,count""")
 
 
@@ -356,7 +356,7 @@ class TestLayout(StatsTest):
 
     def test_public_stats_stats_notes(self):
         r = self.client.get(self.get_public_url())
-        eq_(pq(r.content)('#stats-note h2').length, 1)
+        assert pq(r.content)('#stats-note h2').length == 1
 
 
 class TestResponses(ESStatsTest):
@@ -573,8 +573,8 @@ class TestResponses(ESStatsTest):
         ]
         actual_data = json.loads(r.content)
         # Make sure they match up at the front and back.
-        eq_(actual_data[0]['date'], expected_data[0]['date'])
-        eq_(actual_data[-1]['date'], expected_data[-1]['date'])
+        assert actual_data[0]['date'] == expected_data[0]['date']
+        assert actual_data[-1]['date'] == expected_data[-1]['date']
         end_date = expected_data[-1]['date']
 
         expected, actual = iter(expected_data), iter(actual_data)
@@ -718,24 +718,24 @@ class TestSiteQuery(amo.tests.TestCase):
 
     def test_day_grouping(self):
         res = views._site_query('date', self.start, self.end)[0]
-        eq_(len(res), 14)
-        eq_(res[0]['data']['addons_created'], 14)
+        assert len(res) == 14
+        assert res[0]['data']['addons_created'] == 14
         # Make sure we are returning counts as integers, otherwise
         # DjangoJSONSerializer will map them to strings.
-        eq_(type(res[0]['data']['addons_created']), int)
-        eq_(res[0]['date'], '2012-01-15')
+        assert type(res[0]['data']['addons_created']) == int
+        assert res[0]['date'] == '2012-01-15'
 
     def test_week_grouping(self):
         res = views._site_query('week', self.start, self.end)[0]
-        eq_(len(res), 3)
-        eq_(res[1]['data']['addons_created'], 70)
-        eq_(res[1]['date'], '2012-01-08')
+        assert len(res) == 3
+        assert res[1]['data']['addons_created'] == 70
+        assert res[1]['date'] == '2012-01-08'
 
     def test_month_grouping(self):
         res = views._site_query('month', self.start, self.end)[0]
-        eq_(len(res), 1)
-        eq_(res[0]['data']['addons_created'], (14 * (14 + 1)) / 2)
-        eq_(res[0]['date'], '2012-01-02')
+        assert len(res) == 1
+        assert res[0]['data']['addons_created'] == (14 * (14 + 1)) / 2
+        assert res[0]['date'] == '2012-01-02'
 
     def test_period(self):
         self.assertRaises(AssertionError, views._site_query, 'not_period',
@@ -749,7 +749,7 @@ class TestSite(amo.tests.TestCase):
         _site_query.return_value = ['.', '.']
         for period in ['date', 'week', 'month']:
             self.client.get(reverse('stats.site', args=['json', period]))
-            eq_(_site_query.call_args[0][0], period)
+            assert _site_query.call_args[0][0] == period
 
     def tests_period_day(self, _site_query):
         _site_query.return_value = ['.', '.']
@@ -758,9 +758,9 @@ class TestSite(amo.tests.TestCase):
         self.client.get(reverse('stats.site.new',
                         args=['day', start.strftime('%Y%m%d'),
                               end.strftime('%Y%m%d'), 'json']))
-        eq_(_site_query.call_args[0][0], 'date')
-        eq_(_site_query.call_args[0][1], start)
-        eq_(_site_query.call_args[0][2], end)
+        assert _site_query.call_args[0][0] == 'date'
+        assert _site_query.call_args[0][1] == start
+        assert _site_query.call_args[0][2] == end
 
     def test_csv(self, _site_query):
         _site_query.return_value = [[], []]
@@ -777,7 +777,7 @@ class TestSite(amo.tests.TestCase):
         self.client.get(reverse('stats.site', args=['json', 'date']))
         eq_(_site_query.call_args[0][1],
             datetime.date.today() - datetime.timedelta(days=365))
-        eq_(_site_query.call_args[0][2], datetime.date.today())
+        assert _site_query.call_args[0][2] == datetime.date.today()
 
 
 class TestCollections(amo.tests.ESTestCase):
@@ -819,10 +819,10 @@ class TestCollections(amo.tests.ESTestCase):
         self.client.login(username='admin@mozilla.com', password='password')
         res = self.client.get(self.url)
         content = json.loads(res.content)
-        eq_(len(content), 3)
-        eq_(content[0]['count'], 1)
-        eq_(content[0]['data']['votes_down'], 1)
-        eq_(content[0]['data']['downloads'], 1)
+        assert len(content) == 3
+        assert content[0]['count'] == 1
+        assert content[0]['data']['votes_down'] == 1
+        assert content[0]['data']['downloads'] == 1
 
     def test_collection_csv(self):
         self.client.login(username='admin@mozilla.com', password='password')
@@ -844,8 +844,8 @@ class TestCollections(amo.tests.ESTestCase):
         url = self.get_url(self.today, self.today)
         res = self.client.get(url)
         content = json.loads(res.content)
-        eq_(len(content), 1)
-        eq_(content[0]['date'], self.today.strftime('%Y-%m-%d'))
+        assert len(content) == 1
+        assert content[0]['date'] == self.today.strftime('%Y-%m-%d')
 
     def test_collection_range(self):
         self.client.login(username='admin@mozilla.com', password='password')
@@ -854,9 +854,9 @@ class TestCollections(amo.tests.ESTestCase):
         url = self.get_url(day_before, yesterday)
         res = self.client.get(url)
         content = json.loads(res.content)
-        eq_(len(content), 2)
-        eq_(content[0]['date'], yesterday.strftime('%Y-%m-%d'))
-        eq_(content[1]['date'], day_before.strftime('%Y-%m-%d'))
+        assert len(content) == 2
+        assert content[0]['date'] == yesterday.strftime('%Y-%m-%d')
+        assert content[1]['date'] == day_before.strftime('%Y-%m-%d')
 
 
 class TestXssOnAddonName(amo.tests.TestXss):

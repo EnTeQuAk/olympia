@@ -28,17 +28,17 @@ def test_emaillink():
                  r'<span class="i">null</span>(.*)</span>', obfuscated)
     obfuscated = (''.join((m.group(1), m.group(2)))
                   .replace('&#x0040;', '@').replace('&#x002E;', '.'))[::-1]
-    eq_(email, obfuscated)
+    assert email == obfuscated
 
     title = 'E-mail your question'
     obfuscated = unicode(emaillink(email, title))
     m = re.match(r'<a href="#">(.*)</a>'
                  r'<span class="emaillink js-hidden">(.*?)'
                  r'<span class="i">null</span>(.*)</span>', obfuscated)
-    eq_(title, m.group(1))
+    assert title == m.group(1)
     obfuscated = (''.join((m.group(2), m.group(3)))
                   .replace('&#x0040;', '@').replace('&#x002E;', '.'))[::-1]
-    eq_(email, obfuscated)
+    assert email == obfuscated
 
 
 def test_user_link():
@@ -48,30 +48,30 @@ def test_user_link():
                                                      u.name))
 
     # handle None gracefully
-    eq_(user_link(None), '')
+    assert user_link(None) == ''
 
 
 def test_user_link_xss():
     u = UserProfile(username='jconnor',
                     display_name='<script>alert(1)</script>', pk=1)
     html = "&lt;script&gt;alert(1)&lt;/script&gt;"
-    eq_(user_link(u), '<a href="%s" title="%s">%s</a>' % (u.get_url_path(),
+    assert user_link(u) == '<a href="%s" title="%s">%s</a>' % (u.get_url_path(,
                                                           html, html))
 
     u = UserProfile(username='jconnor',
                     display_name="""xss"'><iframe onload=alert(3)>""", pk=1)
     html = """xss&#34;&#39;&gt;&lt;iframe onload=alert(3)&gt;"""
-    eq_(user_link(u), '<a href="%s" title="%s">%s</a>' % (u.get_url_path(),
+    assert user_link(u) == '<a href="%s" title="%s">%s</a>' % (u.get_url_path(,
                                                           html, html))
 
 
 def test_users_list():
     u1 = UserProfile(username='jconnor', display_name='John Connor', pk=1)
     u2 = UserProfile(username='sconnor', display_name='Sarah Connor', pk=2)
-    eq_(users_list([u1, u2]), ', '.join((user_link(u1), user_link(u2))))
+    assert users_list([u1, u2]), ', '.join((user_link(u1) == user_link(u2)))
 
     # handle None gracefully
-    eq_(user_link(None), '')
+    assert user_link(None) == ''
 
 
 def test_short_users_list():
@@ -81,7 +81,7 @@ def test_short_users_list():
     u2 = UserProfile(username='grover', display_name='Grover', pk=2)
     u3 = UserProfile(username='cookies!', display_name='Cookie Monster', pk=3)
     shortlist = users_list([u1, u2, u3], size=2)
-    eq_(shortlist, ', '.join((user_link(u1), user_link(u2))) + ', others')
+    assert shortlist, ', '.join((user_link(u1), user_link(u2))) + ' == others'
 
 
 def test_users_list_truncate_display_name():
@@ -117,9 +117,9 @@ class TestAddonUsersList(TestPersonas, amo.tests.TestCase):
     def test_by(self):
         """Test that the by... bit works."""
         content = addon_users_list({'amo': amo}, self.addon)
-        eq_(pq(content).text(), 'by %s' % self.addon.authors.all()[0].name)
+        assert pq(content).text() == 'by %s' % self.addon.authors.all()[0].name
 
 
 def test_user_data():
     u = user_data(RequestUser(username='foo', pk=1))
-    eq_(u['anonymous'], False)
+    assert u['anonymous'] == False

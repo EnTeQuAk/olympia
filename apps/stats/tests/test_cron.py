@@ -69,7 +69,7 @@ class TestTotalContributions(amo.tests.TestCase):
 
         tasks.addon_total_contributions(3615)
         a = Addon.objects.no_cache().get(pk=3615)
-        eq_(float(a.total_contributions), 9.99)
+        assert float(a.total_contributions) == 9.99
 
         c = Contribution()
         c.addon_id = 3615
@@ -78,7 +78,7 @@ class TestTotalContributions(amo.tests.TestCase):
 
         tasks.addon_total_contributions(3615)
         a = Addon.objects.no_cache().get(pk=3615)
-        eq_(float(a.total_contributions), 19.99)
+        assert float(a.total_contributions) == 19.99
 
 
 @mock.patch('stats.management.commands.index_stats.create_tasks')
@@ -98,45 +98,45 @@ class TestIndexStats(amo.tests.TestCase):
         call_command('index_stats', addons=None, date='2009-06-01')
         qs = self.downloads.filter(date='2009-06-01')
         download = tasks_mock.call_args_list[1][0]
-        eq_(download[0], tasks.index_download_counts)
-        eq_(download[1], list(qs))
+        assert download[0] == tasks.index_download_counts
+        assert download[1] == list(qs)
 
     def test_called_three(self, tasks_mock):
         call_command('index_stats', addons=None, date='2009-06-01')
-        eq_(tasks_mock.call_count, 4)
+        assert tasks_mock.call_count == 4
 
     def test_called_two(self, tasks_mock):
         call_command('index_stats', addons='5', date='2009-06-01')
-        eq_(tasks_mock.call_count, 3)
+        assert tasks_mock.call_count == 3
 
     def test_by_date_range(self, tasks_mock):
         call_command('index_stats', addons=None,
                      date='2009-06-01:2009-06-07')
         qs = self.downloads.filter(date__range=('2009-06-01', '2009-06-07'))
         download = tasks_mock.call_args_list[1][0]
-        eq_(download[0], tasks.index_download_counts)
-        eq_(download[1], list(qs))
+        assert download[0] == tasks.index_download_counts
+        assert download[1] == list(qs)
 
     def test_by_addon(self, tasks_mock):
         call_command('index_stats', addons='5', date=None)
         qs = self.downloads.filter(addon=5)
         download = tasks_mock.call_args_list[1][0]
-        eq_(download[0], tasks.index_download_counts)
-        eq_(download[1], list(qs))
+        assert download[0] == tasks.index_download_counts
+        assert download[1] == list(qs)
 
     def test_by_addon_and_date(self, tasks_mock):
         call_command('index_stats', addons='4', date='2009-06-01')
         qs = self.downloads.filter(addon=4, date='2009-06-01')
         download = tasks_mock.call_args_list[1][0]
-        eq_(download[0], tasks.index_download_counts)
-        eq_(download[1], list(qs))
+        assert download[0] == tasks.index_download_counts
+        assert download[1] == list(qs)
 
     def test_multiple_addons_and_date(self, tasks_mock):
         call_command('index_stats', addons='4, 5', date='2009-10-03')
         qs = self.downloads.filter(addon__in=[4, 5], date='2009-10-03')
         download = tasks_mock.call_args_list[1][0]
-        eq_(download[0], tasks.index_download_counts)
-        eq_(download[1], list(qs))
+        assert download[0] == tasks.index_download_counts
+        assert download[1] == list(qs)
 
     def test_no_addon_or_date(self, tasks_mock):
         call_command('index_stats', addons=None, date=None)

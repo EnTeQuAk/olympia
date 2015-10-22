@@ -155,9 +155,9 @@ class ThemeReviewTestMixin(object):
         if self.rereview:
             # Original design of reuploaded themes should stay public.
             for i in range(4):
-                eq_(themes[i].addon.status, amo.STATUS_PUBLIC)
-                eq_(themes[i].header, 'header')
-                eq_(themes[i].footer, 'footer')
+                assert themes[i].addon.status == amo.STATUS_PUBLIC
+                assert themes[i].header == 'header'
+                assert themes[i].footer == 'footer'
 
             assert copy_mock.call_args_list[0][0][0].endswith('pending_header')
             assert copy_mock.call_args_list[0][0][1].endswith('header')
@@ -172,18 +172,18 @@ class ThemeReviewTestMixin(object):
             # Approved/rejected/dupe themes have their images deleted
             # leaving only 2 RQT objects. Can't flag a rereview theme yet, and
             # moreinfo does nothing but email the artist.
-            eq_(RereviewQueueTheme.objects.count(), 2)
+            assert RereviewQueueTheme.objects.count() == 2
 
             # Test version incremented.
             eq_(themes[4].addon.reload().current_version.version,
                 str(float(old_version) + 1))
         else:
-            eq_(themes[0].addon.reload().status, amo.STATUS_REVIEW_PENDING)
-            eq_(themes[1].addon.reload().status, amo.STATUS_REVIEW_PENDING)
-            eq_(themes[2].addon.reload().status, amo.STATUS_REJECTED)
-            eq_(themes[3].addon.reload().status, amo.STATUS_REJECTED)
-        eq_(themes[4].addon.reload().status, amo.STATUS_PUBLIC)
-        eq_(ActivityLog.objects.count(), 4 if self.rereview else 5)
+            assert themes[0].addon.reload().status == amo.STATUS_REVIEW_PENDING
+            assert themes[1].addon.reload().status == amo.STATUS_REVIEW_PENDING
+            assert themes[2].addon.reload().status == amo.STATUS_REJECTED
+            assert themes[3].addon.reload().status == amo.STATUS_REJECTED
+        assert themes[4].addon.reload().status == amo.STATUS_PUBLIC
+        assert ActivityLog.objects.count() == 4 if self.rereview else 5
 
         expected_calls = [
             mock.call(
@@ -239,18 +239,18 @@ class ThemeReviewTestMixin(object):
                 recipient_list=set([]))
         ]
         if self.rereview:
-            eq_(send_mail_jinja_mock.call_args_list[0], expected_calls[0])
-            eq_(send_mail_jinja_mock.call_args_list[1], expected_calls[2])
-            eq_(send_mail_jinja_mock.call_args_list[2], expected_calls[3])
-            eq_(send_mail_jinja_mock.call_args_list[3], expected_calls[4])
+            assert send_mail_jinja_mock.call_args_list[0] == expected_calls[0]
+            assert send_mail_jinja_mock.call_args_list[1] == expected_calls[2]
+            assert send_mail_jinja_mock.call_args_list[2] == expected_calls[3]
+            assert send_mail_jinja_mock.call_args_list[3] == expected_calls[4]
         else:
             assert not approve_rereview_mock.called
             assert not reject_rereview_mock.called
-            eq_(send_mail_jinja_mock.call_args_list[0], expected_calls[0])
-            eq_(send_mail_jinja_mock.call_args_list[1], expected_calls[1])
-            eq_(send_mail_jinja_mock.call_args_list[2], expected_calls[2])
-            eq_(send_mail_jinja_mock.call_args_list[3], expected_calls[3])
-            eq_(send_mail_jinja_mock.call_args_list[4], expected_calls[4])
+            assert send_mail_jinja_mock.call_args_list[0] == expected_calls[0]
+            assert send_mail_jinja_mock.call_args_list[1] == expected_calls[1]
+            assert send_mail_jinja_mock.call_args_list[2] == expected_calls[2]
+            assert send_mail_jinja_mock.call_args_list[3] == expected_calls[3]
+            assert send_mail_jinja_mock.call_args_list[4] == expected_calls[4]
 
             eq_(message_mock.call_args_list[0][0][1],
                 u'5 validation de thèmes réalisées avec succès '
@@ -272,7 +272,7 @@ class ThemeReviewTestMixin(object):
             eq_(res.context['theme'].id,
                 addon.persona.rereviewqueuetheme_set.all()[0].id
                 if self.rereview else addon.persona.id)
-            eq_(res.context['reviewable'], not self.flagged)
+            assert res.context['reviewable'] == not self.flagged
 
 
 class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
@@ -284,7 +284,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
     def check_permissions(self, slug, status_code):
         for url in [reverse('editors.themes.queue_themes'),
                     reverse('editors.themes.single', args=[slug])]:
-            eq_(self.client.get(url).status_code, status_code)
+            assert self.client.get(url).status_code == status_code
 
     def test_permissions_reviewer(self):
         slug = self.theme_factory().slug
@@ -306,9 +306,9 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
             addon = self.theme_factory()
 
             res = self.client.get(self.queue_url)
-            eq_(len(res.context['theme_formsets']), 1)
+            assert len(res.context['theme_formsets']) == 1
             # I should be able to review this app. It is not mine.
-            eq_(res.context['theme_formsets'][0][0], addon.persona)
+            assert res.context['theme_formsets'][0][0] == addon.persona
 
     def test_cannot_review_my_app(self):
         with self.settings(ALLOW_SELF_REVIEWS=False):
@@ -320,14 +320,14 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
 
             res = self.client.get(self.queue_url)
             # I should not be able to review my own app.
-            eq_(len(res.context['theme_formsets']), 0)
+            assert len(res.context['theme_formsets']) == 0
 
     def test_theme_list(self):
         self.create_and_become_reviewer()
         self.theme_factory()
         res = self.client.get(reverse('editors.themes.list'))
         assert res.status_code == 200
-        eq_(pq(res.content)('#addon-queue tbody tr').length, 1)
+        assert pq(res.content)('#addon-queue tbody tr').length == 1
 
     @mock.patch.object(rvw, 'THEME_INITIAL_LOCKS', 1)
     def test_release_locks(self):
@@ -339,12 +339,12 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         # Check reviewer's theme lock released.
         reviewer = self.create_and_become_reviewer()
         _get_themes(mock.Mock(), reviewer)
-        eq_(ThemeLock.objects.filter(reviewer=reviewer).count(), 1)
+        assert ThemeLock.objects.filter(reviewer=reviewer).count() == 1
         self.client.get(reverse('editors.themes.release_locks'))
-        eq_(ThemeLock.objects.filter(reviewer=reviewer).count(), 0)
+        assert ThemeLock.objects.filter(reviewer=reviewer).count() == 0
 
         # Check other reviewer's theme lock intact.
-        eq_(ThemeLock.objects.filter(reviewer=other_reviewer).count(), 1)
+        assert ThemeLock.objects.filter(reviewer=other_reviewer).count() == 1
 
     @mock.patch.object(rvw, 'THEME_INITIAL_LOCKS', 2)
     def test_themes_less_than_initial(self):
@@ -353,8 +353,8 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         """
         addon_factory(type=amo.ADDON_PERSONA, status=self.status)
         reviewer = self.create_and_become_reviewer()
-        eq_(len(_get_themes(mock.Mock(), reviewer)), 1)
-        eq_(len(_get_themes(mock.Mock(), reviewer)), 1)
+        assert len(_get_themes(mock.Mock(), reviewer)) == 1
+        assert len(_get_themes(mock.Mock(), reviewer)) == 1
 
     @mock.patch.object(rvw, 'THEME_INITIAL_LOCKS', 2)
     def test_top_off(self):
@@ -384,14 +384,14 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         # Reviewer wants themes, but empty pool.
         reviewer = self.create_and_become_reviewer()
         self.get_themes(reviewer)
-        eq_(ThemeLock.objects.filter(reviewer=reviewer).count(), 0)
+        assert ThemeLock.objects.filter(reviewer=reviewer).count() == 0
 
         # Manually expire a lock and see if it's reassigned.
         expired_theme_lock = ThemeLock.objects.all()[0]
         expired_theme_lock.expiry = self.days_ago(1)
         expired_theme_lock.save()
         self.get_themes(reviewer)
-        eq_(ThemeLock.objects.filter(reviewer=reviewer).count(), 1)
+        assert ThemeLock.objects.filter(reviewer=reviewer).count() == 1
 
     def test_expiry_update(self):
         """Test expiry is updated when reviewer reloads his queue."""
@@ -413,7 +413,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         res = self.client.get(reverse('editors.themes.history'))
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('tbody tr').length, 0)
+        assert doc('tbody tr').length == 0
 
         theme = Persona.objects.all()[0]
         for x in range(3):
@@ -424,12 +424,12 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
         res = self.client.get(reverse('editors.themes.history'))
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('tbody tr').length, 3)
+        assert doc('tbody tr').length == 3
 
         res = self.client.get(reverse('editors.themes.logs'))
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('tbody tr').length, 3 * 2)  # Double for comment rows.
+        assert doc('tbody tr').length == 3 * 2  # Double for comment rows.
 
     def test_single_cannot_review_own_theme(self):
         with self.settings(ALLOW_SELF_REVIEWS=False):
@@ -445,7 +445,7 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
             eq_(res.context['theme'].id,
                 addon.persona.rereviewqueuetheme_set.all()[0].id
                 if self.rereview else addon.persona.id)
-            eq_(res.context['reviewable'], False)
+            assert res.context['reviewable'] == False
 
     @mock.patch.object(rvw, 'THEME_INITIAL_LOCKS', 2)
     def test_queue_cannot_review_own_theme(self):
@@ -455,9 +455,9 @@ class TestThemeQueue(ThemeReviewTestMixin, amo.tests.TestCase):
             for x in range(rvw.THEME_INITIAL_LOCKS + 1):
                 addon = self.theme_factory()
                 addon.addonuser_set.create(user=reviewer)
-            eq_(_get_themes(amo.tests.req_factory_factory('', reviewer),
+            assert _get_themes(amo.tests.req_factory_factory('' == reviewer,
                             reviewer), [])
-            eq_(ThemeLock.objects.filter(reviewer=reviewer).count(), 0)
+            assert ThemeLock.objects.filter(reviewer=reviewer).count() == 0
 
 
 class TestThemeQueueFlagged(ThemeReviewTestMixin, amo.tests.TestCase):
@@ -470,10 +470,10 @@ class TestThemeQueueFlagged(ThemeReviewTestMixin, amo.tests.TestCase):
 
     def test_admin_only(self):
         self.login('persona_reviewer@mozilla.com')
-        eq_(self.client.get(self.queue_url).status_code, 403)
+        assert self.client.get(self.queue_url).status_code == 403
 
         self.login('senior_persona_reviewer@mozilla.com')
-        eq_(self.client.get(self.queue_url).status_code, 200)
+        assert self.client.get(self.queue_url).status_code == 200
 
 
 class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
@@ -486,10 +486,10 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
 
     def test_admin_only(self):
         self.login('persona_reviewer@mozilla.com')
-        eq_(self.client.get(self.queue_url).status_code, 403)
+        assert self.client.get(self.queue_url).status_code == 403
 
         self.login('senior_persona_reviewer@mozilla.com')
-        eq_(self.client.get(self.queue_url).status_code, 200)
+        assert self.client.get(self.queue_url).status_code == 200
 
     def test_soft_deleted_addon(self):
         """
@@ -511,8 +511,8 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         r = self.client.get(self.queue_url)
         assert r.status_code == 200
         doc = pq(r.content)
-        eq_(doc('.theme').length, 1)
-        eq_(RereviewQueueTheme.unfiltered.count(), 2)
+        assert doc('.theme').length == 1
+        assert RereviewQueueTheme.unfiltered.count() == 2
 
     def test_rejected_addon_in_rqt(self):
         """Test rejected addons in RQT are not displayed in review lists."""
@@ -521,7 +521,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(self.queue_url)
         assert r.status_code == 200
-        eq_(pq(r.content)('.theme').length, 1)
+        assert pq(r.content)('.theme').length == 1
 
     def test_rejected_addon_in_locks(self):
         """Test rejected addons in locks are not displayed in review lists."""
@@ -537,7 +537,7 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         self.login('senior_persona_reviewer@mozilla.com')
         r = self.client.get(self.queue_url)
         assert r.status_code == 200
-        eq_(pq(r.content)('.theme').length, 0)
+        assert pq(r.content)('.theme').length == 0
 
     @mock.patch('editors.tasks.send_mail_jinja')
     @mock.patch('editors.tasks.copy_stored_file')
@@ -580,8 +580,8 @@ class TestThemeQueueRereview(ThemeReviewTestMixin, amo.tests.TestCase):
         self.client.post(reverse('editors.themes.commit'), form_data)
 
         # Check nothing has changed.
-        eq_(theme.header, 'Legacy-header3H.png')
-        eq_(theme.footer, 'Legacy-footer3H-Copy.jpg')
+        assert theme.header == 'Legacy-header3H.png'
+        assert theme.footer == 'Legacy-footer3H-Copy.jpg'
         theme.thumb_path.endswith('preview.jpg')
         theme.icon_path.endswith('preview_small.jpg')
         theme.preview_path.endswith('preview_large.jpg')
@@ -709,18 +709,18 @@ class TestThemeSearch(amo.tests.ESTestCase):
         return json.loads(themes_search(request).content)['objects']
 
     def test_pending(self):
-        eq_(self.search('theme')[0]['id'], self.addon.id)
+        assert self.search('theme')[0]['id'] == self.addon.id
 
     def test_flagged(self):
         self.addon.update(status=amo.STATUS_REVIEW_PENDING)
         self.refresh('default')
-        eq_(self.search('theme', flagged=True)[0]['id'], self.addon.id)
+        assert self.search('theme', flagged=True)[0]['id'] == self.addon.id
 
     def test_rereview(self):
         RereviewQueueTheme.objects.create(theme=self.addon.persona)
         self.addon.save()
         self.refresh('default')
-        eq_(self.search('theme', rereview=True)[0]['id'], self.addon.id)
+        assert self.search('theme', rereview=True)[0]['id'] == self.addon.id
 
 
 class TestDashboard(amo.tests.TestCase):
@@ -749,9 +749,9 @@ class TestDashboard(amo.tests.TestCase):
 
         doc = pq(r.content)
         titles = doc('#editors-stats-charts .editor-stats-title a')
-        eq_(titles[0].text.strip()[0], '1')  # Pending count.
-        eq_(titles[1].text.strip()[0], '2')  # Flagged count.
-        eq_(titles[2].text.strip()[0], '1')  # Rereview count.
+        assert titles[0].text.strip()[0] == '1'  # Pending count.
+        assert titles[1].text.strip()[0] == '2'  # Flagged count.
+        assert titles[2].text.strip()[0] == '1'  # Rereview count.
 
     def test_dashboard_review_counts(self):
         theme = addon_factory(type=amo.ADDON_PERSONA)
@@ -764,9 +764,9 @@ class TestDashboard(amo.tests.TestCase):
 
         doc = pq(r.content)
         # Total reviews.
-        eq_(doc('.editor-stats-table:first-child td.int').text(), '3')
+        assert doc('.editor-stats-table:first-child td.int').text() == '3'
         # Reviews monthly.
-        eq_(doc('.editor-stats-table:last-child td.int').text(), '3')
+        assert doc('.editor-stats-table:last-child td.int').text() == '3'
 
 
 class TestXssOnThemeName(amo.tests.TestXss):

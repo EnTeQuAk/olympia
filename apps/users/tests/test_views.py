@@ -47,7 +47,7 @@ def check_sidebar_links(self, expected):
     assert r.status_code == 200
     links = pq(r.content)('#secondary-nav ul a')
     amo.tests.check_links(expected, links)
-    eq_(links.filter('.selected').attr('href'), self.url)
+    assert links.filter('.selected').attr('href') == self.url
 
 
 class TestTShirtOrder(amo.tests.TestCase):
@@ -179,7 +179,7 @@ class TestEdit(UserViewBase):
         bad['password'] = 'password'
         res = self.client.post(self.url, bad)
         assert res.status_code == 200
-        eq_(res.context['form'].is_valid(), False)
+        assert res.context['form'].is_valid() == False
         eq_(res.context['form'].errors['password'],
             [u'That password is not allowed.'])
 
@@ -188,7 +188,7 @@ class TestEdit(UserViewBase):
         bad['password'] = 'short'
         res = self.client.post(self.url, bad)
         assert res.status_code == 200
-        eq_(res.context['form'].is_valid(), False)
+        assert res.context['form'].is_valid() == False
         eq_(res.context['form'].errors['password'],
             [u'Must be 8 characters or more.'])
 
@@ -207,8 +207,8 @@ class TestEdit(UserViewBase):
         self.assertEquals(u.name, 'DJ SurfNTurf')
         self.assertEquals(u.email, 'jbalogh@mozilla.com')
 
-        eq_(len(mail.outbox), 1)
-        eq_(mail.outbox[0].subject.find('Please confirm your email'), 0)
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].subject.find('Please confirm your email') == 0
         assert mail.outbox[0].body.find('%s/emailchange/' % self.user.id) > 0
 
     @patch.object(settings, 'SEND_REAL_EMAIL', False)
@@ -219,11 +219,11 @@ class TestEdit(UserViewBase):
                 'lang': 'en-US'}
 
         self.client.post(self.url, data, follow=True)
-        eq_(len(mail.outbox), 1)
-        eq_(mail.outbox[0].subject.find('Please confirm your email'), 0)
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].subject.find('Please confirm your email') == 0
 
     def test_edit_bio(self):
-        eq_(self.get_profile().bio, None)
+        assert self.get_profile().bio is None
 
         data = {'username': 'jbalogh',
                 'email': 'jbalogh.changed@mozilla.com',
@@ -233,27 +233,27 @@ class TestEdit(UserViewBase):
         r = self.client.post(self.url, data, follow=True)
         self.assertRedirects(r, self.url)
         self.assertContains(r, data['bio'])
-        eq_(unicode(self.get_profile().bio), data['bio'])
+        assert unicode(self.get_profile().bio) == data['bio']
 
         data['bio'] = 'yyy unst unst'
         r = self.client.post(self.url, data, follow=True)
         self.assertRedirects(r, self.url)
         self.assertContains(r, data['bio'])
-        eq_(unicode(self.get_profile().bio), data['bio'])
+        assert unicode(self.get_profile().bio) == data['bio']
 
     def check_default_choices(self, choices, checked=True):
         doc = pq(self.client.get(self.url).content)
-        eq_(doc('input[name=notifications]:checkbox').length, len(choices))
+        assert doc('input[name=notifications]:checkbox').length == len(choices)
         for id, label in choices:
             box = doc('input[name=notifications][value=%s]' % id)
             if checked:
-                eq_(box.filter(':checked').length, 1)
+                assert box.filter(':checked').length == 1
             else:
-                eq_(box.length, 1)
+                assert box.length == 1
             parent = box.parent('label')
             if checked:
-                eq_(parent.find('.msg').length, 1)  # Check for "NEW" message.
-            eq_(parent.remove('.msg, .req').text(), label)
+                assert parent.find('.msg').length == 1  # Check for "NEW" message.
+            assert parent.remove('.msg, .req').text() == label
 
     def post_notifications(self, choices):
         self.check_default_choices(choices)
@@ -262,7 +262,7 @@ class TestEdit(UserViewBase):
         r = self.client.post(self.url, self.data)
         self.assertRedirects(r, self.url, 302)
 
-        eq_(UserNotification.objects.count(), len(email.NOTIFICATIONS))
+        assert UserNotification.objects.count() == len(email.NOTIFICATIONS)
         eq_(UserNotification.objects.filter(enabled=True).count(),
             len(filter(lambda x: x.mandatory, email.NOTIFICATIONS)))
         self.check_default_choices(choices, checked=False)
@@ -282,14 +282,14 @@ class TestEdit(UserViewBase):
 
         mandatory = [n.id for n in email.NOTIFICATIONS if n.mandatory]
         total = len(self.data['notifications'] + mandatory)
-        eq_(UserNotification.objects.count(), len(email.NOTIFICATIONS))
-        eq_(UserNotification.objects.filter(enabled=True).count(), total)
+        assert UserNotification.objects.count() == len(email.NOTIFICATIONS)
+        assert UserNotification.objects.filter(enabled=True).count() == total
 
         doc = pq(self.client.get(self.url).content)
-        eq_(doc('input[name=notifications]:checked').length, total)
+        assert doc('input[name=notifications]:checked').length == total
 
-        eq_(doc('.more-none').length, len(email.NOTIFICATION_GROUPS))
-        eq_(doc('.more-all').length, len(email.NOTIFICATION_GROUPS))
+        assert doc('.more-none').length == len(email.NOTIFICATION_GROUPS)
+        assert doc('.more-all').length == len(email.NOTIFICATION_GROUPS)
 
     def test_edit_notifications_non_dev(self):
         self.post_notifications(email.NOTIFICATIONS_CHOICES_NOT_DEV)
@@ -368,7 +368,7 @@ class TestEditAdmin(UserViewBase):
         data['anonymize'] = True
         res = self.client.post(self.url, data)
         assert res.status_code == 302
-        eq_(self.get_user().password, "sha512$Anonymous$Password")
+        assert self.get_user().password == "sha512$Anonymous$Password"
 
     def test_anonymize_fails(self):
         data = self.get_data()
@@ -376,14 +376,14 @@ class TestEditAdmin(UserViewBase):
         data['email'] = 'something@else.com'
         res = self.client.post(self.url, data)
         assert res.status_code == 200
-        eq_(self.get_user().password, self.regular.password)  # Hasn't changed.
+        assert self.get_user().password == self.regular.password  # Hasn't changed.
 
     def test_admin_logs_edit(self):
         data = self.get_data()
         data['email'] = 'something@else.com'
         self.client.post(self.url, data)
         res = ActivityLog.objects.filter(action=amo.LOG.ADMIN_USER_EDITED.id)
-        eq_(res.count(), 1)
+        assert res.count() == 1
         assert self.get_data()['admin_log'] in res[0]._arguments
 
     def test_admin_logs_anonymize(self):
@@ -392,7 +392,7 @@ class TestEditAdmin(UserViewBase):
         self.client.post(self.url, data)
         res = (ActivityLog.objects
                           .filter(action=amo.LOG.ADMIN_USER_ANONYMIZED.id))
-        eq_(res.count(), 1)
+        assert res.count() == 1
         assert self.get_data()['admin_log'] in res[0]._arguments
 
     def test_admin_no_password(self):
@@ -402,10 +402,10 @@ class TestEditAdmin(UserViewBase):
                      'oldpassword': 'password'})
         self.client.post(self.url, data)
         logs = ActivityLog.objects.filter
-        eq_(logs(action=amo.LOG.CHANGE_PASSWORD.id).count(), 0)
+        assert logs(action=amo.LOG.CHANGE_PASSWORD.id).count() == 0
         res = logs(action=amo.LOG.ADMIN_USER_EDITED.id)
-        eq_(res.count(), 1)
-        eq_(res[0].details['password'][0], u'****')
+        assert res.count() == 1
+        assert res[0].details['password'][0] == u'****'
 
     def test_delete_user_display_name_xss(self):
         # This is to test for bug 835827.
@@ -434,7 +434,7 @@ class TestPasswordAdmin(UserViewBase):
     def test_password_admin(self):
         res = self.client.post(self.url, self.correct, follow=False)
         assert res.status_code == 200
-        eq_(res.context['form'].is_valid(), False)
+        assert res.context['form'].is_valid() == False
         eq_(res.context['form'].errors['password'],
             [u'Letters and numbers required.'])
 
@@ -531,22 +531,22 @@ class TestLogin(UserViewBase):
     def test_login_link(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        eq_(pq(r.content)('#aux-nav li.login').length, 1)
+        assert pq(r.content)('#aux-nav li.login').length == 1
 
     def test_logout_link(self):
         self.test_client_login()
         r = self.client.get(reverse('home'))
         assert r.status_code == 200
-        eq_(pq(r.content)('#aux-nav li.logout').length, 1)
+        assert pq(r.content)('#aux-nav li.logout').length == 1
 
     @amo.tests.mobile_test
     def test_mobile_login(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
         doc = pq(r.content)('header')
-        eq_(doc('nav').length, 1)
-        eq_(doc('#home').length, 1)
-        eq_(doc('#auth-nav li.login').length, 0)
+        assert doc('nav').length == 1
+        assert doc('#home').length == 1
+        assert doc('#auth-nav li.login').length == 0
 
     def test_login_ajax(self):
         url = reverse('users.login_modal')
@@ -606,9 +606,9 @@ class TestLogin(UserViewBase):
     def test_login_fails_increment(self):
         # It increments even when the form is wrong.
         user = UserProfile.objects.filter(email=self.data['username'])
-        eq_(user.get().failed_login_attempts, 3)
+        assert user.get().failed_login_attempts == 3
         self.client.post(self.url, data={'username': self.data['username']})
-        eq_(user.get().failed_login_attempts, 4)
+        assert user.get().failed_login_attempts == 4
 
     def test_doubled_account(self):
         """
@@ -634,10 +634,10 @@ class TestLogin(UserViewBase):
         res2 = self.client.post(self.url,
                                 data={'username': 'charlie@example.com',
                                       'password': 'bazpassword'})
-        eq_(res2.status_code, 302)
+        assert res2.status_code == 302
         res3 = self.client.post(self.url, data={'username': 'bob@example.com',
                                                 'password': 'foopassword'})
-        eq_(res3.status_code, 302)
+        assert res3.status_code == 302
 
     def test_changed_account(self):
         """
@@ -658,7 +658,7 @@ class TestLogin(UserViewBase):
         res2 = self.client.post(self.url,
                                 data={'username': 'charlie@example.com',
                                       'password': 'bazpassword'})
-        eq_(res2.status_code, 302)
+        assert res2.status_code == 302
 
 
 @patch.object(settings, 'RECAPTCHA_PRIVATE_KEY', '')
@@ -676,31 +676,31 @@ class TestFailedCount(UserViewBase):
 
     def test_login_passes(self, log_login_attempt):
         self.client.post(self.url, data=self.data)
-        eq_(self.log_calls(log_login_attempt), [True])
+        assert self.log_calls(log_login_attempt) == [True]
 
     def test_login_fails(self, log_login_attempt):
         self.client.post(self.url, data={'username': self.data['username']})
-        eq_(self.log_calls(log_login_attempt), [False])
+        assert self.log_calls(log_login_attempt) == [False]
 
     def test_login_deleted(self, log_login_attempt):
         (UserProfile.objects.get(email=self.data['username'])
                             .update(deleted=True))
         self.client.post(self.url, data={'username': self.data['username']})
-        eq_(self.log_calls(log_login_attempt), [False])
+        assert self.log_calls(log_login_attempt) == [False]
 
     def test_login_confirmation(self, log_login_attempt):
         (UserProfile.objects.get(email=self.data['username'])
                             .update(confirmationcode='123'))
         self.client.post(self.url, data={'username': self.data['username']})
-        eq_(self.log_calls(log_login_attempt), [False])
+        assert self.log_calls(log_login_attempt) == [False]
 
     def test_login_get(self, log_login_attempt):
         self.client.get(self.url, data={'username': self.data['username']})
-        eq_(log_login_attempt.called, False)
+        assert log_login_attempt.called == False
 
     def test_login_get_no_data(self, log_login_attempt):
         self.client.get(self.url)
-        eq_(log_login_attempt.called, False)
+        assert log_login_attempt.called == False
 
 
 class TestUnsubscribe(UserViewBase):
@@ -729,13 +729,13 @@ class TestUnsubscribe(UserViewBase):
         # Check that it was successful
         assert doc('#unsubscribe-success').length
         assert doc('#standalone').length
-        eq_(doc('#standalone ul li').length, 1)
+        assert doc('#standalone ul li').length == 1
 
         # Make sure the user is unsubscribed
         un = UserNotification.objects.filter(notification_id=perm_setting.id,
                                              user=self.user)
-        eq_(un.count(), 1)
-        eq_(un.all()[0].enabled, False)
+        assert un.count() == 1
+        assert un.all()[0].enabled == False
 
     def test_correct_url_new_notification(self):
         # Make sure the user is subscribed
@@ -754,13 +754,13 @@ class TestUnsubscribe(UserViewBase):
         # Check that it was successful
         assert doc('#unsubscribe-success').length
         assert doc('#standalone').length
-        eq_(doc('#standalone ul li').length, 1)
+        assert doc('#standalone ul li').length == 1
 
         # Make sure the user is unsubscribed
         un = UserNotification.objects.filter(notification_id=perm_setting.id,
                                              user=self.user)
-        eq_(un.count(), 1)
-        eq_(un.all()[0].enabled, False)
+        assert un.count() == 1
+        assert un.all()[0].enabled == False
 
     def test_wrong_url(self):
         perm_setting = email.NOTIFICATIONS[0]
@@ -772,7 +772,7 @@ class TestUnsubscribe(UserViewBase):
         r = self.client.get(url)
         doc = pq(r.content)
 
-        eq_(doc('#unsubscribe-fail').length, 1)
+        assert doc('#unsubscribe-fail').length == 1
 
 
 class TestReset(UserViewBase):
@@ -818,7 +818,7 @@ class TestLogout(UserViewBase):
         r = self.client.get('/', follow=True)
         eq_(pq(r.content.decode('utf-8'))('.account .user').text(),
             user.display_name)
-        eq_(pq(r.content)('.account .user').attr('title'), user.email)
+        assert pq(r.content)('.account .user').attr('title') == user.email
 
         r = self.client.get('/users/logout', follow=True)
         assert not pq(r.content)('.account .user')
@@ -859,7 +859,7 @@ class TestRegistration(UserViewBase):
         url = reverse('users.confirm', args=[self.user.id, 'code'])
         r = self.client.get(url, follow=True)
         is_anonymous = pq(r.content)('body').attr('data-anonymous')
-        eq_(json.loads(is_anonymous), True)
+        assert json.loads(is_anonymous) == True
 
         self.user.update(confirmationcode='code')
 
@@ -893,7 +893,7 @@ class TestRegistration(UserViewBase):
                                         'password': 'foobarbaz',
                                         'password2': 'foobarbaz'})
             user = UserProfile.objects.get(email='new@example.com')
-            eq_(user.lang, 'fr')
+            assert user.lang == 'fr'
 
 
 class TestProfileView(UserViewBase):
@@ -929,20 +929,20 @@ class TestProfileLinks(UserViewBase):
 
         # Anonymous user.
         links = get_links(self.user.id)
-        eq_(links.length, 1)
+        assert links.length == 1
         eq_(links.eq(0).attr('href'), reverse('users.abuse',
                                               args=[self.user.id]))
 
         # Non-admin, someone else's profile.
         self.client.login(username='jbalogh@mozilla.com', password='password')
         links = get_links(9945)
-        eq_(links.length, 1)
-        eq_(links.eq(0).attr('href'), reverse('users.abuse', args=[9945]))
+        assert links.length == 1
+        assert links.eq(0).attr('href'), reverse('users.abuse' == args=[9945])
 
         # Non-admin, own profile.
         links = get_links(self.user.id)
-        eq_(links.length, 1)
-        eq_(links.eq(0).attr('href'), reverse('users.edit'))
+        assert links.length == 1
+        assert links.eq(0).attr('href') == reverse('users.edit')
 
         # Admin, someone else's profile.
         admingroup = Group(rules='Users:Edit')
@@ -952,8 +952,8 @@ class TestProfileLinks(UserViewBase):
 
         # Admin, own profile.
         links = get_links(self.user.id)
-        eq_(links.length, 2)
-        eq_(links.eq(0).attr('href'), reverse('users.edit'))
+        assert links.length == 2
+        assert links.eq(0).attr('href') == reverse('users.edit')
         # TODO XXX Uncomment when we have real user editing pages
         #eq_(links.eq(1).attr('href') + "/",
         #reverse('admin:users_userprofile_change', args=[self.user.id]))
@@ -987,14 +987,14 @@ class TestProfileSections(amo.tests.TestCase):
         self.login(self.user)
         res = self.client.get('/user/me/', follow=True)
         assert res.status_code == 200
-        eq_(res.context['user'].id, self.user.id)
+        assert res.context['user'].id == self.user.id
 
     def test_my_last_login_anonymous(self):
         res = self.client.get(self.url)
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('.last-login-time').length, 0)
-        eq_(doc('.last-login-ip').length, 0)
+        assert doc('.last-login-time').length == 0
+        assert doc('.last-login-ip').length == 0
 
     def test_my_last_login_authenticated(self):
         self.user.update(last_login_ip='255.255.255.255')
@@ -1003,35 +1003,35 @@ class TestProfileSections(amo.tests.TestCase):
         assert res.status_code == 200
         doc = pq(res.content)
         assert doc('.last-login-time td').text()
-        eq_(doc('.last-login-ip td').text(), '255.255.255.255')
+        assert doc('.last-login-ip td').text() == '255.255.255.255'
 
     def test_not_my_last_login(self):
         res = self.client.get('/user/999/', follow=True)
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('.last-login-time').length, 0)
-        eq_(doc('.last-login-ip').length, 0)
+        assert doc('.last-login-time').length == 0
+        assert doc('.last-login-ip').length == 0
 
     def test_my_addons(self):
-        eq_(pq(self.client.get(self.url).content)('.num-addons a').length, 0)
+        assert pq(self.client.get(self.url).content)('.num-addons a').length == 0
 
         AddonUser.objects.create(user=self.user, addon_id=3615)
         AddonUser.objects.create(user=self.user, addon_id=5299)
 
         r = self.client.get(self.url)
         a = r.context['addons'].object_list
-        eq_(list(a), sorted(a, key=lambda x: x.weekly_downloads, reverse=True))
+        assert list(a), sorted(a, key=lambda x: x.weekly_downloads == reverse=True)
 
         doc = pq(r.content)
-        eq_(doc('.num-addons a[href="#my-submissions"]').length, 1)
+        assert doc('.num-addons a[href="#my-submissions"]').length == 1
         items = doc('#my-addons .item')
-        eq_(items.length, 2)
-        eq_(items('.install[data-addon=3615]').length, 1)
-        eq_(items('.install[data-addon=5299]').length, 1)
+        assert items.length == 2
+        assert items('.install[data-addon=3615]').length == 1
+        assert items('.install[data-addon=5299]').length == 1
 
     def test_my_unlisted_addons(self):
         """I can't see my own unlisted addons on my profile page."""
-        eq_(pq(self.client.get(self.url).content)('.num-addons a').length, 0)
+        assert pq(self.client.get(self.url).content)('.num-addons a').length == 0
 
         AddonUser.objects.create(user=self.user, addon_id=3615)
         Addon.objects.get(pk=5299).update(is_listed=False)
@@ -1043,13 +1043,13 @@ class TestProfileSections(amo.tests.TestCase):
 
         doc = pq(r.content)
         items = doc('#my-addons .item')
-        eq_(items.length, 1)
-        eq_(items('.install[data-addon=3615]').length, 1)
+        assert items.length == 1
+        assert items('.install[data-addon=3615]').length == 1
 
     def test_not_my_unlisted_addons(self):
         """I can't see others' unlisted addons on their profile pages."""
         res = self.client.get('/user/999/', follow=True)
-        eq_(pq(res.content)('.num-addons a').length, 0)
+        assert pq(res.content)('.num-addons a').length == 0
 
         user = UserProfile.objects.get(pk=999)
         AddonUser.objects.create(user=user, addon_id=3615)
@@ -1062,11 +1062,11 @@ class TestProfileSections(amo.tests.TestCase):
 
         doc = pq(r.content)
         items = doc('#my-addons .item')
-        eq_(items.length, 1)
-        eq_(items('.install[data-addon=3615]').length, 1)
+        assert items.length == 1
+        assert items('.install[data-addon=3615]').length == 1
 
     def test_my_personas(self):
-        eq_(pq(self.client.get(self.url).content)('.num-addons a').length, 0)
+        assert pq(self.client.get(self.url).content)('.num-addons a').length == 0
 
         a = amo.tests.addon_factory(type=amo.ADDON_PERSONA)
 
@@ -1076,8 +1076,8 @@ class TestProfileSections(amo.tests.TestCase):
 
         doc = pq(r.content)
         items = doc('#my-themes .persona')
-        eq_(items.length, 1)
-        eq_(items('a[href="%s"]' % a.get_url_path()).length, 1)
+        assert items.length == 1
+        assert items('a[href="%s"]' % a.get_url_path()).length == 1
 
     def test_my_reviews(self):
         r = Review.objects.filter(reply_to=None)[0]
@@ -1089,8 +1089,8 @@ class TestProfileSections(amo.tests.TestCase):
         doc = pq(r.content)('#reviews')
         assert not doc.hasClass('full'), (
             'reviews should not have "full" class when there are collections')
-        eq_(doc('.item').length, 1)
-        eq_(doc('#review-218207').length, 1)
+        assert doc('.item').length == 1
+        assert doc('#review-218207').length == 1
 
         # Edit Review form should be present.
         self.assertTemplateUsed(r, 'reviews/edit_review.html')
@@ -1111,28 +1111,28 @@ class TestProfileSections(amo.tests.TestCase):
 
         # Admins get the Delete Review link.
         r = _get_reviews(username='admin@mozilla.com', password='password')
-        eq_(r.length, 1)
-        eq_(r.attr('href'), delete_url)
+        assert r.length == 1
+        assert r.attr('href') == delete_url
 
         # Editors get the Delete Review link.
         r = _get_reviews(username='editor@mozilla.com', password='password')
-        eq_(r.length, 1)
-        eq_(r.attr('href'), delete_url)
+        assert r.length == 1
+        assert r.attr('href') == delete_url
 
         # Author gets the Delete Review link.
         r = _get_reviews(username='regular@mozilla.com', password='password')
-        eq_(r.length, 1)
-        eq_(r.attr('href'), delete_url)
+        assert r.length == 1
+        assert r.attr('href') == delete_url
 
         # Other user does not get the Delete Review link.
         r = _get_reviews(username='clouserw@gmail.com', password='password')
-        eq_(r.length, 0)
+        assert r.length == 0
 
     def test_my_reviews_no_pagination(self):
         r = self.client.get(self.url)
         assert len(self.user.addons_listed) <= 10, (
             'This user should have fewer than 10 add-ons.')
-        eq_(pq(r.content)('#my-addons .paginator').length, 0)
+        assert pq(r.content)('#my-addons .paginator').length == 0
 
     def test_my_reviews_pagination(self):
         for i in xrange(20):
@@ -1140,57 +1140,57 @@ class TestProfileSections(amo.tests.TestCase):
         assert len(self.user.addons_listed) > 10, (
             'This user should have way more than 10 add-ons.')
         r = self.client.get(self.url)
-        eq_(pq(r.content)('#my-addons .paginator').length, 1)
+        assert pq(r.content)('#my-addons .paginator').length == 1
 
     def test_my_collections_followed(self):
         coll = Collection.objects.all()[0]
         CollectionWatcher.objects.create(collection=coll, user=self.user)
         mine = Collection.objects.listed().filter(following__user=self.user)
-        eq_(list(mine), [coll])
+        assert list(mine) == [coll]
 
         r = self.client.get(self.url)
         self.assertTemplateUsed(r, 'bandwagon/users/collection_list.html')
-        eq_(list(r.context['fav_coll']), [coll])
+        assert list(r.context['fav_coll']) == [coll]
 
         doc = pq(r.content)
-        eq_(doc('#reviews.full').length, 0)
+        assert doc('#reviews.full').length == 0
         ul = doc('#my-collections #my-favorite')
-        eq_(ul.length, 1)
+        assert ul.length == 1
 
         li = ul.find('li')
-        eq_(li.length, 1)
+        assert li.length == 1
 
         a = li.find('a')
-        eq_(a.attr('href'), coll.get_url_path())
-        eq_(a.text(), unicode(coll.name))
+        assert a.attr('href') == coll.get_url_path()
+        assert a.text() == unicode(coll.name)
 
     def test_my_collections_created(self):
         coll = Collection.objects.listed().filter(author=self.user)
-        eq_(len(coll), 1)
+        assert len(coll) == 1
 
         r = self.client.get(self.url)
         self.assertTemplateUsed(r, 'bandwagon/users/collection_list.html')
         self.assertSetEqual(r.context['own_coll'], coll)
 
         doc = pq(r.content)
-        eq_(doc('#reviews.full').length, 0)
+        assert doc('#reviews.full').length == 0
         ul = doc('#my-collections #my-created')
-        eq_(ul.length, 1)
+        assert ul.length == 1
 
         li = ul.find('li')
-        eq_(li.length, 1)
+        assert li.length == 1
 
         a = li.find('a')
-        eq_(a.attr('href'), coll[0].get_url_path())
-        eq_(a.text(), unicode(coll[0].name))
+        assert a.attr('href') == coll[0].get_url_path()
+        assert a.text() == unicode(coll[0].name)
 
     def test_no_my_collections(self):
         Collection.objects.filter(author=self.user).delete()
         r = self.client.get(self.url)
         self.assertTemplateNotUsed(r, 'bandwagon/users/collection_list.html')
         doc = pq(r.content)
-        eq_(doc('#my-collections').length, 0)
-        eq_(doc('#reviews.full').length, 1)
+        assert doc('#my-collections').length == 0
+        assert doc('#reviews.full').length == 1
 
     def test_review_abuse_form(self):
         r = self.client.get(self.url)
@@ -1201,20 +1201,20 @@ class TestProfileSections(amo.tests.TestCase):
         r = self.client.get(self.url)
         doc = pq(r.content)
         button = doc('#profile-actions #report-user-abuse')
-        eq_(button.length, 1)
-        eq_(button.attr('href'), abuse_url)
+        assert button.length == 1
+        assert button.attr('href') == abuse_url
         modal = doc('#popup-staging #report-user-modal.modal')
-        eq_(modal.length, 1)
-        eq_(modal('form').attr('action'), abuse_url)
-        eq_(modal('textarea[name=text]').length, 1)
+        assert modal.length == 1
+        assert modal('form').attr('action') == abuse_url
+        assert modal('textarea[name=text]').length == 1
         self.assertTemplateUsed(r, 'users/report_abuse.html')
 
     def test_no_self_abuse(self):
         self.client.login(username='clouserw@gmail.com', password='password')
         r = self.client.get(self.url)
         doc = pq(r.content)
-        eq_(doc('#profile-actions #report-user-abuse').length, 0)
-        eq_(doc('#popup-staging #report-user-modal.modal').length, 0)
+        assert doc('#profile-actions #report-user-abuse').length == 0
+        assert doc('#popup-staging #report-user-modal.modal').length == 0
         self.assertTemplateNotUsed(r, 'users/report_abuse.html')
 
 
@@ -1233,11 +1233,11 @@ class TestThemesProfile(amo.tests.TestCase):
         self.assertSetEqual(ids, [self.theme.id])
 
         doc = pq(res.content)
-        eq_(doc('.no-results').length, 0)
+        assert doc('.no-results').length == 0
 
         results = doc('.personas-grid .persona-preview')
-        eq_(results.length, 1)
-        eq_(results.find('h6').text(), unicode(self.theme.name))
+        assert results.length == 1
+        assert results.find('h6').text() == unicode(self.theme.name)
 
     def test_bad_user(self):
         res = self.client.get(reverse('users.themes', args=['yolo']))
@@ -1247,7 +1247,7 @@ class TestThemesProfile(amo.tests.TestCase):
         res = self.client.get(self.url)
         assert res.status_code == 200
 
-        eq_(pq(res.content)('.no-results').length, 1)
+        assert pq(res.content)('.no-results').length == 1
 
     def test_themes(self):
         self.theme = amo.tests.addon_factory(type=amo.ADDON_PERSONA)
@@ -1292,11 +1292,11 @@ class TestReportAbuse(amo.tests.TestCase):
     def test_abuse_anonymous(self, clean):
         clean.return_value = ""
         self.client.post(self.full_page, {'text': 'spammy'})
-        eq_(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         assert 'spammy' in mail.outbox[0].body
         report = AbuseReport.objects.get(user=10482)
-        eq_(report.message, 'spammy')
-        eq_(report.reporter, None)
+        assert report.message == 'spammy'
+        assert report.reporter is None
 
     def test_abuse_anonymous_fails(self):
         r = self.client.post(self.full_page, {'text': 'spammy'})
@@ -1305,11 +1305,11 @@ class TestReportAbuse(amo.tests.TestCase):
     def test_abuse_logged_in(self):
         self.client.login(username='regular@mozilla.com', password='password')
         self.client.post(self.full_page, {'text': 'spammy'})
-        eq_(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         assert 'spammy' in mail.outbox[0].body
         report = AbuseReport.objects.get(user=10482)
-        eq_(report.message, 'spammy')
-        eq_(report.reporter.email, 'regular@mozilla.com')
+        assert report.message == 'spammy'
+        assert report.reporter.email == 'regular@mozilla.com'
 
         r = self.client.get(self.full_page)
-        eq_(pq(r.content)('.notification-box h2').length, 1)
+        assert pq(r.content)('.notification-box h2').length == 1

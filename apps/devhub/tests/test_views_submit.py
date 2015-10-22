@@ -29,8 +29,8 @@ class TestSubmitPersona(amo.tests.TestCase):
         assert r.status_code == 200
         doc = pq(r.content)
         header_url, footer_url = self.get_img_urls()
-        eq_(doc('#id_header').attr('data-upload-url'), header_url)
-        eq_(doc('#id_footer').attr('data-upload-url'), footer_url)
+        assert doc('#id_header').attr('data-upload-url') == header_url
+        assert doc('#id_footer').attr('data-upload-url') == footer_url
 
     def test_img_size(self):
         img = get_image_path('mozilla.png')
@@ -46,4 +46,4 @@ class TestSubmitPersona(amo.tests.TestCase):
         for url in self.get_img_urls():
             r_ajax = self.client.post(url, {'upload_image': img})
             r_json = json.loads(r_ajax.content)
-            eq_(r_json['errors'], ['Images must be either PNG or JPG.'])
+            assert r_json['errors'] == ['Images must be either PNG or JPG.']

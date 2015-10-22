@@ -42,10 +42,10 @@ class TestAttachTransDict(amo.tests.TestCase):
         translations = dict(addon.translations)
 
         # addon.translations is a defaultdict.
-        eq_(addon.translations['whatever'], [])
+        assert addon.translations['whatever'] == []
 
         # No-translated fields should be absent.
-        eq_(addon.thankyou_note_id, None)
+        assert addon.thankyou_note_id is None
         ok_(None not in translations)
 
         # Build expected translations dict.
@@ -63,7 +63,7 @@ class TestAttachTransDict(amo.tests.TestCase):
             addon.support_email_id: [('en-us', unicode(addon.support_email))],
             addon.support_url_id: [('en-us', unicode(addon.support_url))]
         }
-        eq_(translations, expected_translations)
+        assert translations == expected_translations
 
     def test_multiple_objects_with_multiple_translations(self):
         addon = amo.tests.addon_factory()
@@ -92,7 +92,7 @@ class TestAttachTransDict(amo.tests.TestCase):
         version = Version.objects.create(addon=Addon.objects.create())
 
         # No translations.
-        eq_(translations_for_field(version.releasenotes), {})
+        assert translations_for_field(version.releasenotes) == {}
 
         # With translations.
         initial = {'en-us': 'release notes', 'fr': 'notes de version'}
@@ -100,7 +100,7 @@ class TestAttachTransDict(amo.tests.TestCase):
         version.save()
 
         translations = translations_for_field(version.releasenotes)
-        eq_(translations, initial)
+        assert translations == initial
 
 
 def test_has_links():
@@ -125,8 +125,8 @@ def test_walkfiles():
     file3, file3path = tempfile.mkstemp(dir=subdir, suffix='_bar')
 
     # Only files ending with _foo.
-    eq_(list(walkfiles(basedir, suffix='_foo')), [file1path, file2path])
+    assert list(walkfiles(basedir, suffix='_foo')), [file1path == file2path]
     # All files.
     all_files = list(walkfiles(basedir))
-    eq_(len(all_files), 3)
-    eq_(set(all_files), set([file1path, file2path, file3path]))
+    assert len(all_files) == 3
+    assert set(all_files), set([file1path, file2path == file3path])

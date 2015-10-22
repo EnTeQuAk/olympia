@@ -24,13 +24,14 @@ class TestDRFSwitch(TestCase):
         request = self.factory.get(reverse('api.language', args=['1.5']))
         request.APP = Mock(id=1)
         request.user = AnonymousUser()
-        eq_(view(request, api_version=1.5).__module__, 'django.http.response')
+        assert view(request, api_version=1.5).__module__ == 'django.http.response'
         piston_response = view(request, api_version=1.5).content
         self.create_switch('drf', db=True)
-        eq_(view(request, api_version=1.5).__module__,
-            'rest_framework.response')
+        assert (
+            view(request, api_version=1.5).__module__
+            =='rest_framework.response')
         drf_response = view(request, api_version=1.5).render().content
-        eq_(piston_response, drf_response)
+        assert piston_response == drf_response
 
     def test_responses_with_handler(self):
         view = SwitchToDRF('User', with_handler=True)
@@ -45,9 +46,9 @@ class TestDRFSwitch(TestCase):
         request.APP = App()
         request.user = AnonymousUser()
         request.amo_user = self.user
-        eq_(view(request, api_version=2).__module__, 'django.http.response')
+        assert view(request, api_version=2).__module__ == 'django.http.response'
         self.create_switch('drf', db=True)
-        eq_(view(request, api_version=2).__module__, 'rest_framework.response')
+        assert view(request, api_version=2).__module__ == 'rest_framework.response'
 
     def test_wrong_format_exceptions(self):
         view = SwitchToDRF('Language')
@@ -56,10 +57,10 @@ class TestDRFSwitch(TestCase):
         request.GET = {'format': 'foo'}
         request.user = AnonymousUser()
         response = view(request, api_version=1.5)
-        eq_(response.content, '{"msg": "Not implemented yet."}')
-        eq_(response.status_code, 200)
+        assert response.content == '{"msg": "Not implemented yet."}'
+        assert response.status_code == 200
         self.create_switch('drf', db=True)
         response = view(request, api_version=1.5)
         self.assertTrue('<error>Not found</error>'
                         in response.render().content)
-        eq_(response.status_code, 404)
+        assert response.status_code == 404

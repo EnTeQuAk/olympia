@@ -162,7 +162,7 @@ class TestCharityForm(amo.tests.TestCase):
         params = dict(name='name', url='http://url.com/', paypal='paypal')
         charity = forms.CharityForm(params).save()
         for k, v in params.items():
-            eq_(getattr(charity, k), v)
+            assert getattr(charity, k) == v
         assert charity.id
 
         # Get a fresh instance since the form will mutate it.
@@ -170,7 +170,7 @@ class TestCharityForm(amo.tests.TestCase):
         params['name'] = 'new'
         new_charity = forms.CharityForm(params, instance=instance).save()
         for k, v in params.items():
-            eq_(getattr(new_charity, k), v)
+            assert getattr(new_charity, k) == v
 
         assert new_charity.id != charity.id
 
@@ -265,19 +265,19 @@ class TestThemeForm(amo.tests.TestCase):
         Addon.objects.create(type=amo.ADDON_PERSONA, name='harry-potter')
         for name in ('Harry-Potter', '  harry-potter  ', 'harry-potter'):
             self.post(name=name)
-            eq_(self.form.is_valid(), False)
+            assert self.form.is_valid() == False
             eq_(self.form.errors,
                 {'name': ['This name is already in use. '
                           'Please choose another.']})
 
     def test_name_required(self):
         self.post(name='')
-        eq_(self.form.is_valid(), False)
-        eq_(self.form.errors, {'name': ['This field is required.']})
+        assert self.form.is_valid() == False
+        assert self.form.errors == {'name': ['This field is required.']}
 
     def test_name_length(self):
         self.post(name='a' * 51)
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors, {'name': ['Ensure this value has at most '
                                         '50 characters (it has 51).']})
 
@@ -286,70 +286,70 @@ class TestThemeForm(amo.tests.TestCase):
         Addon.objects.create(type=amo.ADDON_PERSONA, slug='harry-potter')
         for slug in ('Harry-Potter', '  harry-potter  ', 'harry-potter'):
             self.post(slug=slug)
-            eq_(self.form.is_valid(), False)
+            assert self.form.is_valid() == False
             eq_(self.form.errors,
                 {'slug': ['This slug is already in use. '
                           'Please choose another.']})
 
     def test_slug_required(self):
         self.post(slug='')
-        eq_(self.form.is_valid(), False)
-        eq_(self.form.errors, {'slug': ['This field is required.']})
+        assert self.form.is_valid() == False
+        assert self.form.errors == {'slug': ['This field is required.']}
 
     def test_slug_length(self):
         self.post(slug='a' * 31)
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors, {'slug': ['Ensure this value has at most '
                                         '30 characters (it has 31).']})
 
     def test_description_optional(self):
         self.post(description='')
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
 
     def test_description_length(self):
         self.post(description='a' * 501)
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors,
             {'description': ['Ensure this value has at most '
                              '500 characters (it has 501).']})
 
     def test_categories_required(self):
         self.post(category='')
-        eq_(self.form.is_valid(), False)
-        eq_(self.form.errors, {'category': ['This field is required.']})
+        assert self.form.is_valid() == False
+        assert self.form.errors == {'category': ['This field is required.']}
 
     def test_license_required(self):
         self.post(license='')
-        eq_(self.form.is_valid(), False)
-        eq_(self.form.errors, {'license': ['A license must be selected.']})
+        assert self.form.is_valid() == False
+        assert self.form.errors == {'license': ['A license must be selected.']}
 
     def test_header_hash_required(self):
         self.post(header_hash='')
-        eq_(self.form.is_valid(), False)
-        eq_(self.form.errors, {'header_hash': ['This field is required.']})
+        assert self.form.is_valid() == False
+        assert self.form.errors == {'header_hash': ['This field is required.']}
 
     def test_footer_hash_optional(self):
         self.post(footer_hash='')
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
 
     def test_accentcolor_optional(self):
         self.post(accentcolor='')
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
 
     def test_accentcolor_invalid(self):
         self.post(accentcolor='#BALLIN')
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors,
             {'accentcolor': ['This must be a valid hex color code, '
                              'such as #000000.']})
 
     def test_textcolor_optional(self):
         self.post(textcolor='')
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
 
     def test_textcolor_invalid(self):
         self.post(textcolor='#BALLIN')
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors,
             {'textcolor': ['This must be a valid hex color code, '
                            'such as #000000.']})
@@ -397,30 +397,30 @@ class TestThemeForm(amo.tests.TestCase):
 
         # Populate and save form.
         self.post()
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
 
         addon = Addon.objects.filter(type=amo.ADDON_PERSONA).order_by('-id')[0]
         persona = addon.persona
 
         # Test for correct Addon and Persona values.
-        eq_(unicode(addon.name), data['name'])
-        eq_(addon.slug, data['slug'])
+        assert unicode(addon.name) == data['name']
+        assert addon.slug == data['slug']
         self.assertSetEqual(addon.categories.values_list('id', flat=True),
                             [self.cat.id])
         self.assertSetEqual(addon.tags.values_list('tag_text', flat=True),
                             data['tags'].split(', '))
-        eq_(persona.persona_id, 0)
-        eq_(persona.license, data['license'])
-        eq_(persona.accentcolor, data['accentcolor'].lstrip('#'))
-        eq_(persona.textcolor, data['textcolor'].lstrip('#'))
-        eq_(persona.author, self.request.amo_user.username)
-        eq_(persona.display_username, self.request.amo_user.name)
+        assert persona.persona_id == 0
+        assert persona.license == data['license']
+        assert persona.accentcolor == data['accentcolor'].lstrip('#')
+        assert persona.textcolor == data['textcolor'].lstrip('#')
+        assert persona.author == self.request.amo_user.username
+        assert persona.display_username == self.request.amo_user.name
         assert not persona.dupe_persona
 
         v = addon.versions.all()
-        eq_(len(v), 1)
-        eq_(v[0].version, '0')
+        assert len(v) == 1
+        assert v[0].version == '0'
 
         # Test for header, footer, and preview images.
         dst = os.path.join(user_media_path('addons'), str(addon.id))
@@ -455,17 +455,17 @@ class TestThemeForm(amo.tests.TestCase):
         self.request.amo_user = UserProfile.objects.get(pk=2519)
 
         self.post()
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
 
         self.post(name='whatsinaname', slug='metalslug')
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
 
         personas = Persona.objects.order_by('addon__name')
-        eq_(personas[0].checksum, personas[1].checksum)
-        eq_(personas[1].dupe_persona, personas[0])
-        eq_(personas[0].dupe_persona, None)
+        assert personas[0].checksum == personas[1].checksum
+        assert personas[1].dupe_persona == personas[0]
+        assert personas[0].dupe_persona is None
 
 
 class TestEditThemeForm(amo.tests.TestCase):
@@ -519,7 +519,7 @@ class TestEditThemeForm(amo.tests.TestCase):
         eq_data = self.get_dict()
         for k in [k for k in self.form.initial.keys()
                   if k not in ['name', 'description']]:
-            eq_(self.form.initial[k], eq_data[k])
+            assert self.form.initial[k] == eq_data[k]
 
     def save_success(self):
         other_cat = Category.objects.create(type=amo.ADDON_PERSONA)
@@ -541,10 +541,10 @@ class TestEditThemeForm(amo.tests.TestCase):
         eq_data = self.get_dict()
         for k in [k for k in self.form.initial.keys()
                   if k not in ['name', 'description']]:
-            eq_(self.form.initial[k], eq_data[k])
+            assert self.form.initial[k] == eq_data[k]
 
-        eq_(self.form.data, self.data)
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.data == self.data
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
 
     def test_success(self):
@@ -552,10 +552,10 @@ class TestEditThemeForm(amo.tests.TestCase):
         self.instance = self.instance.reload()
         eq_(unicode(self.instance.persona.accentcolor),
             self.data['accentcolor'].lstrip('#'))
-        eq_(self.instance.categories.all()[0].id, self.data['category'])
-        eq_(self.instance.persona.license, self.data['license'])
-        eq_(unicode(self.instance.name), self.data['name_en-us'])
-        eq_(unicode(self.instance.description), self.data['description_en-us'])
+        assert self.instance.categories.all()[0].id == self.data['category']
+        assert self.instance.persona.license == self.data['license']
+        assert unicode(self.instance.name) == self.data['name_en-us']
+        assert unicode(self.instance.description) == self.data['description_en-us']
         self.assertSetEqual(
             self.instance.tags.values_list('tag_text', flat=True),
             [self.data['tags']])
@@ -573,7 +573,7 @@ class TestEditThemeForm(amo.tests.TestCase):
                              name=data['name_en-us'])
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False
         eq_(self.form.errors, {'name':
             [('en-us', 'This name is already in use. Please choose another.')]
         })
@@ -583,7 +583,7 @@ class TestEditThemeForm(amo.tests.TestCase):
                              description_de='description_de')
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
 
     @mock.patch('addons.tasks.make_checksum')
@@ -596,7 +596,7 @@ class TestEditThemeForm(amo.tests.TestCase):
         data = self.get_dict(header_hash='y0l0', footer_hash='abab')
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), True)
+        assert self.form.is_valid() == True
         self.form.save()
 
         dst = os.path.join(user_media_path('addons'), str(self.instance.id))
@@ -612,9 +612,9 @@ class TestEditThemeForm(amo.tests.TestCase):
                        full_dst=os.path.join(dst, 'pending_footer.png'))])
 
         rqt = RereviewQueueTheme.objects.filter(theme=self.instance.persona)
-        eq_(rqt.count(), 1)
-        eq_(rqt[0].header, 'pending_header.png')
-        eq_(rqt[0].footer, 'pending_footer.png')
+        assert rqt.count() == 1
+        assert rqt[0].header == 'pending_header.png'
+        assert rqt[0].footer == 'pending_footer.png'
         assert not rqt[0].dupe_persona
 
     @mock.patch('addons.tasks.create_persona_preview_images', new=mock.Mock)
@@ -630,11 +630,11 @@ class TestEditThemeForm(amo.tests.TestCase):
         data = self.get_dict(header_hash='head', footer_hash='foot')
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), True)
+        assert self.form.is_valid() == True
         self.form.save()
 
         rqt = RereviewQueueTheme.objects.get(theme=self.instance.persona)
-        eq_(rqt.dupe_persona, theme.persona)
+        assert rqt.dupe_persona == theme.persona
 
     @mock.patch('addons.tasks.make_checksum', new=mock.Mock)
     @mock.patch('addons.tasks.create_persona_preview_images', new=mock.Mock)
@@ -657,12 +657,12 @@ class TestEditThemeForm(amo.tests.TestCase):
         data = self.get_dict(header_hash='arthro')
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), True)
+        assert self.form.is_valid() == True
         self.form.save()
 
         rqt = RereviewQueueTheme.objects.get()
-        eq_(rqt.header, 'pending_header.png')
-        eq_(rqt.footer, 'Legacy-footer3H-Copy.jpg')
+        assert rqt.header == 'pending_header.png'
+        assert rqt.footer == 'Legacy-footer3H-Copy.jpg'
 
     @mock.patch('addons.tasks.make_checksum')
     @mock.patch('addons.tasks.create_persona_preview_images')
@@ -674,7 +674,7 @@ class TestEditThemeForm(amo.tests.TestCase):
         data = self.get_dict(header_hash='y0l0', footer_hash='')
         self.form = EditThemeForm(data, request=self.request,
                                   instance=self.instance)
-        eq_(self.form.is_valid(), True)
+        assert self.form.is_valid() == True
         self.form.save()
 
         dst = os.path.join(user_media_path('addons'), str(self.instance.id))
@@ -686,9 +686,9 @@ class TestEditThemeForm(amo.tests.TestCase):
                        full_dst=os.path.join(dst, 'pending_header.png'))])
 
         rqt = RereviewQueueTheme.objects.filter(theme=self.instance.persona)
-        eq_(rqt.count(), 1)
-        eq_(rqt[0].header, 'pending_header.png')
-        eq_(rqt[0].footer, '')
+        assert rqt.count() == 1
+        assert rqt[0].header == 'pending_header.png'
+        assert rqt[0].footer == ''
         assert not rqt[0].dupe_persona
 
 
@@ -708,18 +708,18 @@ class TestEditThemeOwnerForm(amo.tests.TestCase):
 
     def test_initial(self):
         self.form = EditThemeOwnerForm(None, instance=self.instance)
-        eq_(self.form.initial, {})
+        assert self.form.initial == {}
 
         self.instance.addonuser_set.create(user_id=999)
         eq_(self.instance.addonuser_set.all()[0].user.email,
             'regular@mozilla.com')
         self.form = EditThemeOwnerForm(None, instance=self.instance)
-        eq_(self.form.initial, {'owner': 'regular@mozilla.com'})
+        assert self.form.initial == {'owner': 'regular@mozilla.com'}
 
     def test_success_change_from_no_owner(self):
         self.form = EditThemeOwnerForm({'owner': 'regular@mozilla.com'},
                                        instance=self.instance)
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
         eq_(self.instance.addonuser_set.all()[0].user.email,
             'regular@mozilla.com')
@@ -728,7 +728,7 @@ class TestEditThemeOwnerForm(amo.tests.TestCase):
         self.instance.addonuser_set.create(user_id=999)
         self.form = EditThemeOwnerForm({'owner': 'regular@mozilla.com'},
                                        instance=self.instance)
-        eq_(self.form.is_valid(), True, self.form.errors)
+        assert self.form.is_valid(), True == self.form.errors
         self.form.save()
         eq_(self.instance.addonuser_set.all()[0].user.email,
             'regular@mozilla.com')
@@ -736,4 +736,4 @@ class TestEditThemeOwnerForm(amo.tests.TestCase):
     def test_error_invalid_user(self):
         self.form = EditThemeOwnerForm({'owner': 'omg@org.yes'},
                                        instance=self.instance)
-        eq_(self.form.is_valid(), False)
+        assert self.form.is_valid() == False

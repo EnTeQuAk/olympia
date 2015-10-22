@@ -64,7 +64,7 @@ class TestReviewActions(amo.tests.TestCase):
     def test_not_public(self):
         # If the file is unreviewed then there is no option to reject,
         # so the length of the actions is one shorter
-        eq_(len(self.set_status(amo.STATUS_UNREVIEWED)), 5)
+        assert len(self.set_status(amo.STATUS_UNREVIEWED)) == 5
 
     @mock.patch('access.acl.action_allowed')
     def test_admin_flagged_addon_actions(self, action_allowed_mock):
@@ -103,6 +103,6 @@ class TestCannedResponses(TestReviewActions):
         # Within that, it's paired by [group, [[response, name],...]].
         # So above, choices[1][1] gets the first real group's list of
         # responses.
-        eq_(len(choices), 1)
+        assert len(choices) == 1
         assert self.cr_addon.response in choices[0]
         assert self.cr_app.response not in choices[0]

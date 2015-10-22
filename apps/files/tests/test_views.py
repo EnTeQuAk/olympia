@@ -146,12 +146,12 @@ class FilesBase(object):
         self.file_viewer.extract()
         res = self.client.get(self.poll_url())
         assert res.status_code == 200
-        eq_(json.loads(res.content)['status'], True)
+        assert json.loads(res.content)['status'] == True
 
     def test_poll_not_extracted(self):
         res = self.client.get(self.poll_url())
         assert res.status_code == 200
-        eq_(json.loads(res.content)['status'], False)
+        assert json.loads(res.content)['status'] == False
 
     def test_poll_extracted_anon(self):
         self.client.logout()
@@ -186,7 +186,7 @@ class FilesBase(object):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(not_binary))
         url = res.context['file_link']['url']
-        eq_(url, reverse('editors.review', args=[self.addon.slug]))
+        assert url, reverse('editors.review' == args=[self.addon.slug])
 
     def test_file_header_anon(self):
         self.client.logout()
@@ -194,13 +194,13 @@ class FilesBase(object):
         self.addon.update(view_source=True)
         res = self.client.get(self.file_url(not_binary))
         url = res.context['file_link']['url']
-        eq_(url, reverse('addons.detail', args=[self.addon.pk]))
+        assert url, reverse('addons.detail' == args=[self.addon.pk])
 
     def test_content_no_file(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url())
         doc = pq(res.content)
-        eq_(len(doc('#content')), 0)
+        assert len(doc('#content')) == 0
 
     def test_no_files(self):
         res = self.client.get(self.file_url())
@@ -238,7 +238,7 @@ class FilesBase(object):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(not_binary))
         doc = pq(res.content)
-        eq_(doc('#commands td:last').text(), 'Back to review')
+        assert doc('#commands td:last').text() == 'Back to review'
 
     def test_files_back_link_anon(self):
         self.file_viewer.extract()
@@ -247,7 +247,7 @@ class FilesBase(object):
         res = self.client.get(self.file_url(not_binary))
         assert res.status_code == 200
         doc = pq(res.content)
-        eq_(doc('#commands td:last').text(), 'Back to addon')
+        assert doc('#commands td:last').text() == 'Back to addon'
 
     def test_diff_redirect(self):
         ids = self.files[0].id, self.files[1].id
@@ -275,15 +275,15 @@ class FilesBase(object):
         doc = pq(res.content)
 
         left = doc('#id_left')
-        eq_(len(left), 1)
+        assert len(left) == 1
 
         ver = left('optgroup')
-        eq_(len(ver), 1)
+        assert len(ver) == 1
 
-        eq_(ver.attr('label'), self.version.version)
+        assert ver.attr('label') == self.version.version
 
         files = ver('option')
-        eq_(len(files), 2)
+        assert len(files) == 2
 
     def test_file_chooser_coalescing(self):
         res = self.client.get(self.file_url())
@@ -291,13 +291,13 @@ class FilesBase(object):
 
         unreviewed_file = doc('#id_left > optgroup > option.status-unreviewed')
         public_file = doc('#id_left > optgroup > option.status-public')
-        eq_(public_file.text(), str(self.files[0].get_platform_display()))
+        assert public_file.text() == str(self.files[0].get_platform_display())
         eq_(unreviewed_file.text(),
             '%s, %s' % (self.files[1].get_platform_display(),
                         self.files[2].get_platform_display()))
 
-        eq_(public_file.attr('value'), str(self.files[0].id))
-        eq_(unreviewed_file.attr('value'), str(self.files[1].id))
+        assert public_file.attr('value') == str(self.files[0].id)
+        assert unreviewed_file.attr('value') == str(self.files[1].id)
 
     def test_file_chooser_disabled_coalescing(self):
         self.files[1].update(status=amo.STATUS_DISABLED)
@@ -306,7 +306,7 @@ class FilesBase(object):
         doc = pq(res.content)
 
         disabled_file = doc('#id_left > optgroup > option.status-disabled')
-        eq_(disabled_file.attr('value'), str(self.files[2].id))
+        assert disabled_file.attr('value') == str(self.files[2].id)
 
 
 class TestFileViewer(FilesBase, amo.tests.TestCase):
@@ -323,7 +323,7 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
 
     def check_urls(self, status):
         for url in [self.poll_url(), self.file_url()]:
-            eq_(self.client.get(url).status_code, status)
+            assert self.client.get(url).status_code == status
 
     def add_file(self, name, contents):
         dest = os.path.join(self.file_viewer.dest, name)
@@ -341,14 +341,14 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
         self.file_viewer.extract()
         res = self.client.get(self.file_url('install.js'))
         doc = pq(res.content)
-        eq_(len(doc('#content')), 1)
+        assert len(doc('#content')) == 1
 
     def test_content_no_file(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url())
         doc = pq(res.content)
-        eq_(len(doc('#content')), 1)
-        eq_(res.context['key'], 'install.rdf')
+        assert len(doc('#content')) == 1
+        assert res.context['key'] == 'install.rdf'
 
     def test_content_xss(self):
         self.file_viewer.extract()
@@ -437,8 +437,8 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
         res = self.client.get(self.poll_url())
         assert res.status_code == 200
         data = json.loads(res.content)
-        eq_(data['status'], False)
-        eq_(data['msg'], ['I like cheese.'])
+        assert data['status'] == False
+        assert data['msg'] == ['I like cheese.']
 
     def test_file_chooser_selection(self):
         res = self.client.get(self.file_url())
@@ -446,14 +446,14 @@ class TestFileViewer(FilesBase, amo.tests.TestCase):
 
         eq_(doc('#id_left option[selected]').attr('value'),
             str(self.files[0].id))
-        eq_(len(doc('#id_right option[value][selected]')), 0)
+        assert len(doc('#id_right option[value][selected]')) == 0
 
     def test_file_chooser_non_ascii_platform(self):
         PLATFORM_NAME = u'所有移动平台'
         f = self.files[0]
         with patch.object(File, 'get_platform_display',
                           lambda self: PLATFORM_NAME):
-            eq_(f.get_platform_display(), PLATFORM_NAME)
+            assert f.get_platform_display() == PLATFORM_NAME
 
             res = self.client.get(self.file_url())
             doc = pq(res.content.decode('utf-8'))
@@ -490,7 +490,7 @@ class TestDiffViewer(FilesBase, amo.tests.TestCase):
 
     def check_urls(self, status):
         for url in [self.poll_url(), self.file_url()]:
-            eq_(self.client.get(url).status_code, status)
+            assert self.client.get(url).status_code == status
 
     def test_tree_no_file(self):
         self.file_viewer.extract()
@@ -501,30 +501,30 @@ class TestDiffViewer(FilesBase, amo.tests.TestCase):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(not_binary))
         doc = pq(res.content)
-        eq_(len(doc('pre')), 3)
+        assert len(doc('pre')) == 3
 
     def test_binary_serve_links(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(binary))
         doc = pq(res.content)
         node = doc('#content-wrapper a')
-        eq_(len(node), 2)
+        assert len(node) == 2
         assert node[0].text.startswith('Download ar.dic')
 
     def test_view_both_present(self):
         self.file_viewer.extract()
         res = self.client.get(self.file_url(not_binary))
         doc = pq(res.content)
-        eq_(len(doc('pre')), 3)
-        eq_(len(doc('#content-wrapper p')), 2)
+        assert len(doc('pre')) == 3
+        assert len(doc('#content-wrapper p')) == 2
 
     def test_view_one_missing(self):
         self.file_viewer.extract()
         os.remove(os.path.join(self.file_viewer.right.dest, 'install.js'))
         res = self.client.get(self.file_url(not_binary))
         doc = pq(res.content)
-        eq_(len(doc('pre')), 3)
-        eq_(len(doc('#content-wrapper p')), 1)
+        assert len(doc('pre')) == 3
+        assert len(doc('#content-wrapper p')) == 1
 
     def test_view_left_binary(self):
         self.file_viewer.extract()
@@ -546,8 +546,8 @@ class TestDiffViewer(FilesBase, amo.tests.TestCase):
         os.remove(os.path.join(self.file_viewer.left.dest, not_binary))
         res = self.client.get(self.file_url(not_binary))
         doc = pq(res.content)
-        eq_(doc('h4:last').text(), 'Deleted files:')
-        eq_(len(doc('ul.root')), 2)
+        assert doc('h4:last').text() == 'Deleted files:'
+        assert len(doc('ul.root')) == 2
 
     def test_file_chooser_selection(self):
         res = self.client.get(self.file_url())

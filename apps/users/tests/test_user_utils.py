@@ -17,8 +17,8 @@ class TestEmailResetCode(amo.tests.TestCase):
         token, hash = EmailResetCode.create(id, mail)
 
         r_id, r_mail = EmailResetCode.parse(token, hash)
-        eq_(id, r_id)
-        eq_(mail, r_mail)
+        assert id == r_id
+        assert mail == r_mail
 
         # A bad token or hash raises ValueError
         self.assertRaises(ValueError, EmailResetCode.parse, token, hash[:-5])
@@ -66,4 +66,4 @@ class TestAutoCreateUsername(amo.tests.TestCase):
                                                       .returns(1)
                                                       .next_call()
                                                       .returns(0))
-        eq_(autocreate_username('existingname'), 'existingname3')
+        assert autocreate_username('existingname') == 'existingname3'

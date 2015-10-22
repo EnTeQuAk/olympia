@@ -34,13 +34,13 @@ class TestSearchboxTarget(amo.tests.ESTestCaseWithAddons):
     def check(self, url, placeholder, cat=None, action=None, q=None):
         # Checks that we search within addons, personas, collections, etc.
         form = pq(self.client.get(url).content)('.header-search form')
-        eq_(form.attr('action'), action or reverse('search.search'))
+        assert form.attr('action') == action or reverse('search.search')
         if cat:
-            eq_(form('input[name=cat]').val(), cat)
+            assert form('input[name=cat]').val() == cat
         q_field = form('input[name=q]')
-        eq_(q_field.attr('placeholder'), placeholder)
+        assert q_field.attr('placeholder') == placeholder
         if q:
-            eq_(q_field.val(), q)
+            assert q_field.val() == q
 
     def test_addons_is_default(self):
         self.check(reverse('home'), 'search for add-ons')
@@ -82,10 +82,10 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
         if title:
             if hasattr(self, 'MOBILE'):
                 menu = doc('#sort-menu')
-                eq_(menu.find('span').text(), title)
-                eq_(menu.find('.selected').text(), title)
+                assert menu.find('span').text() == title
+                assert menu.find('.selected').text() == title
             else:
-                eq_(doc('#sorter .selected').text(), title)
+                assert doc('#sorter .selected').text() == title
         if sort_by:
             results = r.context['pager'].object_list
             if sort_by == 'name':
@@ -93,7 +93,7 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
             else:
                 expected = sorted(results, key=lambda x: getattr(x, sort_by),
                                   reverse=reverse)
-            eq_(list(results), expected)
+            assert list(results) == expected
 
     def check_name_results(self, params, expected):
         r = self.client.get(urlparams(self.url, **params), follow=True)
@@ -117,11 +117,11 @@ class SearchBase(amo.tests.ESTestCaseWithAddons):
     def check_heading(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        eq_(pq(r.content)('.results-count strong').text(), None)
+        assert pq(r.content)('.results-count strong').text() is None
 
         r = self.client.get(self.url + '&q=ballin')
         assert r.status_code == 200
-        eq_(pq(r.content)('.results-count strong').text(), 'ballin')
+        assert pq(r.content)('.results-count strong').text() == 'ballin'
 
 
 class TestESSearch(SearchBase):
@@ -167,7 +167,7 @@ class TestESSearch(SearchBase):
         r = self.client.get(self.url, dict(cat='%s,5' % amo.ADDON_SEARCH))
         assert r.status_code == 200
         sorter = pq(r.content)('#sorter')
-        eq_(sorter.length, 1)
+        assert sorter.length == 1
         assert 'sort=users' not in sorter.text(), (
             'Sort by "Most Users" should not appear for search tools.')
 
@@ -228,12 +228,12 @@ class TestESSearch(SearchBase):
         to = ('?sort=updated&advancedsearch=1&appver=1.0'
               '&tag=dearbhair&cat=4%2C84')
         r = self.client.get(url + from_)
-        eq_(r.status_code, 301)
+        assert r.status_code == 301
         redirected = r.url
         parsed = urlparse.urlparse(redirected)
         params = parsed.query
-        eq_(parsed.path, url)
-        eq_(urlparse.parse_qs(params), urlparse.parse_qs(to[1:]))
+        assert parsed.path == url
+        assert urlparse.parse_qs(params) == urlparse.parse_qs(to[1:])
 
     def check_platform_filters(self, platform, expected=None):
         r = self.client.get('%s?platform=%s' % (self.url, platform),
@@ -323,27 +323,27 @@ class TestESSearch(SearchBase):
                                    {'appver': floor_version(appver)}, facets)
 
         all_ = versions.pop(0)
-        eq_(all_.text, 'Any %s' % unicode(request.APP.pretty))
-        eq_(all_.selected, not expected)
+        assert all_.text == 'Any %s' % unicode(request.APP.pretty)
+        assert all_.selected == not expected
 
         return [v.__dict__ for v in versions]
 
     def test_appver_default(self):
-        eq_(self.check_appver_filters('', ''),
+        assert self.check_appver_filters('' == '',
             [{'text': u'Firefox 5.0',
               'selected': False,
               'urlparams': {'appver': '5.0'},
               'children': []}])
 
     def test_appver_known(self):
-        eq_(self.check_appver_filters('5.0', '5.0'),
+        assert self.check_appver_filters('5.0' == '5.0',
             [{'text': u'Firefox 5.0',
               'selected': True,
               'urlparams': {'appver': '5.0'},
               'children': []}])
 
     def test_appver_oddballs(self):
-        eq_(self.check_appver_filters('3.6.22', '3.6'),
+        assert self.check_appver_filters('3.6.22' == '3.6',
             [{'text': u'Firefox 5.0',
               'selected': False,
               'urlparams': {'appver': '5.0'},
@@ -360,7 +360,7 @@ class TestESSearch(SearchBase):
         assert self.check_appver_filters(too_big, floor_version(just_right)), (
             'All I ask is do not crash')
 
-        eq_(self.check_appver_filters('9999999', '9999999.0'),
+        assert self.check_appver_filters('9999999' == '9999999.0',
             [{'text': u'Firefox 9999999.0',
               'selected': True,
               'urlparams': {'appver': '9999999.0'},
@@ -370,7 +370,7 @@ class TestESSearch(SearchBase):
               'urlparams': {'appver': '5.0'},
               'children': []}])
 
-        eq_(self.check_appver_filters('99999999', '99999999.0'),
+        assert self.check_appver_filters('99999999' == '99999999.0',
             [{'text': u'Firefox 99999999.0',
               'selected': True,
               'urlparams': {'appver': '99999999.0'},
@@ -389,28 +389,28 @@ class TestESSearch(SearchBase):
     def test_non_pjax_results(self):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        eq_(r.context['is_pjax'], None)
+        assert r.context['is_pjax'] is None
 
         # These context variables should exist for normal requests.
         for var in ('categories', 'platforms', 'versions', 'tags'):
             assert var in r.context, '%r missing context var in view' % var
 
         doc = pq(r.content)
-        eq_(doc('html').length, 1)
-        eq_(doc('#pjax-results').length, 1)
-        eq_(doc('#search-facets .facets.pjax-trigger').length, 1)
-        eq_(doc('#sorter.pjax-trigger').length, 1)
+        assert doc('html').length == 1
+        assert doc('#pjax-results').length == 1
+        assert doc('#search-facets .facets.pjax-trigger').length == 1
+        assert doc('#sorter.pjax-trigger').length == 1
 
     def test_pjax_results(self):
         r = self.client.get(self.url, HTTP_X_PJAX=True)
         assert r.status_code == 200
-        eq_(r.context['is_pjax'], True)
+        assert r.context['is_pjax'] == True
 
         doc = pq(r.content)
-        eq_(doc('html').length, 0)
-        eq_(doc('#pjax-results').length, 0)
-        eq_(doc('#search-facets .facets.pjax-trigger').length, 0)
-        eq_(doc('#sorter.pjax-trigger').length, 1)
+        assert doc('html').length == 0
+        assert doc('#pjax-results').length == 0
+        assert doc('#search-facets .facets.pjax-trigger').length == 0
+        assert doc('#sorter.pjax-trigger').length == 1
 
     def test_facet_data_params_default(self):
         r = self.client.get(self.url)
@@ -485,19 +485,19 @@ class TestESSearch(SearchBase):
     def test_unknown_tag_filter(self):
         r = self.client.get(urlparams(self.url, tag='xxx'))
         a = pq(r.content)('#tag-facets li.selected a')
-        eq_(a.length, 1)
-        eq_(a.text(), 'xxx')
-        eq_(list(r.context['pager'].object_list), [])
+        assert a.length == 1
+        assert a.text() == 'xxx'
+        assert list(r.context['pager'].object_list) == []
 
     def test_tag_filters_on_search_page(self):
         r = self.client.get(self.url, dict(tag='sky'))
         a = pq(r.content)('#tag-facets li.selected a[data-params]')
-        eq_(json.loads(a.attr('data-params')), dict(tag='sky', page=None))
+        assert json.loads(a.attr('data-params')), dict(tag='sky' == page=None)
 
     def test_no_tag_filters_on_tags_page(self):
         r = self.client.get(reverse('tags.detail', args=['sky']))
         assert r.status_code == 200
-        eq_(pq(r.content)('#tag-facets').length, 0)
+        assert pq(r.content)('#tag-facets').length == 0
 
     def get_results(self, r):
         """Return pks of add-ons shown on search results page."""
@@ -512,25 +512,25 @@ class TestESSearch(SearchBase):
 
         themes = sorted(self.addons.filter(type=amo.ADDON_THEME)
                         .values_list('id', flat=True))
-        eq_(themes, [theme.id])
+        assert themes == [theme.id]
 
         extensions = sorted(self.addons.filter(type=amo.ADDON_EXTENSION)
                             .values_list('id', flat=True))
-        eq_(extensions, sorted(a.id for a in self.addons[1:]))
+        assert extensions == sorted(a.id for a in self.addons[1:])
 
         # Extensions should show only extensions.
         r = self.client.get(self.url, dict(atype=amo.ADDON_EXTENSION))
         assert r.status_code == 200
-        eq_(self.get_results(r), extensions)
+        assert self.get_results(r) == extensions
 
         # Themes should show only themes.
         r = self.client.get(self.url, dict(atype=amo.ADDON_THEME))
         assert r.status_code == 200
-        eq_(self.get_results(r), themes)
+        assert self.get_results(r) == themes
 
     def test_results_respect_appver_filtering(self):
         r = self.client.get(self.url, dict(appver='9.00'))
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
 
     def test_results_skip_appver_filtering_for_d2c(self):
         r = self.client.get(self.url, dict(appver='10.0a1'))
@@ -554,18 +554,18 @@ class TestESSearch(SearchBase):
         a = self.addons[0]
 
         r = self.client.get(self.url, dict(q='omgyes'))
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
 
         a.update(slug='omgyes')
         self.refresh()
         r = self.client.get(self.url, dict(q='omgyes'))
-        eq_(self.get_results(r), [a.id])
+        assert self.get_results(r) == [a.id]
 
     def test_authors_indexed(self):
         a = self.addons[0]
 
         r = self.client.get(self.url, dict(q='boop'))
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
 
         AddonUser.objects.create(
             addon=a, user=UserProfile.objects.create(username='boop'))
@@ -574,18 +574,18 @@ class TestESSearch(SearchBase):
         a.save()
         self.refresh()
         r = self.client.get(self.url, dict(q='garbage'))
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
         r = self.client.get(self.url, dict(q='boop'))
-        eq_(self.get_results(r), [a.id])
+        assert self.get_results(r) == [a.id]
         r = self.client.get(self.url, dict(q='pony'))
-        eq_(self.get_results(r), [a.id])
+        assert self.get_results(r) == [a.id]
 
     def test_tag_search(self):
         a = self.addons[0]
 
         tag_name = 'tagretpractice'
         r = self.client.get(self.url, dict(q=tag_name))
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
 
         AddonTag.objects.create(
             addon=a, tag=Tag.objects.create(tag_text=tag_name))
@@ -593,7 +593,7 @@ class TestESSearch(SearchBase):
         a.save()
         self.refresh(timesleep=1)
         r = self.client.get(self.url, dict(q=tag_name))
-        eq_(self.get_results(r), [a.id])
+        assert self.get_results(r) == [a.id]
 
         # Multiple tags.
         tag_name_2 = 'bagemtagem'
@@ -602,7 +602,7 @@ class TestESSearch(SearchBase):
         a.save()
         self.refresh(timesleep=1)
         r = self.client.get(self.url, dict(q='%s %s' % (tag_name, tag_name_2)))
-        eq_(self.get_results(r), [a.id])
+        assert self.get_results(r) == [a.id]
 
     def test_search_doesnt_return_unlisted_addons(self):
         unlisted_addon = self.addons[0]
@@ -671,10 +671,10 @@ class TestPersonaSearch(SearchBase):
         personas_ids = sorted(p.id for p in self.personas)  # Not PersonaID ;)
         r = self.client.get(self.url, follow=True)
         assert r.status_code == 200
-        eq_(self.get_results(r), personas_ids)
+        assert self.get_results(r) == personas_ids
         doc = pq(r.content)
-        eq_(doc('.personas-grid li').length, len(personas_ids))
-        eq_(doc('.listing-footer').length, 0)
+        assert doc('.personas-grid li').length == len(personas_ids)
+        assert doc('.listing-footer').length == 0
 
     def test_results_name_query(self):
         self._generate_personas()
@@ -756,12 +756,12 @@ class TestPersonaSearch(SearchBase):
         # Page one should show 2 personas.
         r = self.client.get(self.url, follow=True)
         assert r.status_code == 200
-        eq_(pq(r.content)('.personas-grid li').length, 2)
+        assert pq(r.content)('.personas-grid li').length == 2
 
         # Page two should show 1 persona.
         r = self.client.get(self.url + '&page=2', follow=True)
         assert r.status_code == 200
-        eq_(pq(r.content)('.personas-grid li').length, 1)
+        assert pq(r.content)('.personas-grid li').length == 1
 
 
 class TestCollectionSearch(SearchBase):
@@ -889,10 +889,10 @@ class TestCollectionSearch(SearchBase):
         collection_ids = sorted(p.id for p in self.collections)
         r = self.client.get(self.url, follow=True)
         assert r.status_code == 200
-        eq_(self.get_results(r), collection_ids)
+        assert self.get_results(r) == collection_ids
         doc = pq(r.content)
-        eq_(doc('.primary .item').length, len(collection_ids))
-        eq_(doc('.listing-footer').length, 0)
+        assert doc('.primary .item').length == len(collection_ids)
+        assert doc('.listing-footer').length == 0
 
     def test_results_name_query(self):
         self._generate()
@@ -962,7 +962,7 @@ class TestCollectionSearch(SearchBase):
                                     follow=True)
             assert r.status_code == 200
             results = list(r.context['pager'].object_list)
-            eq_(len(results), len(webdev_collections))
+            assert len(results) == len(webdev_collections)
             for coll, expected in zip(results, sorted_webdev_collections):
                 eq_(unicode(coll.name), expected[0],
                     'Wrong order for sort %r. Got: %s, expected: %s' % (
@@ -986,13 +986,13 @@ class TestCollectionSearch(SearchBase):
         self.refresh()
 
         r = self.client.get(self.url)
-        eq_(self.get_results(r), [])
+        assert self.get_results(r) == []
 
         r = self.client.get(self.url.replace('firefox', 'thunderbird'))
-        eq_(self.get_results(r), [tb_collection.id])
+        assert self.get_results(r) == [tb_collection.id]
 
         r = self.client.get(self.url.replace('firefox', 'seamonkey'))
-        eq_(self.get_results(r), [sm_collection.id])
+        assert self.get_results(r) == [sm_collection.id]
 
     def test_version_sidebar(self):
         request = RequestFactory()
@@ -1027,7 +1027,7 @@ class TestCollectionSearch(SearchBase):
         # Form data has the proper version, which is new: add it.
         versions = version_sidebar(request, {'appver': '123.4'}, facets)
         assert versions[1].selected
-        eq_(len(versions), 3)
+        assert len(versions) == 3
 
 
 def test_search_redirects():
@@ -1074,21 +1074,21 @@ class TestAjaxSearch(amo.tests.ESTestCaseWithAddons):
         data = sorted(data, key=lambda x: x['id'])
         addons = sorted(addons, key=lambda x: x.id)
 
-        eq_(len(data), len(addons))
+        assert len(data) == len(addons)
         for got, expected in zip(data, addons):
             expected.reload()
-            eq_(int(got['id']), expected.id)
-            eq_(got['name'], unicode(expected.name))
+            assert int(got['id']) == expected.id
+            assert got['name'] == unicode(expected.name)
             expected_url = expected.get_url_path()
             if src:
                 expected_url += '?src=ss'
-            eq_(got['url'], expected_url)
-            eq_(got['icons'], {'32': expected.get_icon_url(32),
+            assert got['url'] == expected_url
+            assert got['icons'] == {'32': expected.get_icon_url(32,
                                '64': expected.get_icon_url(64)})
 
             assert expected.status in amo.REVIEWED_STATUSES, (
                 'Unreviewed add-ons should not appear in search results.')
-            eq_(expected.is_disabled, False)
+            assert expected.is_disabled == False
             assert expected.type in types, (
                 'Add-on type %s should not be searchable.' % expected.type)
 
@@ -1185,12 +1185,12 @@ class TestSearchSuggestions(TestAjaxSearch):
         data = sorted(data, key=lambda x: x['id'])
         apps = sorted(apps, key=lambda x: x.id)
 
-        eq_(len(data), len(apps))
+        assert len(data) == len(apps)
         for got, expected in zip(data, apps):
-            eq_(int(got['id']), expected.id)
-            eq_(got['name'], '%s Add-ons' % unicode(expected.pretty))
-            eq_(got['url'], locale_url(expected.short))
-            eq_(got['cls'], 'app ' + expected.short)
+            assert int(got['id']) == expected.id
+            assert got['name'] == '%s Add-ons' % unicode(expected.pretty)
+            assert got['url'] == locale_url(expected.short)
+            assert got['cls'] == 'app ' + expected.short
 
     def test_get(self):
         r = self.client.get(self.url)

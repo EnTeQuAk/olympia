@@ -21,12 +21,12 @@ class TestHelpers(BaseTestCase):
 
         # Not subscribed yet.
         doc = pq(collection_favorite(c, collection))
-        eq_(doc('button').text(), u'Add to Favorites')
+        assert doc('button').text() == u'Add to Favorites'
 
         # Subscribed.
         collection.following.create(user=self.user)
         doc = pq(collection_favorite(c, collection))
-        eq_(doc('button').text(), u'Remove from Favorites')
+        assert doc('button').text() == u'Remove from Favorites'
 
     def test_barometer(self):
         self.client.get('/')
@@ -41,7 +41,7 @@ class TestHelpers(BaseTestCase):
         }
         c['request'].user.is_authenticated.return_value = False
         doc = pq(barometer(c, collection))
-        eq_(doc('form')[0].action, '/en-US/firefox/users/login?to=yermom')
+        assert doc('form')[0].action == '/en-US/firefox/users/login?to=yermom'
 
         # Mock logged in.
         c['request'].amo_user.votes.filter.return_value = [Mock(vote=1)]
@@ -59,7 +59,7 @@ class TestHelpers(BaseTestCase):
         response = unicode(user_collection_list([c1, c2], heading))
 
         # heading
-        eq_(pq(response)('h3').text(), heading)
+        assert pq(response)('h3').text() == heading
 
         # both items
         # TODO reverse URLs
