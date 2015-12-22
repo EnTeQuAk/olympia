@@ -249,7 +249,7 @@ class UserProfile(OnChangeMixin, ModelBase,
     def has_module_perms(self, app_label):
         return self.is_superuser
 
-    backend = 'users.backends.AmoUserBackend'
+    backend = 'olympia.users.backends.AmoUserBackend'
 
     def is_anonymous(self):
         return False

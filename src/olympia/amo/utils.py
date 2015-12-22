@@ -663,7 +663,7 @@ def get_email_backend(real_email=False):
     if real_email or settings.SEND_REAL_EMAIL:
         backend = None
     else:
-        backend = 'amo.mail.DevEmailBackend'
+        backend = 'olympia.amo.mail.DevEmailBackend'
     return django.core.mail.get_connection(backend)
 
 

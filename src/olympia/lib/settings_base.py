@@ -353,7 +353,7 @@ MIDDLEWARE_CLASSES = (
 
 # Auth
 AUTHENTICATION_BACKENDS = (
-    'users.backends.AmoUserBackend',
+    'olympia.users.backends.AmoUserBackend',
 )
 AUTH_USER_MODEL = 'users.UserProfile'
 
@@ -1169,7 +1169,7 @@ def read_only_mode(env):
     env['DATABASES']['default'] = env['DATABASES'][slave]
 
     # No sessions without the database, so disable auth.
-    env['AUTHENTICATION_BACKENDS'] = ('users.backends.NoAuthForYou',)
+    env['AUTHENTICATION_BACKENDS'] = ('olympia.users.backends.NoAuthForYou',)
 
     # Add in the read-only middleware before csrf middleware.
     extra = 'olympia.amo.middleware.ReadOnlyMiddleware'
@@ -1306,7 +1306,7 @@ DEVELOPER_BLOG_URL = 'http://blog.mozilla.com/addons/feed/'
 LOGIN_RATELIMIT_USER = 5
 LOGIN_RATELIMIT_ALL_USERS = '15/m'
 
-CSRF_FAILURE_VIEW = 'amo.views.csrf_failure'
+CSRF_FAILURE_VIEW = 'olympia.amo.views.csrf_failure'
 
 # Testing responsiveness without rate limits.
 CELERY_DISABLE_RATE_LIMITS = True
@@ -1315,7 +1315,7 @@ CELERY_DISABLE_RATE_LIMITS = True
 MARKETPLACE = False
 
 # Default file storage mechanism that holds media.
-DEFAULT_FILE_STORAGE = 'amo.utils.LocalFileStorage'
+DEFAULT_FILE_STORAGE = 'olympia.amo.utils.LocalFileStorage'
 
 # Defined in the site, this is to allow settings patch to work for tests.
 NO_ADDONS_MODULES = ()
