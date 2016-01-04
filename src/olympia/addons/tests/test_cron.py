@@ -237,8 +237,8 @@ class TestUnhideDisabledFiles(TestCase):
     @override_settings(GUARDED_ADDONS_PATH=u'/tmp/guarded-addons')
     @mock.patch('olympia.files.models.File.unhide_disabled_file')
     def test_move_not_disabled_files(self, unhide_mock):
-        with amo.tests.copy_file('apps/files/fixtures/files/jetpack.xpi',
-                                 self.file_.guarded_file_path):
+        fpath = 'src/olympia/files/fixtures/files/jetpack.xpi'
+        with amo.tests.copy_file(fpath, self.file_.guarded_file_path):
             cron.unhide_disabled_files()
             assert unhide_mock.called
 
