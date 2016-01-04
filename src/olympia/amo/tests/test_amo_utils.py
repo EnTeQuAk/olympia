@@ -240,18 +240,18 @@ class TestCacheNamespaces(BaseTestCase):
         cache.clear()
         self.namespace = 'redis-is-dead'
 
-    @mock.patch('amo.utils.epoch')
+    @mock.patch('olympia.amo.utils.epoch')
     def test_no_preexisting_key(self, epoch_mock):
         epoch_mock.return_value = 123456
         eq_(cache_ns_key(self.namespace), '123456:ns:%s' % self.namespace)
 
-    @mock.patch('amo.utils.epoch')
+    @mock.patch('olympia.amo.utils.epoch')
     def test_no_preexisting_key_incr(self, epoch_mock):
         epoch_mock.return_value = 123456
         eq_(cache_ns_key(self.namespace, increment=True),
             '123456:ns:%s' % self.namespace)
 
-    @mock.patch('amo.utils.epoch')
+    @mock.patch('olympia.amo.utils.epoch')
     def test_key_incr(self, epoch_mock):
         epoch_mock.return_value = 123456
         cache_ns_key(self.namespace)  # Sets ns to 123456
@@ -284,7 +284,7 @@ def test_escape_all():
         yield check, val, expected
 
 
-@mock.patch('amo.helpers.urlresolvers.get_outgoing_url')
+@mock.patch('olympia.amo.helpers.urlresolvers.get_outgoing_url')
 @mock.patch('bleach.callbacks.nofollow', lambda attrs, new: attrs)
 def test_escape_all_linkify_only_full(mock_get_outgoing_url):
     mock_get_outgoing_url.return_value = 'http://outgoing.firefox.com'

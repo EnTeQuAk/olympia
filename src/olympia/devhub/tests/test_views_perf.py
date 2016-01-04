@@ -22,7 +22,7 @@ class TestPerfViews(TestCase):
                         patch('waffle.helpers.flag_is_active')]
         for p in self.patches:
             p.start().return_value = True
-        p = patch('devhub.perf.start_perf_test')
+        p = patch('olympia.devhub.perf.start_perf_test')
         self.perf_test = p.start()
         self.patches.append(p)
         self.perf_calls = None

@@ -26,7 +26,7 @@ class TestPerf(TestCase):
     def start(self, *args, **kw):
         return start_perf_test(self.file, *args, **kw)
 
-    @patch('devhub.perf.urlopen')
+    @patch('olympia.devhub.perf.urlopen')
     def test_success(self, urlopen):
         set_url_content(urlopen, """
             INFO: validating key os win32
@@ -41,7 +41,7 @@ class TestPerf(TestCase):
         eq_(params['url'], [self.file.get_url_path('perftest')])
 
     @raises(BadResponse)
-    @patch('devhub.perf.urlopen')
+    @patch('olympia.devhub.perf.urlopen')
     def test_sendchange_error(self, urlopen):
         set_url_content(urlopen, """
             SENDCHANGE: change(s) NOT sent, something went wrong:
@@ -50,7 +50,7 @@ class TestPerf(TestCase):
         self.start('win32', 'firefox4.0')
 
     @raises(BadResponse)
-    @patch('devhub.perf.urlopen')
+    @patch('olympia.devhub.perf.urlopen')
     def test_error(self, urlopen):
         set_url_content(urlopen, """
             INFO: validating key os win32
@@ -59,7 +59,7 @@ class TestPerf(TestCase):
         self.start('win32', 'firefox4.0')
 
     @raises(BadResponse)
-    @patch('devhub.perf.urlopen')
+    @patch('olympia.devhub.perf.urlopen')
     def test_no_sendchange(self, urlopen):
         set_url_content(urlopen, """
             INFO: validating key os win32
