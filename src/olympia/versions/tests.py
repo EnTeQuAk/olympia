@@ -2,7 +2,6 @@
 import hashlib
 import os
 
-import calendar
 from datetime import datetime, timedelta
 
 from django.conf import settings
@@ -23,7 +22,7 @@ from olympia.access.models import Group, GroupUser
 from olympia.amo.helpers import user_media_url
 from olympia.amo.tests import addon_factory
 from olympia.amo.urlresolvers import reverse
-from olympia.amo.utils import urlparams
+from olympia.amo.utils import urlparams, utc_millesecs_from_epoch
 from olympia.addons.models import Addon, CompatOverride, CompatOverrideRange
 from olympia.addons.tests.test_views import TestMobile
 from olympia.applications.models import AppVersion
@@ -1247,10 +1246,9 @@ class TestExtensionVersionFromUpload(TestVersionFromUpload):
         with mock.patch('olympia.versions.models.statsd.timing') as mock_timing:
             Version.from_upload(self.upload, self.addon, [self.platform])
 
-            upload_start = calendar.timegm(
-                self.upload.created.utctimetuple())
-            now = calendar.timegm(datetime.now().utctimetuple())
-            rough_delta = (now - upload_start) * 1000
+            upload_start = utc_millesecs_from_epoch(self.upload.created)
+            now = utc_millesecs_from_epoch()
+            rough_delta = now - upload_start
             actual_delta = mock_timing.call_args[0][1]
 
             fuzz = 2000  # 2 seconds

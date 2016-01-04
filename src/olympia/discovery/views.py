@@ -1,14 +1,11 @@
 import json
 
 from django import http
-from django.db import IntegrityError
-from django.db.models import F
 from django.forms.models import modelformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 import commonware.log
-import waffle
 
 from olympia import amo, api
 from olympia.amo.utils import JSONEncoder
@@ -20,7 +17,7 @@ from olympia.addons.decorators import addon_view_factory
 from olympia.addons.models import Addon
 from olympia.addons.utils import get_featured_ids
 from olympia.browse.views import personas_listing
-from olympia.bandwagon.models import Collection, SyncedCollection
+from olympia.bandwagon.models import Collection
 from olympia.discovery.modules import PromoVideoCollection
 from olympia.reviews.models import Review
 from olympia.stats.models import GlobalStat
@@ -193,43 +190,10 @@ def recommendations(request, version, platform, limit=9, compat_mode=None):
 
     addon_ids = get_addon_ids(guids)
     index = Collection.make_index(addon_ids)
-
     ids, recs = Collection.get_recs_from_ids(addon_ids, request.APP, version,
                                              compat_mode)
     recs = _recommendations(request, version, platform, limit, index, ids,
                             recs, compat_mode)
-
-    # We're only storing a percentage of the collections we see because the db
-    # can't keep up with 100%.
-    if not waffle.sample_is_active('disco-pane-store-collections'):
-        return recs
-
-    # Users have a token2 if they've been here before. The token matches
-    # addon_index in their SyncedCollection.
-    if 'token2' in POST:
-        token = POST['token2']
-        if token == index:
-            # We've seen them before and their add-ons have not changed.
-            return recs
-        elif token != index:
-            # We've seen them before and their add-ons changed. Remove the
-            # reference to their old synced collection.
-            (SyncedCollection.objects.filter(addon_index=index)
-             .update(count=F('count') - 1))
-
-    # Try to create the SyncedCollection. There's a unique constraint on
-    # addon_index so it will fail if this addon_index already exists. If we
-    # checked for existence first and then created a collection there would
-    # be a race condition between multiple users with the same addon_index.
-    try:
-        c = SyncedCollection.objects.create(addon_index=index, count=1)
-        c.set_addons(addon_ids)
-    except IntegrityError:
-        try:
-            (SyncedCollection.objects.filter(addon_index=index)
-             .update(count=F('count') + 1))
-        except Exception, e:
-            log.error(u'Could not count++ "%s" (%s).' % (index, e))
     return recs
 
 

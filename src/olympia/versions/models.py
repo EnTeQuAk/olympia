@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import calendar
 import datetime
 import os
 
@@ -17,7 +16,7 @@ from tower import ugettext as _
 
 from olympia import amo
 from olympia.amo.models import ManagerBase, ModelBase, OnChangeMixin
-from olympia.amo.utils import sorted_groupby
+from olympia.amo.utils import sorted_groupby, utc_millesecs_from_epoch
 from olympia.addons.query import IndexQuerySet
 from olympia.amo.decorators import use_master
 from olympia.amo.urlresolvers import reverse
@@ -167,10 +166,10 @@ class Version(OnChangeMixin, ModelBase):
 
         # Track the time it took from first upload through validation
         # (and whatever else) until a version was created.
-        upload_start = calendar.timegm(upload.created.utctimetuple())
+        upload_start = utc_millesecs_from_epoch(upload.created)
         now = datetime.datetime.now()
-        now_ts = calendar.timegm(now.utctimetuple())
-        upload_time = (now_ts - upload_start) * 1000
+        now_ts = utc_millesecs_from_epoch(now)
+        upload_time = now_ts - upload_start
 
         log.info('Time for version {version} creation from upload: {delta}; '
                  'created={created}; now={now}'

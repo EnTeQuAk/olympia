@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: REMORA 0.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-12-03 08:54-0700\n"
-"PO-Revision-Date: 2015-12-16 22:10+0000\n"
+"PO-Revision-Date: 2015-12-01 12:26+0000\n"
 "Last-Translator: Tomáš Zelina <zelitomas@gmail.com>\n"
 "Language-Team: Mozilla.cz <info@mozilla.cz>\n"
 "Language: cs\n"
@@ -4917,7 +4917,7 @@ msgstr "Při odesílání nastala chyba."
 
 #: apps/devhub/views.py:836 apps/signing/views.py:64
 msgid "You cannot submit this type of add-on"
-msgstr ""
+msgstr "Přidávání tohoto typu doplňku není povoleno"
 
 #: apps/devhub/views.py:1068 apps/users/forms.py:418
 msgid "Images must be either PNG or JPG."
@@ -5261,6 +5261,9 @@ msgid ""
 "Please <a href=\"%(url)s\" target=\"_blank\">report any bugs</a> that you "
 "encounter."
 msgstr ""
+"Přidávání neveřejných doplňků je momentálně ve stavu otevřené bety. <a "
+"href=\"%(url)s\" target=\"_blank\">Nahlaste</a> prosím jakékoli chyby, na "
+"které narazíte."
 
 #. first parameter is a filename like lorem-ipsum-1.0.2.xpi
 #: apps/devhub/templates/devhub/validation.html:5
@@ -13801,7 +13804,6 @@ msgid "You do not own this addon."
 msgstr "Tento doplněk nevlastníte."
 
 #: apps/signing/views.py:56
-#, fuzzy
 msgid "Missing \"upload\" key in multipart file data."
 msgstr "Chybí klíč \"upload\" v multipart části dat."
 
@@ -15556,7 +15558,7 @@ msgid ""
 "href=\"%(login)s\" class=\"fxa-login\">Log in</a>"
 msgstr ""
 "<a href=\"%(reg)s\" class=\"fxa-register\">Registrujte se</a> nebo se <a "
-"href=\"%(login)s\" class=\"fxa-login\">přislaste</a>"
+"href=\"%(login)s\" class=\"fxa-login\">přihlaste</a>"
 
 #: templates/includes/forms.html:2 templates/includes/forms.html:6
 msgid "required"

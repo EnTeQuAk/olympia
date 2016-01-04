@@ -41,7 +41,6 @@ from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import escape_all, MenuItem, send_mail_jinja
 from olympia.api.models import APIKey
 from olympia.applications.models import AppVersion
-from olympia.devhub import perf
 from olympia.devhub.decorators import dev_required
 from olympia.devhub.forms import CheckCompatibilityForm
 from olympia.devhub.models import ActivityLog, BlogPost, RssKey, SubmitStep
@@ -591,26 +590,6 @@ def check_addon_compatibility(request):
                    # Hack: we just need the "is_unlisted" field from this form.
                    'new_addon_form': forms.NewAddonForm(
                        None, None, request=request)})
-
-
-@dev_required
-@json_view
-def file_perf_tests_start(request, addon_id, addon, file_id):
-    if not waffle.flag_is_active(request, 'perf-tests'):
-        raise PermissionDenied
-    file_ = get_object_or_404(File, pk=file_id)
-
-    plats = perf.PLATFORM_MAP.get(file_.platform, None)
-    if plats is None:
-        log.info('Unsupported performance platform %s for file %s'
-                 % (file_.get_platform_display(), file_))
-        # TODO(Kumar) provide a message about this
-        return {'success': False}
-
-    for app in perf.ALL_APPS:
-        for plat in plats:
-            tasks.start_perf_test_for_file.delay(file_.id, plat, app)
-    return {'success': True}
 
 
 def handle_upload(filedata, user, app_id=None, version_id=None, addon=None,
@@ -1426,6 +1405,7 @@ def submit(request, step):
 
 @login_required
 @submit_step(2)
+@transaction.commit_on_success
 def submit_addon(request, step):
     if request.user.read_dev_agreement is None:
         return redirect(_step_url(1))

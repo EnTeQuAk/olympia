@@ -25,7 +25,6 @@ from olympia.abuse.models import AbuseReport
 from olympia.addons.models import (
     Addon, AddonDependency, AddonUser, Charity, Persona)
 from olympia.bandwagon.models import Collection
-from olympia.constants.base import FIREFOX_IOS_USER_AGENTS
 from olympia.paypal.tests.test import other_error
 from olympia.stats.models import Contribution
 from olympia.users.helpers import users_list
@@ -504,6 +503,14 @@ class TestDetailPage(TestCase):
                 'base/addon_4594_a9',
                 'addons/listed',
                 'addons/persona']
+    firefox_ios_user_agents = [
+        ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) '
+         'AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 '
+         'Safari/600.1.4'),
+        ('Mozilla/5.0 (iPad; CPU iPhone OS 8_3 like Mac OS X) '
+         'AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 '
+         'Safari/600.1.4')
+    ]
 
     def setUp(self):
         super(TestDetailPage, self).setUp()
@@ -835,7 +842,7 @@ class TestDetailPage(TestCase):
         assert self.client.get(self.url).status_code == 404
 
     def test_fx_ios_addons_message(self):
-        c = Client(HTTP_USER_AGENT=FIREFOX_IOS_USER_AGENTS[0])
+        c = Client(HTTP_USER_AGENT=self.firefox_ios_user_agents[0])
         r = c.get(self.url)
         addons_banner = pq(r.content)('.get-fx-message')
         banner_message = ('Add-ons are not currently available on Firefox for '
@@ -927,12 +934,6 @@ class TestImpalaDetailPage(TestCase):
         # Check link to statistics dashboard for add-on authors.
         eq_(self.get_pq()('#weekly-downloads a.stats').attr('href'),
             reverse('stats.overview', args=[self.addon.slug]))
-
-    def test_perf_warning(self):
-        eq_(self.addon.ts_slowness, None)
-        eq_(self.get_pq()('.performance-note').length, 0)
-        self.addon.update(ts_slowness=100)
-        eq_(self.get_pq()('.performance-note').length, 1)
 
     def test_dependencies(self):
         eq_(self.get_pq()('.dependencies').length, 0)

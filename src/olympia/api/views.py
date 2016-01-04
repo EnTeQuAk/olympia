@@ -14,27 +14,20 @@ from django.shortcuts import render
 from django.template.context import get_standard_processors
 from django.utils import encoding, translation
 from django.utils.encoding import smart_str
-from django.views.decorators.csrf import csrf_exempt
 
 import commonware.log
 import jingo
 import waffle
 from caching.base import cached_with
-from piston.utils import rc
 from tower import ugettext as _, ugettext_lazy
 
 from olympia import amo, api
 from olympia.addons.models import Addon, CompatOverride
-from olympia.amo.decorators import (
-    post_required, allow_cross_site_request, json_view)
+from olympia.amo.decorators import allow_cross_site_request, json_view
 from olympia.amo.models import manual_order
 from olympia.amo.urlresolvers import get_url_prefix
 from olympia.amo.utils import JSONEncoder
-from olympia.api.authentication import AMOOAuthAuthentication
-from olympia.api.forms import PerformanceForm
 from olympia.api.utils import addon_to_dict, extract_filters
-from olympia.perf.models import (
-    Performance, PerformanceAppVersions, PerformanceOSVersion)
 from olympia.search.views import (
     AddonSuggestionsAjax, PersonaSuggestionsAjax, name_query)
 from olympia.versions.compare import version_int
@@ -498,36 +491,3 @@ def request_token_ready(request, token):
     error = request.GET.get('error', '')
     ctx = {'error': error, 'token': token}
     return render(request, 'piston/request_token_ready.html', ctx)
-
-
-@csrf_exempt
-@post_required
-def performance_add(request):
-    """
-    A wrapper around adding in performance data that is easier than
-    using the piston API.
-    """
-    # Trigger OAuth.
-    if not AMOOAuthAuthentication(two_legged=True).is_authenticated(request):
-        return rc.FORBIDDEN
-
-    form = PerformanceForm(request.POST)
-    if not form.is_valid():
-        return form.show_error()
-
-    os, created = (PerformanceOSVersion
-                   .objects.safer_get_or_create(**form.os_version))
-    app, created = (PerformanceAppVersions
-                    .objects.safer_get_or_create(**form.app_version))
-
-    data = form.performance
-    data.update({'osversion': os, 'appversion': app})
-
-    # Look up on everything except the average time.
-    result, created = Performance.objects.safer_get_or_create(**data)
-    result.average = form.cleaned_data['average']
-    result.save()
-
-    log.info('Performance created for add-on: %s, %s' %
-             (form.cleaned_data['addon_id'], form.cleaned_data['average']))
-    return rc.ALL_OK

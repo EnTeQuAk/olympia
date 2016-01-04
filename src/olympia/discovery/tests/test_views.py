@@ -19,7 +19,7 @@ from olympia.amo.urlresolvers import reverse
 from olympia.addons.models import (
     Addon, AddonDependency, CompatOverride, CompatOverrideRange, Preview)
 from olympia.applications.models import AppVersion
-from olympia.bandwagon.models import MonthlyPick, SyncedCollection
+from olympia.bandwagon.models import MonthlyPick
 from olympia.bandwagon.tests.test_models import TestRecommendations as Recs
 from olympia.discovery import views
 from olympia.discovery.forms import DiscoveryModuleForm
@@ -178,10 +178,6 @@ class TestRecs(TestCase):
         # Tokens are based on guid list, so these should be different.
         assert one['token2'] != two['token2']
         assert one['addons'] != two['addons']
-        eq_(SyncedCollection.objects.filter(addon_index=one['token2']).count(),
-            1)
-        eq_(SyncedCollection.objects.filter(addon_index=two['token2']).count(),
-            1)
 
 
 class TestModuleAdmin(TestCase):
@@ -426,14 +422,6 @@ class TestDetails(TestCase):
         eq_(doc('#install .install-button').text(), 'Download Now')
         r = self.client.get(self.eula_url)
         self.assert3xx(r, self.detail_url, 302)
-
-    def test_perf_warning(self):
-        eq_(self.addon.ts_slowness, None)
-        doc = pq(self.client.get(self.detail_url).content)
-        eq_(doc('.performance-note').length, 0)
-        self.addon.update(ts_slowness=100)
-        doc = pq(self.client.get(self.detail_url).content)
-        eq_(doc('.performance-note').length, 1)
 
     def test_dependencies(self):
         doc = pq(self.client.get(self.detail_url).content)

@@ -64,9 +64,6 @@ urlpatterns = patterns(
     # AMO admin (not django admin).
     ('^admin/', include('olympia.zadmin.urls')),
 
-    # Performance wall of shame.
-    ('^performance/', include('olympia.perf.urls')),
-
     # Localizable pages.
     ('', include('olympia.pages.urls')),
 
@@ -102,7 +99,8 @@ urlpatterns = patterns(
     url('^statistics/', lambda r: redirect('/'), name='statistics.dashboard'),
 
     # Review spam.
-    url('^reviews/spam/$', 'olympia.reviews.views.spam', name='addons.reviews.spam'),
+    url('^reviews/spam/$',
+        'olympia.reviews.views.spam', name='addons.reviews.spam'),
 
     # Redirect patterns.
     ('^bookmarks/?$',

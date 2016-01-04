@@ -1,3 +1,4 @@
+import mock
 from django.test.utils import override_settings
 
 from olympia.accounts import helpers
@@ -10,8 +11,11 @@ from olympia.accounts import helpers
     'a_different_thing': 'howdy, world!',
 })
 def test_fxa_config():
-    assert helpers.fxa_config() == {
+    context = mock.MagicMock()
+    context['request'].session = {'fxa_state': 'thestate!'}
+    assert helpers.fxa_config(context) == {
         'clientId': 'foo',
         'something': 'hello, world!',
+        'state': 'thestate!',
         'aDifferentThing': 'howdy, world!',
     }

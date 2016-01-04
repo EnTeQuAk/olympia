@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 import socket
-from os.path import dirname
 
 import dj_database_url
 from django.utils.functional import lazy
@@ -193,9 +192,6 @@ SERVICES_DOMAIN = 'services.%s' % DOMAIN
 #   Example: https://services.addons.mozilla.org
 SERVICES_URL = 'http://%s' % SERVICES_DOMAIN
 
-# When True, the addon API should include performance data.
-API_SHOW_PERF_DATA = True
-
 # The domain of the mobile site.
 MOBILE_DOMAIN = 'm.%s' % DOMAIN
 
@@ -379,7 +375,6 @@ INSTALLED_APPS = (
     'olympia.localizers',
     'olympia.lib.es',
     'olympia.pages',
-    'olympia.perf',
     'olympia.reviews',
     'olympia.search',
     'olympia.sharing',
@@ -594,7 +589,6 @@ MINIFY_BUNDLES = {
             'js/lib/format.js',
             'js/lib/jquery.cookie.js',
             'js/zamboni/storage.js',
-            'js/zamboni/apps.js',
             'js/zamboni/buttons.js',
             'js/zamboni/tabs.js',
             'js/common/keys.js',
@@ -636,9 +630,6 @@ MINIFY_BUNDLES = {
             # Collections
             'js/zamboni/collections.js',
 
-            # Performance
-            'js/zamboni/perf.js',
-
             # Users
             'js/zamboni/users.js',
 
@@ -676,7 +667,6 @@ MINIFY_BUNDLES = {
             'js/lib/format.js',
             'js/lib/jquery.cookie.js',
             'js/zamboni/storage.js',
-            'js/zamboni/apps.js',
             'js/zamboni/buttons.js',
             'js/lib/jquery.pjax.js',
             'js/impala/footer.js',
@@ -697,7 +687,6 @@ MINIFY_BUNDLES = {
             'js/impala/ajaxcache.js',
             'js/zamboni/helpers.js',
             'js/zamboni/global.js',
-            'js/lib/stick.js',
             'js/impala/global.js',
             'js/common/ratingwidget.js',
             'js/lib/jquery-ui/jqModal.js',
@@ -732,9 +721,6 @@ MINIFY_BUNDLES = {
             'js/zamboni/collections.js',
             'js/impala/collections.js',
 
-            # Performance
-            'js/zamboni/perf.js',
-
             # Users
             'js/zamboni/users.js',
             'js/impala/users.js',
@@ -752,6 +738,7 @@ MINIFY_BUNDLES = {
             'js/zamboni/outgoing_links.js',
         ),
         'fxa': [
+            'js/lib/uri.js',
             'js/lib/fxa-relier-client.js',
             'js/common/fxa-login.js',
         ],
@@ -839,7 +826,6 @@ MINIFY_BUNDLES = {
             'js/lib/underscore.js',
             'js/lib/jqmobile.js',
             'js/lib/jquery.cookie.js',
-            'js/zamboni/apps.js',
             'js/zamboni/browser.js',
             'js/zamboni/init.js',
             'js/impala/capabilities.js',
@@ -1198,13 +1184,6 @@ RECAPTCHA_AJAX_URL = (
 # Send Django signals asynchronously on a background thread.
 ASYNC_SIGNALS = True
 
-# Performance notes on add-ons
-PERFORMANCE_NOTES = False
-
-# Used to flag slow addons.
-# If slowness of addon is THRESHOLD percent slower, show a warning.
-PERF_THRESHOLD = 25
-
 # Performance for persona pagination, we hardcode the number of
 # available pages when the filter is up-and-coming.
 PERSONA_DEFAULT_PAGES = 10
@@ -1292,10 +1271,6 @@ GRAPHITE_HOST = 'localhost'
 GRAPHITE_PORT = 2003
 GRAPHITE_PREFIX = 'amo'
 GRAPHITE_TIMEOUT = 1
-
-# URL to the service that triggers addon performance tests.  See devhub.perf.
-PERF_TEST_URL = 'http://areweperftestingyet.com/trigger.cgi'
-PERF_TEST_TIMEOUT = 5  # seconds
 
 # IP addresses of servers we use as proxies.
 KNOWN_PROXIES = []
@@ -1436,6 +1411,7 @@ STATICFILES_DIRS = (
     JINGO_MINIFY_ROOT
 )
 NETAPP_STORAGE = TMP_PATH
+GUARDED_ADDONS_PATH = ROOT + u'/guarded-addons'
 
 
 # These are key files that must be present on disk to encrypt/decrypt certain
@@ -1479,3 +1455,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
 }
+
+# This is the DSN to the local Sentry service. It might be overidden in
+# site-specific settings files as well.
+SENTRY_DSN = os.environ.get('SENTRY_DSN')

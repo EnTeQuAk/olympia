@@ -270,10 +270,6 @@ class Addon(OnChangeMixin, ModelBase):
     last_updated = models.DateTimeField(
         db_index=True, null=True,
         help_text='Last time this add-on had a file/version update')
-    ts_slowness = models.FloatField(
-        db_index=True, null=True,
-        help_text='How much slower this add-on makes browser ts tests. '
-                  'Read as {addon.ts_slowness}% slower.')
 
     disabled_by_user = models.BooleanField(default=False, db_index=True,
                                            db_column='inactive')
@@ -294,8 +290,6 @@ class Addon(OnChangeMixin, ModelBase):
         default=True, help_text='Automatically upgrade jetpack add-on to a '
                                 'new sdk version?')
 
-    nomination_message = models.TextField(null=True,
-                                          db_column='nominationmessage')
     target_locale = models.CharField(
         max_length=255, db_index=True, blank=True, null=True,
         help_text="For dictionaries and language packs")
@@ -331,11 +325,6 @@ class Addon(OnChangeMixin, ModelBase):
     dependencies = models.ManyToManyField('self', symmetrical=False,
                                           through='AddonDependency',
                                           related_name='addons')
-    premium_type = models.PositiveIntegerField(
-        choices=amo.ADDON_PREMIUM_TYPES.items(), default=amo.ADDON_FREE)
-    manifest_url = models.URLField(max_length=255, blank=True, null=True)
-    app_domain = models.CharField(max_length=255, blank=True, null=True,
-                                  db_index=True)
 
     _current_version = models.ForeignKey(Version, db_column='current_version',
                                          related_name='+', null=True,
@@ -343,18 +332,10 @@ class Addon(OnChangeMixin, ModelBase):
     _latest_version = models.ForeignKey(Version, db_column='latest_version',
                                         on_delete=models.SET_NULL,
                                         null=True, related_name='+')
-    make_public = models.DateTimeField(null=True)
     mozilla_contact = models.EmailField(blank=True)
-
-    vip_app = models.BooleanField(default=False)
-
-    # Whether the app is packaged or not (aka hosted).
-    is_packaged = models.BooleanField(default=False, db_index=True)
 
     # This gets overwritten in the transformer.
     share_counts = collections.defaultdict(int)
-
-    enable_new_regions = models.BooleanField(default=False, db_index=True)
 
     whiteboard = models.TextField(blank=True)
 
@@ -497,7 +478,7 @@ class Addon(OnChangeMixin, ModelBase):
             self._reviews.all().delete()
             # The last parameter is needed to automagically create an AddonLog.
             amo.log(amo.LOG.DELETE_ADDON, self.pk, unicode(self.guid), self)
-            self.update(status=amo.STATUS_DELETED, slug=None, app_domain=None,
+            self.update(status=amo.STATUS_DELETED, slug=None,
                         _current_version=None, guid=None)
             models.signals.post_delete.send(sender=Addon, instance=self)
 
@@ -538,8 +519,8 @@ class Addon(OnChangeMixin, ModelBase):
         return addon
 
     @classmethod
-    def from_upload(cls, upload, platforms, is_packaged=False, source=None,
-                    is_listed=True, data=None):
+    def from_upload(cls, upload, platforms, source=None, is_listed=True,
+                    data=None):
         from olympia.files.utils import parse_addon
 
         if not data:
@@ -1383,37 +1364,6 @@ class Addon(OnChangeMixin, ModelBase):
         """NULLify strings in this locale for the add-on and versions."""
         for o in itertools.chain([self], self.versions.all()):
             Translation.objects.remove_for(o, locale)
-
-    def app_perf_results(self):
-        """Generator of (AppVersion, [list of perf results contexts]).
-
-        A performance result context is a dict that has these keys:
-
-        **baseline**
-            The baseline of the result. For startup time this is the
-            time it takes to start up with no addons.
-
-        **startup_is_too_slow**
-            True/False if this result is slower than the threshold.
-
-        **result**
-            Actual result object
-        """
-        res = collections.defaultdict(list)
-        baselines = {}
-        for result in (self.performance
-                       .select_related('osversion', 'appversion')
-                       .order_by('-created')[:20]):
-            k = (result.appversion.id, result.osversion.id, result.test)
-            if k not in baselines:
-                baselines[k] = result.get_baseline()
-            baseline = baselines[k]
-            appver = result.appversion
-            slow = result.startup_is_too_slow(baseline=baseline)
-            res[appver].append({'baseline': baseline,
-                                'startup_is_too_slow': slow,
-                                'result': result})
-        return res.iteritems()
 
     def get_localepicker(self):
         """For language packs, gets the contents of localepicker."""
