@@ -12,7 +12,7 @@ from olympia.editors.models import ReviewerScore
 
 
 # Where to monkeypatch "lib.crypto.tasks.sign_addons" so it's correctly mocked.
-SIGN_ADDONS = 'addons.management.commands.sign_addons.sign_addons'
+SIGN_ADDONS = 'olympia.addons.management.commands.sign_addons.sign_addons'
 
 
 # Test the "sign_addons" command.
