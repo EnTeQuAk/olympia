@@ -2028,8 +2028,9 @@ class TestAddonFromUpload(UploadTest):
         self.addCleanup(translation.deactivate)
 
     def manifest(self, basename):
-        return os.path.join(settings.ROOT, 'apps', 'devhub', 'tests',
-                            'addons', basename)
+        return os.path.join(
+            settings.ROOT, 'src', 'olympia', 'devhub', 'tests', 'addons',
+            basename)
 
     def test_blacklisted_guid(self):
         BlacklistedGuid.objects.create(guid='guid@xpi')

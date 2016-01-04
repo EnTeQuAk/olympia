@@ -407,7 +407,8 @@ class TestLicenseLink(TestCase):
 
 
 def get_image_path(name):
-    return os.path.join(settings.ROOT, 'apps', 'amo', 'tests', 'images', name)
+    return os.path.join(
+        settings.ROOT, 'src', 'olympia', 'amo', 'tests', 'images', name)
 
 
 def get_uploaded_file(name):

@@ -63,8 +63,9 @@ def test_resize_image():
 
 
 def test_resize_transparency():
-    src = os.path.join(settings.ROOT, 'apps', 'amo', 'tests',
-                       'images', 'transparent.png')
+    src = os.path.join(
+        settings.ROOT, 'src', 'olympia', 'amo', 'tests',
+        'images', 'transparent.png')
     dest = tempfile.mkstemp(dir=settings.TMP_PATH)[1]
     expected = src.replace('.png', '-expected.png')
     try:
@@ -82,8 +83,9 @@ def test_resize_transparency_for_P_mode_bug_1181221():
     # https://github.com/jbalogh/zamboni/commit/10340af6d1a64a16f4b9cade9faa69976b5b6da5  # noqa
     # which caused the issue in bug 1181221. Since then we upgraded Pillow, and
     # we don't need it anymore. We thus don't have this issue anymore.
-    src = os.path.join(settings.ROOT, 'apps', 'amo', 'tests',
-                       'images', 'icon64.png')
+    src = os.path.join(
+        settings.ROOT, 'src', 'olympia', 'amo', 'tests',
+        'images', 'icon64.png')
     dest = tempfile.mkstemp(dir=settings.TMP_PATH)[1]
     expected = src.replace('.png', '-expected.png')
     try:
