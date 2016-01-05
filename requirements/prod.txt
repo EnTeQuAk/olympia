@@ -91,7 +91,6 @@ suds==0.4
 thrift==0.9.1
 puente==0.4
 urllib3==1.9
-django-cache-machine==0.9.1
 
 ## Not on pypi.
 -e git+https://github.com/jbalogh/django-queryset-transform@a1ba6ae41bd86f5bb9ff66fb56614e0fafe6e022#egg=django-queryset-transform
@@ -104,11 +103,10 @@ django-cache-machine==0.9.1
 -e git+https://github.com/mozilla/django-moz-header.git@djangoapp#egg=django-moz-header
 -e git+https://github.com/mozilla/nuggets.git@9c4344a802b07d95c0dd6256570a4facddf54784#egg=nuggets
 -e git+https://github.com/mozilla/django-session-csrf@f00ad913c62e139d36078e8a7e07dab65a021386#egg=django-session-csrf
-## Forked.
 -e git+https://github.com/EnTeQuAk/django-piston-oauth2@b205d6c091ffd3b22f28f1852c15e5588175b38a#egg=django-piston-oauth2
 -e git+https://github.com/andymckay/django-uuidfield.git@029dd1263794ec36c327617cd6c2346da81c8c33#egg=django-uuidfield
 -e git+https://github.com/washort/django-mysql-pool.git@76ed372bb9888d46833345ae6c40a39d41b5ba62#egg=django-mysql-pool
-
+-e git+https://github.com/EnTeQuAk/django-cache-machine.git@d3a2edd89eb7c870409938c3c7edaeda366d9a1b#egg=django-cache-machine
 
 ## Out of date or not sure on pypi.
 -e git+https://github.com/jbalogh/django-mobility.git@e2b60a1f96e4c4aed736395c01bf707e969d8e83#egg=django-mobility
