@@ -292,7 +292,6 @@ def JINJA_CONFIG():
     config = {
         'extensions': [
             'olympia.amo.ext.cache',
-            'jinja2.ext.i18n',
             'puente.ext.i18n',
             'jinja2.ext.do',
             'jinja2.ext.with_',
@@ -401,6 +400,7 @@ INSTALLED_APPS = (
     'piston',
     'waffle',
     'jingo_minify',
+    'puente',
 
     # Django contrib apps
     'django.contrib.admin',
