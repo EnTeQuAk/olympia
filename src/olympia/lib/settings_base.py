@@ -157,7 +157,7 @@ RTL_LANGUAGES = ('ar', 'fa', 'fa-IR', 'he')
 LANGUAGE_URL_MAP = dict([(i.lower(), i) for i in AMO_LANGUAGES])
 
 LOCALE_PATHS = (
-    path('src', 'olympia', 'locale'),
+    path('locale'),
 )
 
 # Tower / L10n
