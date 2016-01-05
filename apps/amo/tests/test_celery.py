@@ -37,7 +37,7 @@ class TestTaskTiming(unittest.TestCase):
 
         approx_run_time = utc_millesecs_from_epoch() - task_start
         assert (self.statsd.timing.call_args[0][0] ==
-                'tasks.apps.amo.tests.test_celery.fake_task')
+                'tasks.test_celery.fake_task')
         actual_run_time = self.statsd.timing.call_args[0][1]
 
         fuzz = 2000  # 2 seconds
