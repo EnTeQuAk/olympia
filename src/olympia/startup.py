@@ -16,8 +16,6 @@ import warnings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
-from django.conf import settings  # noqa
-
 log = logging.getLogger('z.startup')
 
 
@@ -25,6 +23,8 @@ def filter_warnings():
     """Ignore Python warnings unless we're running in debug mode."""
     # Do not import this from the top-level. It depends on set-up from the
     # functions above.
+    from django.conf import settings
+
     if not settings.DEBUG:
         warnings.simplefilter('ignore')
 
@@ -42,6 +42,7 @@ def init_amo():
 def init_celery():
     """Initialize Celery, and make our app instance available as `celery_app`
     for use by the `celery` command."""
+    from django.conf import settings
     from olympia.amo import celery
     from raven import Client
     from raven.contrib.celery import register_signal, register_logger_signal
