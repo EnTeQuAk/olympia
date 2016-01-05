@@ -118,9 +118,9 @@ def load_product_details():
 
 
 filter_warnings()
-init_amo()
 init_session_csrf()
 init_jinja2()
+init_amo()
 configure_logging()
 init_jingo()
 init_celery()
