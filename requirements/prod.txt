@@ -49,7 +49,6 @@ hera==0.1.2
 html5lib==0.999
 httplib2==0.8.0
 importlib-no-failure==1.0.2
-jingo==0.8.1
 kombu==3.0.26
 heka-py==0.30.3
 heka-py-cef==0.3.1
@@ -107,6 +106,9 @@ urllib3==1.9
 -e git+https://github.com/andymckay/django-uuidfield.git@029dd1263794ec36c327617cd6c2346da81c8c33#egg=django-uuidfield
 -e git+https://github.com/washort/django-mysql-pool.git@76ed372bb9888d46833345ae6c40a39d41b5ba62#egg=django-mysql-pool
 -e git+https://github.com/EnTeQuAk/django-cache-machine.git@d3a2edd89eb7c870409938c3c7edaeda366d9a1b#egg=django-cache-machine
+
+# https://github.com/jbalogh/jingo/pull/77
+-e git+https://github.com/EnTeQuAk/jingo.git@e7f6ba6285876a374336e7a2388104c11aa26b12#egg=jingo
 
 ## Out of date or not sure on pypi.
 -e git+https://github.com/jbalogh/django-mobility.git@e2b60a1f96e4c4aed736395c01bf707e969d8e83#egg=django-mobility
