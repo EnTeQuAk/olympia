@@ -20,7 +20,8 @@ from olympia.lib.es.utils import (
     timestamp_index)
 
 logger = logging.getLogger('z.elasticsearch')
-time_limits = settings.CELERY_TIME_LIMITS['lib.es.management.commands.reindex']
+time_limits = settings.CELERY_TIME_LIMITS[
+    'olympia.lib.es.management.commands.reindex']
 
 
 ES = get_es()
