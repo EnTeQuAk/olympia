@@ -92,7 +92,6 @@ class CollectionManager(ManagerBase):
 
 
 class Collection(ModelBase):
-
     TYPE_CHOICES = amo.COLLECTION_CHOICES.items()
 
     uuid = models.CharField(max_length=36, blank=True, unique=True)

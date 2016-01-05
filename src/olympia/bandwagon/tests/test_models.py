@@ -11,7 +11,7 @@ from olympia.access.models import Group
 from olympia.addons.models import Addon, AddonRecommendation
 from olympia.bandwagon.models import (
     Collection, CollectionAddon, CollectionUser, CollectionWatcher,
-    RecommendedCollection, SyncedCollection)
+    RecommendedCollection)
 from olympia.devhub.models import ActivityLog
 from olympia.bandwagon import tasks
 from olympia.users.models import UserProfile
@@ -254,7 +254,7 @@ class TestRecommendations(TestCase):
     def test_build_recs(self):
         eq_(RecommendedCollection.build_recs(self.ids), self.expected_recs())
 
-    @mock.patch('bandwagon.models.AddonRecommendation.scores')
+    @mock.patch('olympia.bandwagon.models.AddonRecommendation.scores')
     def test_no_dups(self, scores):
         # The inner dict is the recommended addons for addon 7.
         scores.return_value = {7: {1: 5, 2: 3, 3: 4}}

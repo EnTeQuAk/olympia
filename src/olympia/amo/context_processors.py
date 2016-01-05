@@ -5,7 +5,6 @@ from django.utils.translation import ugettext as _, get_language, get_language_b
 from django.utils.http import urlquote
 
 import waffle
-from cache_nuggets.lib import memoize
 
 from olympia import amo
 from olympia.amo.urlresolvers import reverse
@@ -27,20 +26,6 @@ def i18n(request):
                 settings.LANGUAGE_URL_MAP.get(get_language()) or get_language()),
             'DIR': 'rtl' if get_language_bidi() else 'ltr',
             }
-
-
-@memoize('collect-timings')
-def get_collect_timings():
-    # The flag has to be enabled for everyone and then we'll use that
-    # percentage in the pages.
-    percent = 0
-    try:
-        flag = waffle.models.Flag.objects.get(name='collect-timings')
-        if flag.everyone and flag.percent:
-            percent = float(flag.percent) / 100.0
-    except waffle.models.Flag.DoesNotExist:
-        pass
-    return percent
 
 
 def global_settings(request):
@@ -120,6 +105,5 @@ def global_settings(request):
                     'tools_links': tools_links,
                     'tools_title': tools_title,
                     'ADMIN_MESSAGE': get_config('site_notice'),
-                    'collect_timings_percent': get_collect_timings(),
                     'is_reviewer': is_reviewer})
     return context

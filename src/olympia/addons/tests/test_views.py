@@ -25,7 +25,6 @@ from olympia.abuse.models import AbuseReport
 from olympia.addons.models import (
     Addon, AddonDependency, AddonUser, Charity, Persona)
 from olympia.bandwagon.models import Collection
-from olympia.constants.base import FIREFOX_IOS_USER_AGENTS
 from olympia.paypal.tests.test import other_error
 from olympia.stats.models import Contribution
 from olympia.users.helpers import users_list
@@ -203,7 +202,7 @@ class TestContributeEmbedded(TestCase):
         self.addon = Addon.objects.get(pk=592)
         self.detail_url = self.addon.get_url_path()
 
-    @patch('paypal.get_paykey')
+    @patch('olympia.paypal.get_paykey')
     def client_post(self, get_paykey, **kwargs):
         get_paykey.return_value = ['abc', '']
         url = reverse('addons.contribute', args=kwargs.pop('rev'))
@@ -220,7 +219,7 @@ class TestContributeEmbedded(TestCase):
         response = self.client_post(rev=[1])
         eq_(response.status_code, 404)
 
-    @fudge.patch('paypal.get_paykey')
+    @fudge.patch('olympia.paypal.get_paykey')
     def test_charity_name(self, get_paykey):
         (get_paykey.expects_call()
                    .with_matching_args(memo=u'Contribution for foë: foë')
@@ -317,13 +316,13 @@ class TestContributeEmbedded(TestCase):
         doc = pq(res.content)
         eq_(len(doc('#contribute-box input[type=radio]')), 1)
 
-    @fudge.patch('paypal.get_paykey')
+    @fudge.patch('olympia.paypal.get_paykey')
     def test_paypal_error_json(self, get_paykey, **kwargs):
         get_paykey.expects_call().returns((None, None))
         res = self.contribute()
         assert not json.loads(res.content)['paykey']
 
-    @patch('paypal.requests.post')
+    @patch('olympia.paypal.requests.post')
     def test_paypal_other_error_json(self, post, **kwargs):
         post.return_value.text = other_error
         res = self.contribute()
@@ -338,7 +337,7 @@ class TestContributeEmbedded(TestCase):
     def test_addons_result_page(self):
         self._test_result_page()
 
-    @fudge.patch('paypal.get_paykey')
+    @fudge.patch('olympia.paypal.get_paykey')
     def test_not_split(self, get_paykey):
         def check_call(*args, **kw):
             assert 'chains' not in kw
@@ -504,6 +503,14 @@ class TestDetailPage(TestCase):
                 'base/addon_4594_a9',
                 'addons/listed',
                 'addons/persona']
+    firefox_ios_user_agents = [
+        ('Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) '
+         'AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 '
+         'Safari/600.1.4'),
+        ('Mozilla/5.0 (iPad; CPU iPhone OS 8_3 like Mac OS X) '
+         'AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 '
+         'Safari/600.1.4')
+    ]
 
     def setUp(self):
         super(TestDetailPage, self).setUp()
@@ -835,7 +842,7 @@ class TestDetailPage(TestCase):
         assert self.client.get(self.url).status_code == 404
 
     def test_fx_ios_addons_message(self):
-        c = Client(HTTP_USER_AGENT=FIREFOX_IOS_USER_AGENTS[0])
+        c = Client(HTTP_USER_AGENT=self.firefox_ios_user_agents[0])
         r = c.get(self.url)
         addons_banner = pq(r.content)('.get-fx-message')
         banner_message = ('Add-ons are not currently available on Firefox for '

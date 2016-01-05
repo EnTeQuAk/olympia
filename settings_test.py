@@ -84,7 +84,7 @@ CACHES = {
 # Overrides whatever storage you might have put in local settings.
 DEFAULT_FILE_STORAGE = 'olympia.amo.utils.LocalFileStorage'
 
-VIDEO_LIBRARIES = ['lib.video.dummy']
+VIDEO_LIBRARIES = ['olympia.lib.video.dummy']
 
 ALLOW_SELF_REVIEWS = True
 
@@ -109,7 +109,7 @@ TASK_USER_ID = 4043307
 
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
-    'users.models.SHA512PasswordHasher',
+    'olympia.users.models.SHA512PasswordHasher',
 )
 
 SQL_RESET_SEQUENCES = False
@@ -183,8 +183,5 @@ if os.environ.get('RUNNING_IN_CI'):
                 u'sr-Latn': {
                     u'native': u'Srpski',
                     u'English': u'Serbian'}})
-
-        def delete_cache(self, *args, **kw):
-            pass
 
     product_details.product_details = MockProductDetails()

@@ -105,7 +105,7 @@ DATABASE_POOL_ARGS = {
 SLAVE_DATABASES = []
 
 PASSWORD_HASHERS = (
-    'users.models.SHA512PasswordHasher',
+    'olympia.users.models.SHA512PasswordHasher',
 )
 
 # Local time zone for this installation. Choices can be found here:
@@ -421,14 +421,12 @@ TEST_INSTALLED_APPS = (
     'olympia.translations.tests.testapp',
 )
 
-# Tells the extract script what files to look for l10n in and what function
-# handles the extraction.  The puente library expects this.
 PUENTE = {
     'BASE_DIR': ROOT,
     # Tells the extract script what files to look for l10n in and what function
     # handles the extraction.
     'DOMAIN_METHODS': {
-        'django': [
+        'messages': [
             ('src/olympia/**.py', 'python'),
 
             # Make sure we're parsing django-admin templates with the django
@@ -440,7 +438,7 @@ PUENTE = {
             ('templates/**.html', 'jinja2'),
             ('**/templates/**.lhtml', 'jinja2'),
         ],
-        'djangojs': [
+        'javascript': [
             # We can't say **.js because that would dive into mochikit and
             # timeplot and all the other baggage we're carrying.  Timeplot, in
             # particular, crashes the extractor with bad unicode data.
@@ -699,7 +697,6 @@ MINIFY_BUNDLES = {
             'js/impala/ajaxcache.js',
             'js/zamboni/helpers.js',
             'js/zamboni/global.js',
-            'js/lib/stick.js',
             'js/impala/global.js',
             'js/common/ratingwidget.js',
             'js/lib/jquery-ui/jqModal.js',
@@ -751,6 +748,7 @@ MINIFY_BUNDLES = {
             'js/zamboni/outgoing_links.js',
         ),
         'fxa': [
+            'js/lib/uri.js',
             'js/lib/fxa-relier-client.js',
             'js/common/fxa-login.js',
         ],
@@ -1015,7 +1013,8 @@ CELERY_ROUTES = {
     # AMO Devhub.
     'olympia.devhub.tasks.validate_file': {'queue': 'devhub'},
     'olympia.devhub.tasks.validate_file_path': {'queue': 'devhub'},
-    'olympia.devhub.tasks.handle_upload_validation_result': {'queue': 'devhub'},
+    'olympia.devhub.tasks.handle_upload_validation_result': {
+        'queue': 'devhub'},
     'olympia.devhub.tasks.handle_file_validation_result': {'queue': 'devhub'},
     # This is currently used only by validation tasks.
     'olympia.celery.chord_unlock': {'queue': 'devhub'},
@@ -1042,7 +1041,8 @@ CELERY_ROUTES = {
 CELERY_TIME_LIMITS = {
     'olympia.lib.video.tasks.resize_video': {'soft': 360, 'hard': 600},
     # The reindex management command can take up to 3 hours to run.
-    'olympia.lib.es.management.commands.reindex': {'soft': 10800, 'hard': 14400},
+    'olympia.lib.es.management.commands.reindex': {
+        'soft': 10800, 'hard': 14400},
 }
 
 # When testing, we always want tasks to raise exceptions. Good for sanity.
@@ -1477,3 +1477,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
 }
+
+# This is the DSN to the local Sentry service. It might be overidden in
+# site-specific settings files as well.
+SENTRY_DSN = os.environ.get('SENTRY_DSN')

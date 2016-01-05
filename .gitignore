@@ -12,6 +12,11 @@ pip-log.txt
 docs/_gh-pages
 docs/api/_build
 src/olympia/lib/product_json/
+src/olympia/lib/product_json/.gitignore
+src/olympia/lib/product_json/*.json
+src/olympia/lib/product_json/.last_update
+src/olympia/lib/product_json/regions/*.json
+src/olympia/lib/product_json/regions/.last_update
 build*.py
 web/media/build_id.txt
 web/media/manifest.appcache

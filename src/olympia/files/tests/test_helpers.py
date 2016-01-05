@@ -28,7 +28,7 @@ def get_file(filename):
 
 def make_file(pk, file_path, **kwargs):
     obj = Mock()
-    obj.id = pk
+    obj.id = obj.pk = pk
     for k, v in kwargs.items():
         setattr(obj, k, v)
     obj.file_path = file_path
@@ -202,7 +202,18 @@ class TestFileHelper(TestCase):
         self.assertRaises(forms.ValidationError, self.viewer.extract)
 
     def test_default(self):
-        eq_(self.viewer.get_default(None), 'install.rdf')
+        self.viewer.extract()
+        assert self.viewer.get_default(None) == 'install.rdf'
+
+    def test_default_webextension(self):
+        viewer = FileViewer(make_file(2, get_file('webextension.xpi')))
+        viewer.extract()
+        assert viewer.get_default(None) == 'manifest.json'
+
+    def test_default_package_json(self):
+        viewer = FileViewer(make_file(3, get_file('new-format-0.0.1.xpi')))
+        viewer.extract()
+        assert viewer.get_default(None) == 'package.json'
 
     def test_delete_mid_read(self):
         self.viewer.extract()
@@ -212,7 +223,7 @@ class TestFileHelper(TestCase):
         eq_(res, '')
         assert self.viewer.selected['msg'].startswith('That file no')
 
-    @patch('files.helpers.get_md5')
+    @patch('olympia.files.helpers.get_md5')
     def test_delete_mid_tree(self, get_md5):
         get_md5.side_effect = IOError('ow')
         self.viewer.extract()
@@ -268,7 +279,7 @@ class TestDiffSearchEngine(TestCase):
         self.helper.cleanup()
         super(TestDiffSearchEngine, self).tearDown()
 
-    @patch('files.helpers.FileViewer.is_search_engine')
+    @patch('olympia.files.helpers.FileViewer.is_search_engine')
     def test_diff_search(self, is_search_engine):
         is_search_engine.return_value = True
         self.helper.extract()

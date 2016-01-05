@@ -12,9 +12,9 @@ from olympia.versions.urls import download_patterns
 
 admin.autodiscover()
 
-handler403 = 'amo.views.handler403'
-handler404 = 'amo.views.handler404'
-handler500 = 'amo.views.handler500'
+handler403 = 'olympia.amo.views.handler403'
+handler404 = 'olympia.amo.views.handler404'
+handler500 = 'olympia.amo.views.handler500'
 
 
 urlpatterns = patterns(
@@ -99,7 +99,8 @@ urlpatterns = patterns(
     url('^statistics/', lambda r: redirect('/'), name='statistics.dashboard'),
 
     # Review spam.
-    url('^reviews/spam/$', 'olympia.reviews.views.spam', name='addons.reviews.spam'),
+    url('^reviews/spam/$',
+        'olympia.reviews.views.spam', name='addons.reviews.spam'),
 
     # Redirect patterns.
     ('^bookmarks/?$',

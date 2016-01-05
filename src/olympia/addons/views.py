@@ -34,7 +34,6 @@ from olympia.amo.urlresolvers import reverse
 from olympia.abuse.models import send_abuse_report
 from olympia.bandwagon.models import (
     Collection, CollectionFeature, CollectionPromo)
-from olympia.constants.base import FIREFOX_IOS_USER_AGENTS
 from olympia import paypal
 from olympia.reviews.forms import ReviewForm
 from olympia.reviews.models import Review, GroupedRating
@@ -147,7 +146,10 @@ def extension_detail(request, addon):
 
 @mobilized(extension_detail)
 def extension_detail(request, addon):
-    ios_user = request.META.get('HTTP_USER_AGENT') in FIREFOX_IOS_USER_AGENTS
+    if not request.META.get('HTTP_USER_AGENT'):
+        ios_user = False
+    else:
+        ios_user = 'FxiOS' in request.META.get('HTTP_USER_AGENT')
     return render(request, 'addons/mobile/details.html',
                   {'addon': addon, 'ios_user': ios_user})
 
@@ -365,7 +367,10 @@ def home(request):
     popular = sorted([a for a in addons if a.id in popular],
                      key=attrgetter('average_daily_users'), reverse=True)
 
-    ios_user = request.META.get('HTTP_USER_AGENT') in FIREFOX_IOS_USER_AGENTS
+    if not request.META.get('HTTP_USER_AGENT'):
+        ios_user = False
+    else:
+        ios_user = 'FxiOS' in request.META.get('HTTP_USER_AGENT')
     return render(request, 'addons/mobile/home.html',
                   {'featured': featured, 'popular': popular,
                    'ios_user': ios_user})

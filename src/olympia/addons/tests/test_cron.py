@@ -4,7 +4,7 @@ import datetime
 import time
 
 from django.core.management.base import CommandError
-
+from django.test.utils import override_settings
 from nose.tools import eq_
 import mock
 
@@ -128,7 +128,7 @@ class TestHideDisabledFiles(TestCase):
         self.f2 = File.objects.create(version=self.version, filename='f2',
                                       platform=p)
 
-    @mock.patch('files.models.os')
+    @mock.patch('olympia.files.models.os')
     def test_leave_nondisabled_files(self, os_mock):
         # All these addon/file status pairs should stay.
         stati = [(amo.STATUS_PUBLIC, amo.STATUS_PUBLIC),
@@ -144,8 +144,8 @@ class TestHideDisabledFiles(TestCase):
             cron.hide_disabled_files()
             assert not os_mock.path.exists.called, (addon_status, file_status)
 
-    @mock.patch('files.models.File.mv')
-    @mock.patch('files.models.storage')
+    @mock.patch('olympia.files.models.File.mv')
+    @mock.patch('olympia.files.models.storage')
     def test_move_user_disabled_addon(self, m_storage, mv_mock):
         # Use Addon.objects.update so the signal handler isn't called.
         Addon.objects.filter(id=self.addon.id).update(
@@ -168,8 +168,8 @@ class TestHideDisabledFiles(TestCase):
         eq_(mv_mock.call_count, 2)
         eq_(m_storage.delete.call_count, 2)
 
-    @mock.patch('files.models.File.mv')
-    @mock.patch('files.models.storage')
+    @mock.patch('olympia.files.models.File.mv')
+    @mock.patch('olympia.files.models.storage')
     def test_move_admin_disabled_addon(self, m_storage, mv_mock):
         Addon.objects.filter(id=self.addon.id).update(
             status=amo.STATUS_DISABLED)
@@ -191,8 +191,8 @@ class TestHideDisabledFiles(TestCase):
         eq_(mv_mock.call_count, 2)
         eq_(m_storage.delete.call_count, 2)
 
-    @mock.patch('files.models.File.mv')
-    @mock.patch('files.models.storage')
+    @mock.patch('olympia.files.models.File.mv')
+    @mock.patch('olympia.files.models.storage')
     def test_move_disabled_file(self, m_storage, mv_mock):
         Addon.objects.filter(id=self.addon.id).update(status=amo.STATUS_LITE)
         File.objects.filter(id=self.f1.id).update(status=amo.STATUS_DISABLED)
@@ -206,6 +206,50 @@ class TestHideDisabledFiles(TestCase):
         # It should have been removed from mirror stagins.
         m_storage.delete.assert_called_with(f1.mirror_file_path)
         eq_(m_storage.delete.call_count, 1)
+
+
+class TestUnhideDisabledFiles(TestCase):
+
+    def setUp(self):
+        super(TestUnhideDisabledFiles, self).setUp()
+        p = amo.PLATFORM_ALL.id
+        self.addon = Addon.objects.create(type=amo.ADDON_EXTENSION)
+        self.version = Version.objects.create(addon=self.addon)
+        self.file_ = File.objects.create(version=self.version, platform=p,
+                                         filename=u'fé')
+
+    @mock.patch('olympia.files.models.os')
+    def test_leave_disabled_files(self, os_mock):
+        self.addon.update(status=amo.STATUS_DISABLED)
+        cron.unhide_disabled_files()
+        assert not os_mock.path.exists.called
+
+        self.addon.update(status=amo.STATUS_LITE)
+        self.file_.update(status=amo.STATUS_DISABLED)
+        cron.unhide_disabled_files()
+        assert not os_mock.path.exists.called
+
+        self.addon.update(disabled_by_user=True)
+        self.file_.update(status=amo.STATUS_LITE)
+        cron.unhide_disabled_files()
+        assert not os_mock.path.exists.called
+
+    @override_settings(GUARDED_ADDONS_PATH=u'/tmp/guarded-addons')
+    @mock.patch('olympia.files.models.File.unhide_disabled_file')
+    def test_move_not_disabled_files(self, unhide_mock):
+        fpath = 'src/olympia/files/fixtures/files/jetpack.xpi'
+        with amo.tests.copy_file(fpath, self.file_.guarded_file_path):
+            cron.unhide_disabled_files()
+            assert unhide_mock.called
+
+            # Not a unicode string for the path.
+            with override_settings(GUARDED_ADDONS_PATH='/tmp/guarded-addons'):
+                with self.assertRaises(UnicodeDecodeError):
+                    # If the parameter to "os.walk" (called by
+                    # amo.utils.walkfiles) isn't a unicode string, it'll return
+                    # ascii encoded paths, which will break the File query with
+                    # the filename, raising the exception.
+                    cron.unhide_disabled_files()
 
 
 class AvgDailyUserCountTestCase(TestCase):
@@ -253,15 +297,15 @@ class AvgDailyUserCountTestCase(TestCase):
 
 class TestCleanupImageFiles(TestCase):
 
-    @mock.patch('addons.cron.os')
+    @mock.patch('olympia.addons.cron.os')
     def test_cleanup_image_files_exists(self, os_mock):
         cron.cleanup_image_files()
         assert os_mock.path.exists.called
 
-    @mock.patch('addons.cron.os.unlink')
-    @mock.patch('addons.cron.os.stat')
-    @mock.patch('addons.cron.os.listdir')
-    @mock.patch('addons.cron.os.path')
+    @mock.patch('olympia.addons.cron.os.unlink')
+    @mock.patch('olympia.addons.cron.os.stat')
+    @mock.patch('olympia.addons.cron.os.listdir')
+    @mock.patch('olympia.addons.cron.os.path')
     def test_cleanup_image_files_age(self, os_path_mock, os_listdir_mock,
                                      os_stat_mock, os_unlink_mock):
         os_path_mock.exists.return_value = True

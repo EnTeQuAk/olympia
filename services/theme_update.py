@@ -7,8 +7,8 @@ from time import time
 from wsgiref.handlers import format_date_time
 
 from olympia.constants import base
-from olympia.utils import log_configure, log_exception, mypool
 
+from services.utils import log_configure, log_exception, mypool
 from services.utils import settings, user_media_path, user_media_url
 
 # Configure the log.
@@ -222,7 +222,7 @@ def application(environ, start_response):
                 return ['']
             start_response(status, update.get_headers(len(output)))
         except:
-            log_exception(data)
+            log_exception(environ['PATH_INFO'])
             raise
 
     return [output]

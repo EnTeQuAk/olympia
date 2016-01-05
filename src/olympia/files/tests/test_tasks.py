@@ -34,7 +34,7 @@ def test_fix_let_scope_bustage():
             assert_test_file_fixed(temp_filename2)
 
 
-@mock.patch('files.tasks.fix_let_scope_bustage')
+@mock.patch('olympia.files.tasks.fix_let_scope_bustage')
 def test_fix_let_scope_bustage_in_xpi(mock_fixer):
     """Fix the "let scope bustage" in the test XPI.
 
@@ -48,7 +48,9 @@ def test_fix_let_scope_bustage_in_xpi(mock_fixer):
     The two files that should be fixed are some_file.js and foobar/main.js.
     Both those files have the same content as the TEST_JS_FILE.
     """
-    test_xpi = 'src/olympia/files/fixtures/files/extension-let-global-scope.xpi'
+    test_xpi = (
+        'src/olympia/files/fixtures/files/extension-let-global-scope.xpi')
+
     with amo.tests.copy_file_to_temp(test_xpi) as temp_filename:
         tasks.fix_let_scope_bustage_in_xpi(temp_filename)
     mock_fixer.assert_called_once_with(mock.ANY, mock.ANY)
@@ -58,9 +60,9 @@ def test_fix_let_scope_bustage_in_xpi(mock_fixer):
     assert call[1].endswith('foobar/main.js')
 
 
-@mock.patch('files.tasks.fix_let_scope_bustage_in_xpi')
-@mock.patch('files.tasks.update_version_number')
-@mock.patch('files.tasks.sign_file')
+@mock.patch('olympia.files.tasks.fix_let_scope_bustage_in_xpi')
+@mock.patch('olympia.files.tasks.update_version_number')
+@mock.patch('olympia.files.tasks.sign_file')
 def test_fix_let_scope_bustage_in_addon(mock_sign_file, mock_version_bump,
                                         mock_fixer, db):
     # Create an add-on, with a version.
@@ -74,7 +76,8 @@ def test_fix_let_scope_bustage_in_addon(mock_sign_file, mock_version_bump,
     assert addon.versions.count() == 2  # Two versions, we only fix the last.
 
     # Assign a file for the last version's file.
-    test_xpi = 'src/olympia/files/fixtures/files/extension-let-global-scope.xpi'
+    test_xpi = (
+        'src/olympia/files/fixtures/files/extension-let-global-scope.xpi')
     file_ = File.objects.create(version=version, filename='foo.xpi',
                                 is_signed=True)
     with override_settings(PRELIMINARY_SIGNING_SERVER='prelim_signing'):

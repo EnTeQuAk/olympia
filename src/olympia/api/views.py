@@ -22,8 +22,7 @@ from caching.base import cached_with
 
 from olympia import amo, api
 from olympia.addons.models import Addon, CompatOverride
-from olympia.amo.decorators import (
-    allow_cross_site_request, json_view)
+from olympia.amo.decorators import allow_cross_site_request, json_view
 from olympia.amo.models import manual_order
 from olympia.amo.urlresolvers import get_url_prefix
 from olympia.amo.utils import JSONEncoder
