@@ -23,6 +23,7 @@ worker: &worker
     - REDIS_LOCATION=redis
     - REDIS_PORT=6379
     - TERM=xterm-256color
+    - DJANGO_SETTINGS_MODULE=settings
 
 web:
   <<: *worker
