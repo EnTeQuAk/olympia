@@ -1017,7 +1017,7 @@ CELERY_ROUTES = {
         'queue': 'devhub'},
     'olympia.devhub.tasks.handle_file_validation_result': {'queue': 'devhub'},
     # This is currently used only by validation tasks.
-    'olympia.celery.chord_unlock': {'queue': 'devhub'},
+    'olympia.amo.celery.chord_unlock': {'queue': 'devhub'},
     'olympia.devhub.tasks.compatibility_check': {'queue': 'devhub'},
 
     # Videos.
