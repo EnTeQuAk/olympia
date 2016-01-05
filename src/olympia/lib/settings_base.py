@@ -428,7 +428,7 @@ DOMAIN_METHODS = {
             'tower.management.commands.extract.extract_tower_python'),
         ('src/olympia/**/templates/**.html',
             'tower.management.commands.extract.extract_tower_template'),
-        ('templates/**.html',
+        ('src/olympia/templates/**.html',
             'tower.management.commands.extract.extract_tower_template'),
         ('**/templates/**.lhtml',
             'tower.management.commands.extract.extract_tower_template'),
