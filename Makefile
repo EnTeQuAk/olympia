@@ -58,7 +58,7 @@ initialize_db:
 	python manage.py syncdb --noinput
 	python manage.py loaddata initial.json
 	python manage.py import_prod_versions
-	schematic --fake migrations/
+	schematic --fake src/olympia/migrations/
 	python manage.py createsuperuser
 	python manage.py loaddata zadmin/users
 
