@@ -49,7 +49,7 @@ hera==0.1.2
 html5lib==0.999
 httplib2==0.8.0
 importlib-no-failure==1.0.2
-jingo==0.8
+jingo==0.8.1
 kombu==3.0.26
 heka-py==0.30.3
 heka-py-cef==0.3.1
