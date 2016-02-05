@@ -17,7 +17,6 @@ from django.template import defaultfilters
 
 import caching.base as caching
 import jinja2
-import six
 import waffle
 from babel.support import Format
 from jingo import register, get_env
@@ -386,8 +385,8 @@ def license_link(license):
     if not getattr(license, 'builtin', True):
         return _('Custom License')
 
-    t = get_env().get_template('amo/license_link.html').render({'license': license})
-    return jinja2.Markup(t)
+    template = get_env().get_template('amo/license_link.html')
+    return jinja2.Markup(template.render({'license': license}))
 
 
 @register.function
@@ -511,7 +510,8 @@ def _side_nav(context, addon_type, cat):
         base_url = Addon.get_type_url(addon_type)
     ctx = dict(request=request, base_url=base_url, categories=categories,
                addon_type=addon_type, amo=amo)
-    return jinja2.Markup(get_env().get_template('amo/side_nav.html').render(ctx))
+    template = get_env().get_template('amo/side_nav.html')
+    return jinja2.Markup(template.render(ctx))
 
 
 @register.function
@@ -536,7 +536,8 @@ def _site_nav(context):
     ctx = dict(request=request, amo=amo,
                extensions=sorted_cats(extensions),
                personas=sorted_cats(personas))
-    return jinja2.Markup(get_env().get_template('amo/site_nav.html').render(ctx))
+    template = get_env().get_template('amo/site_nav.html')
+    return jinja2.Markup(template.render(ctx))
 
 
 @register.function

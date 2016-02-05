@@ -2,6 +2,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models
+from django.utils import translation
 from django.utils.translation import activate, ugettext as _
 
 import bleach

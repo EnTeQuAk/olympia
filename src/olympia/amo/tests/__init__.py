@@ -51,6 +51,7 @@ from olympia.translations.models import Translation
 from olympia.versions.models import ApplicationsVersions, Version
 from olympia.users.models import UserProfile
 
+from . import dynamic_urls
 
 # We might now have gettext available in jinja2.env.globals when running tests.
 # It's only added to the globals when activating a language (which
@@ -862,6 +863,7 @@ def copy_file(source, dest, overwrite=False):
     yield
     if os.path.exists(dest):
         os.unlink(dest)
+
 
 @contextmanager
 def copy_file_to_temp(source):
