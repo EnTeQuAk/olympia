@@ -35,7 +35,7 @@
     function fxaLogin(opts) {
         opts = opts || {};
         var authConfig = {
-            email: opts.email,
+            email: opts.email || config.email,
             state: config.state + ':' + urlsafe(btoa(nextPath())),
             redirectUri: config.redirectUrl,
             scope: config.scope,
@@ -49,15 +49,15 @@
         }
     }
 
-    $('body').on('click', '.fxa-register', function(e) {
+    $('body').on('click', '.fxa-login', function(e) {
         e.preventDefault();
-        fxaLogin({signUp: true});
+        fxaLogin();
     });
 
     function showLoginForm($form) {
         $form.removeClass('login-source-form')
              .addClass('login-form');
-        $form.find('[name="password"]').attr('required', true);
+        $form.find('[name="password"]').prop('required', true);
     }
 
     function showLoginSourceForm($form) {
