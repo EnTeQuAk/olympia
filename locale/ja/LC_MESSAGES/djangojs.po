@@ -1,10 +1,10 @@
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-18 08:13+0000\n"
-"PO-Revision-Date: 2016-10-02 22:54+0000\n"
+"POT-Creation-Date: 2016-10-25 11:25+0000\n"
+"PO-Revision-Date: 2016-10-25 12:08+0000\n"
 "Last-Translator: Kohei Yoshino <kohei.yoshino@gmail.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja\n"
@@ -22,7 +22,7 @@ msgstr[0] "評価 {0}"
 
 #: static/js/common/upload-addon.js static/js/common/upload-image.js
 msgid "There was a problem contacting the server."
-msgstr "サーバへの接続中に問題が発生しました。"
+msgstr "サーバーへの接続中に問題が発生しました。"
 
 #: static/js/common/upload-addon.js
 msgid "Select a file..."
@@ -80,11 +80,11 @@ msgstr "{0} を検証しています"
 #. L10n: first argument is an HTTP status code
 #: static/js/common/upload-addon.js
 msgid "Received an empty response from the server; status: {0}"
-msgstr "サーバから空の応答が返りました。ステータス: {0}"
+msgstr "サーバーから空の応答が返りました。ステータス: {0}"
 
 #: static/js/common/upload-addon.js
 msgid "Unexpected server error while validating."
-msgstr "検証中に予期せぬサーバエラーが発生しました。"
+msgstr "検証中に予期せぬサーバーエラーが発生しました。"
 
 #: static/js/common/upload-addon.js
 msgid "Finished validating {0}"
@@ -118,7 +118,7 @@ msgstr "WebExtension へのアップグレード"
 
 #: static/js/common/upload-addon.js
 msgid "We allow and encourage an upgrade but you cannot reverse this process. Once your users have the WebExtension installed, they will not be able to install a legacy add-on."
-msgstr "Mozilla ではアップグレードを可能にし、推奨していますが、この手順は取り消せません。ユーザは、一度 WebExtension をインストールしたら、従来型のアドオンをインストールすることはできなくなります。"
+msgstr "Mozilla ではアップグレードを可能にし、推奨していますが、この手順は取り消せません。ユーザーは、一度 WebExtension をインストールしたら、従来型のアドオンをインストールすることはできなくなります。"
 
 #: static/js/common/upload-addon.js
 msgid "Porting a legacy Firefox add-on on MDN"
@@ -130,7 +130,7 @@ msgstr "詳しいバージョンノートを含める (これは次のステッ�
 
 #: static/js/common/upload-addon.js
 msgid "If your add-on requires an account to a website in order to be fully tested, include a test username and password in the Notes to Reviewer (this can be done in the next step)."
-msgstr "このアドオンを完全にテストするにあたって Web サイトのアカウントが必要となる場合、テスト用のユーザ名とパスワードを審査担当者へのメモに含めてください (これは次のステップで行えます)。"
+msgstr "このアドオンを完全にテストするにあたってウェブサイトのアカウントが必要となる場合、テスト用のユーザー名とパスワードを審査担当者へのメモに含めてください (これは次のステップで行えます)。"
 
 #: static/js/common/upload-addon.js
 msgid "Add-on submission checklist"
@@ -144,9 +144,7 @@ msgstr "登録を完了する前に以下の点について確認してくださ
 msgid ""
 "Compiled binaries, as well as minified or obfuscated scripts (excluding known libraries) need to have their sources submitted separately for review. Make sure that you use the source code upload "
 "field to avoid having your submission rejected."
-msgstr ""
-"コンパイルされたバイナリや、最小化、難読化されたスクリプト (既知のライブラリを除く) がアドオンに含まれる場合、審査用に別途元のソースを提出する必要があります。そうした場合は必ずソースコードアップロー"
-"ドフォームを使い、審査が即座に却下されないようにしてください。"
+msgstr "コンパイルされたバイナリや、最小化、難読化されたスクリプト (既知のライブラリを除く) がアドオンに含まれる場合、審査用に別途元のソースを提出する必要があります。そうした場合は必ずソースコードアップロードフォームを使い、審査が即座に却下されないようにしてください。"
 
 #: static/js/common/upload-addon.js
 msgid "The validation process found these issues that can lead to rejections:"
@@ -239,7 +237,7 @@ msgstr "結果を更新しています..."
 
 #: static/js/impala/site_suggestions.js
 msgid "Category"
-msgstr "カテゴリ"
+msgstr "カテゴリー"
 
 #: static/js/impala/suggestions.js
 msgid "Search themes for <b>{0}</b>"
@@ -254,7 +252,7 @@ msgid "Search add-ons for <b>{0}</b>"
 msgstr "<b>{0}</b> 用のアドオンを検索"
 
 #: static/js/impala/users.js
-msgid "use original"
+msgid "Use original"
 msgstr "オリジナルを使用"
 
 #: static/js/impala/stats/chart.js
@@ -267,7 +265,7 @@ msgstr " 件のダウンロード"
 
 #: static/js/impala/stats/chart.js
 msgid "{0} users"
-msgstr "{0} 人のユーザ"
+msgstr "{0} 人のユーザー"
 
 #: static/js/impala/stats/chart.js
 msgid "{0} add-ons"
@@ -299,7 +297,7 @@ msgstr "ダウンロード数"
 
 #: static/js/impala/stats/chart.js static/js/impala/stats/csv_keys.js
 msgid "Daily Users"
-msgstr "日別ユーザ数"
+msgstr "日別ユーザー数"
 
 #: static/js/impala/stats/chart.js
 msgid "Amount, in USD"
@@ -344,7 +342,7 @@ msgstr "レビュー投稿数"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "User Signups"
-msgstr "ユーザログイン回数"
+msgstr "ユーザーログイン回数"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Subscribers"
@@ -368,19 +366,19 @@ msgstr "不明"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Add-ons Manager"
-msgstr "アドオンマネージャ"
+msgstr "アドオンマネージャー"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Add-ons Manager Promo"
-msgstr "アドオンマネージャ内のプロモーション"
+msgstr "アドオンマネージャー内のプロモーション"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Add-ons Manager Featured"
-msgstr "アドオンマネージャ内のおすすめ"
+msgstr "アドオンマネージャー内のおすすめ"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Add-ons Manager Learn More"
-msgstr "アドオンマネージャ内の詳細リンク"
+msgstr "アドオンマネージャー内の詳細リンク"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Search Suggestions"
@@ -440,7 +438,7 @@ msgstr "開発者の紹介"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "User Profile"
-msgstr "ユーザプロプロフィール"
+msgstr "ユーザープロフィール"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Version History"
@@ -452,7 +450,7 @@ msgstr "共有"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Category Pages"
-msgstr "カテゴリページ"
+msgstr "カテゴリーページ"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Collections"
@@ -460,19 +458,19 @@ msgstr "コレクション"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Category Landing Featured Carousel"
-msgstr "カテゴリトップページのおすすめローテーション"
+msgstr "カテゴリートップページのおすすめローテーション"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Category Landing Top Rated"
-msgstr "カテゴリトップページの高評価枠"
+msgstr "カテゴリートップページの高評価枠"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Category Landing Most Popular"
-msgstr "カテゴリトップページの人気枠"
+msgstr "カテゴリートップページの人気枠"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Category Landing Recently Added"
-msgstr "カテゴリトップページの新着枠"
+msgstr "カテゴリートップページの新着枠"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Browse Listing Featured Sort"
@@ -480,7 +478,7 @@ msgstr "一覧ページのおすすめ順"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Browse Listing Users Sort"
-msgstr "一覧ページのユーザ数順"
+msgstr "一覧ページのユーザー数順"
 
 #: static/js/impala/stats/csv_keys.js
 msgid "Browse Listing Rating Sort"
@@ -549,22 +547,22 @@ msgstr "Android"
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
 msgid "Downloads and Daily Users, last {0} days"
-msgstr "最近 {0} 日間のダウンロード回数とユーザ数"
+msgstr "最近 {0} 日間のダウンロード回数とユーザー数"
 
 #. L10n: both {0} and {1} are dates in YYYY-MM-DD format.
 #: static/js/impala/stats/csv_keys.js
 msgid "Downloads and Daily Users from {0} to {1}"
-msgstr "{0} から {1} までのダウンロード回数とユーザ数"
+msgstr "{0} から {1} までのダウンロード回数とユーザー数"
 
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
 msgid "Installs and Daily Users, last {0} days"
-msgstr "最近 {0} 日間のインストール回数とユーザ数"
+msgstr "最近 {0} 日間のインストール回数とユーザー数"
 
 #. L10n: both {0} and {1} are dates in YYYY-MM-DD format.
 #: static/js/impala/stats/csv_keys.js
 msgid "Installs and Daily Users from {0} to {1}"
-msgstr "{0} から {1} までのインストール回数とユーザ数"
+msgstr "{0} から {1} までのインストール回数とユーザー数"
 
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
@@ -579,12 +577,12 @@ msgstr "{0} から {1} までのダウンロード回数"
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
 msgid "Daily Users, last {0} days"
-msgstr "最近 {0} 日間のユーザ数"
+msgstr "最近 {0} 日間のユーザー数"
 
 #. L10n: both {0} and {1} are dates in YYYY-MM-DD format.
 #: static/js/impala/stats/csv_keys.js
 msgid "Daily Users from {0} to {1}"
-msgstr "{0} から {1} までのユーザ数"
+msgstr "{0} から {1} までのユーザー数"
 
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
@@ -719,12 +717,12 @@ msgstr "{0} から {1} までのレビュー投稿数"
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
 msgid "User Signups, last {0} days"
-msgstr "最近 {0} 日間のユーザログイン回数"
+msgstr "最近 {0} 日間のユーザーログイン回数"
 
 #. L10n: both {0} and {1} are dates in YYYY-MM-DD format.
 #: static/js/impala/stats/csv_keys.js
 msgid "User Signups from {0} to {1}"
-msgstr "{0} から {1} までのユーザログイン回数"
+msgstr "{0} から {1} までのユーザーログイン回数"
 
 #. L10n: {0} is an integer.
 #: static/js/impala/stats/csv_keys.js
@@ -886,7 +884,7 @@ msgstr "デスクトップ版 Firefox でのみ使用可能"
 
 #: static/js/zamboni/buttons.js static/js/zamboni/mobile/buttons.js
 msgid "Sorry, you need a Mozilla-based browser (such as Firefox) to install a search plugin."
-msgstr "申し訳ありませんが、検索プラグインをインストールするには (Firefox など) Mozilla ベースのブラウザが必要です。"
+msgstr "申し訳ありませんが、検索プラグインをインストールするには (Firefox など) Mozilla ベースのブラウザーが必要です。"
 
 #: static/js/zamboni/collections.js
 msgid "Adding to Favorites&hellip;"
@@ -926,7 +924,7 @@ msgstr "削除"
 
 #: static/js/zamboni/collections.js
 msgid "Remove this user as a contributor"
-msgstr "このユーザを貢献者から削除"
+msgstr "このユーザーを貢献者から削除"
 
 #: static/js/zamboni/collections.js
 msgid "An email address is required."
@@ -938,7 +936,7 @@ msgstr "自分を貢献者として追加することはできません。"
 
 #: static/js/zamboni/collections.js
 msgid "You have already added that user."
-msgstr "このユーザはすでに追加されています。"
+msgstr "このユーザーはすでに追加されています。"
 
 #: static/js/zamboni/collections.js
 msgid "Add to favorites"
@@ -954,7 +952,7 @@ msgstr "フォローをやめる"
 
 #: static/js/zamboni/devhub.js
 msgid "Your browser does not support the video tag"
-msgstr "お使いのブラウザは video タグに対応していません"
+msgstr "お使いのブラウザーは video タグに対応していません"
 
 #: static/js/zamboni/devhub.js
 msgid "Changes Saved"
@@ -976,7 +974,7 @@ msgstr[0] "{files} 個のファイル"
 #: static/js/zamboni/devhub.js
 msgid "{reviews} user review"
 msgid_plural "{reviews} user reviews"
-msgstr[0] "{reviews} 件のユーザレビュー"
+msgstr[0] "{reviews} 件のユーザーレビュー"
 
 #: static/js/zamboni/devhub.js
 msgid "Learn more"
@@ -1182,7 +1180,7 @@ msgstr "検証作業を完了できなかったか、エラーを出力して完
 
 #: static/js/zamboni/validator.js
 msgid "Internal server error"
-msgstr "内部サーバエラー"
+msgstr "内部サーバーエラー"
 
 #: static/js/zamboni/mobile/buttons.js
 msgid "Not Updated for {0} {1}"

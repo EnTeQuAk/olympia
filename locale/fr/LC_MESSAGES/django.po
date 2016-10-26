@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: REMORA 0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-18 08:13+0000\n"
-"PO-Revision-Date: 2016-10-16 14:30+0000\n"
+"POT-Creation-Date: 2016-10-25 11:25+0000\n"
+"PO-Revision-Date: 2016-10-23 02:30+0000\n"
 "Last-Translator: Théo Chevalier <theo.chevalier11@gmail.com>\n"
 "Language-Team: français <>\n"
 "Language: fr\n"
@@ -21,6 +21,10 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Generated-By: Babel 2.2.0\n"
 "X-Generator: Pontoon\n"
+
+#: src/olympia/accounts/views.py
+msgid "You are already logged in."
+msgstr ""
 
 #: src/olympia/accounts/views.py
 msgid "Your log in attempt could not be parsed. Please try again."
@@ -33,22 +37,6 @@ msgstr "Votre compte Firefox n’a pas pu être trouvé. Veuillez réessayer."
 #: src/olympia/accounts/views.py
 msgid "You could not be logged in. Please try again."
 msgstr "Votre connexion a échoué. Veuillez recommencer."
-
-#: src/olympia/accounts/views.py
-msgid "Your account has already been migrated to Firefox Accounts."
-msgstr "Votre compte a déjà été migré vers les comptes Firefox."
-
-#: src/olympia/accounts/views.py
-msgid "Your Firefox Account already exists on this site."
-msgstr "Votre compte Firefox existe déjà sur ce site."
-
-#: src/olympia/accounts/views.py
-msgid "Great job!"
-msgstr "C’est fait !"
-
-#: src/olympia/accounts/views.py
-msgid "You can now log in to Add-ons with your Firefox Account."
-msgstr "Vous pouvez désormais vous connecter aux modules avec votre compte Firefox."
 
 #: src/olympia/accounts/views.py
 msgid "Need help?"
@@ -1603,6 +1591,8 @@ msgstr "{addon} {version} super revue nécessaire."
 #: src/olympia/amo/log.py
 msgid "The addon has been flagged for Admin Review.  It's still in our review queue, but it will need to be checked by one of our admin reviewers. The review might take longer than usual."
 msgstr ""
+"Ce module a été signalé comme devant être revu par un administrateur. Il se trouve toujours dans notre file d’attente, mais il devra être vérifié par nos testeurs administrateurs. Cette revue peut "
+"demander plus de temps que d’habitude."
 
 #: src/olympia/amo/log.py
 msgid "Comment on {addon} {version}."
@@ -2622,7 +2612,7 @@ msgstr "<b>Attention :</b> En changeant le propriétaire de cette collection, vo
 
 #: src/olympia/bandwagon/templates/bandwagon/edit_contributors.html src/olympia/devhub/templates/devhub/addons/forms_shared/media.html src/olympia/devhub/templates/devhub/addons/submit/distribute.html
 #: src/olympia/devhub/templates/devhub/addons/submit/upload.html src/olympia/devhub/templates/devhub/payments/tier.html src/olympia/editors/templates/editors/themes/themes.html
-#: src/olympia/users/templates/users/fxa_login_prompt_content.html src/olympia/users/templates/users/fxa_migration_prompt_content.html
+#: src/olympia/users/templates/users/fxa_login_prompt_content.html
 msgid "Continue"
 msgstr "Continuer"
 
@@ -4075,21 +4065,24 @@ msgstr "Il ne peut pas y avoir plus de trois modules nécessaires."
 
 #: src/olympia/devhub/forms.py
 msgid "On this site."
-msgstr ""
+msgstr "Sur ce site."
 
 #: src/olympia/devhub/forms.py
 msgid ""
 "Your submission will be listed on this site and the Firefox Add-ons Manager for millions of users, after it passes code review. Automatic updates are handled by this site. This add-on will also be "
 "considered for Mozilla promotions and contests. Self-distribution of the reviewed files is also possible."
 msgstr ""
+"Votre proposition sera publiée sur ce site et dans le gestionnaire de modules de Firefox pour des millions d’utilisateurs, une fois la revue de code effectuée. Les mises à jour automatiques seront "
+"gérées par ce site. Ce module sera également pris en considération pour que Mozilla en fasse la promotion et pour les concours. La distribution personnelle des fichiers revus est aussi possible."
 
 #: src/olympia/devhub/forms.py
 msgid "On my own."
-msgstr ""
+msgstr "Je m’en charge."
 
 #: src/olympia/devhub/forms.py
-msgid "This version will be immediately signed for self-distribution. Updates are handled manually via an updateURL or external application updates."
-msgstr ""
+#, fuzzy
+msgid "This version will be immediately signed for self-distribution. Updates should be handled by you via an updateURL or external application updates."
+msgstr "Cette version sera immédiatement signée pour une distribution personnelle. Les mises à jour seront gérées manuellement via updateURL ou des mises à jour d’application externe."
 
 #: src/olympia/devhub/helpers.py
 msgid "Add-on Documentation :: Developer Hub"
@@ -4619,10 +4612,10 @@ msgid_plural "<b>{0}</b> themes"
 msgstr[0] "<b>{0}</b> thème"
 msgstr[1] "<b>{0}</b> thèmes"
 
-#: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/addons/listing/item_actions.html src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
-#: src/olympia/devhub/templates/devhub/includes/addons_edit_nav.html src/olympia/devhub/templates/devhub/personas/edit.html src/olympia/editors/templates/editors/themes/single.html
-msgid "Edit Listing"
-msgstr "Modifier les informations"
+#: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/addons/listing/item_actions.html src/olympia/devhub/templates/devhub/includes/addons_edit_nav.html
+#, fuzzy
+msgid "Edit Information"
+msgstr "Informations de base"
 
 #: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/includes/macros.html src/olympia/translations/templates/translations/all-locales.html
 msgid "None"
@@ -5088,8 +5081,9 @@ msgid "Delete this add-on."
 msgstr "Supprimer ce module."
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions.html
-msgid "Edit details about this add-on's listing."
-msgstr "Éditer les détails à propos du listing de ce module."
+#, fuzzy
+msgid "Edit information about this add-on."
+msgstr "En savoir plus sur ce module"
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions.html
 msgid "Upload a new version of this add-on."
@@ -5128,6 +5122,10 @@ msgstr "Voir les changements récents"
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
 msgid "Edit details about this theme's listing."
 msgstr "Éditer les détails à propos du listing de ce thème."
+
+#: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html src/olympia/devhub/templates/devhub/personas/edit.html src/olympia/editors/templates/editors/themes/single.html
+msgid "Edit Listing"
+msgstr "Modifier les informations"
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
 msgid "View the popularity of this theme over time."
@@ -5170,23 +5168,20 @@ msgid "Submit Add-on"
 msgstr "Proposer un module"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Describe Add-on"
-msgstr "Décrivez votre module"
+msgstr "Décrivez votre module :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Add-on URL:"
-msgstr "Adresse URL du module"
+msgstr "Adresse URL du module :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html src/olympia/devhub/templates/devhub/personas/edit.html src/olympia/devhub/templates/devhub/personas/submit.html
 msgid "Please use only letters, numbers, underscores, and dashes in your URL."
 msgstr "Merci de n’utiliser que des lettres, chiffres, soulignements et tirets dans votre adresse URL."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Summary:"
-msgstr "Résumé"
+msgstr "Résumé :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
 msgid "This summary will be shown in listings and searches."
@@ -5203,101 +5198,89 @@ msgstr ""
 "paramètre ultérieurement."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Support email:"
-msgstr "Courriel d’assistance"
+msgstr "Courriel d’assistance :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Support website:"
-msgstr "Site d’assistance"
+msgstr "Site d’assistance :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "License:"
-msgstr "Licence"
+msgstr "Licence :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Please choose a license appropriate for the rights you grant on your source code."
-msgstr "Veuillez choisir une licence appropriée pour les droits que vous souhaitez appliquer à votre code source. Ce champ est uniquement pertinent pour les modules répertoriés."
+msgstr "Veuillez choisir une licence appropriée pour les droits que vous souhaitez appliquer à votre code source."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "If your add-on transmits any data from the user's computer, a privacy policy is required that explains what data is sent and how it is used."
 msgstr ""
-"Si vous module transmet des données depuis l’ordinateur de l’utilisateur, une politique de confidentialité est nécessaire pour expliquer les données qui sont envoyées et comment elles sont "
-"appelées. Ce champ est uniquement pertinent pour les modules répertoriés."
+"Si vous module transmet des données depuis l’ordinateur de l’utilisateur, une politique de confidentialité est nécessaire pour expliquer quelles données sont envoyées et comment elles sont "
+"utilisées."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Notes to Reviewer:"
-msgstr "Notes aux testeurs"
+msgstr "Notes aux testeurs :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
 msgid "Is there anything our reviewers should bear in mind when reviewing this add-on?"
-msgstr ""
+msgstr "Y a-t-il quoi que ce soit d’autre que nos testeurs devraient savoir pour la revue de ce module ?"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "These notes will only be visible to you and our reviewers."
-msgstr "Cette URL sera uniquement visible si vous êtes un développeur."
+msgstr "Ces notes seront uniquement visibles par vous-même et nos testeurs."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/describe.html
-#, fuzzy
 msgid "Submit Add-on for Review"
-msgstr "Envoyer mon module pour une revue manuelle."
+msgstr "Demander une revue pour mon module"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/distribute.html
-#, fuzzy
 msgid "Where to Host Add-on"
-msgstr "Bienvenue sur les modules {0}."
+msgstr "Où héberger des modules"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/distribute.html
-#, fuzzy
 msgid "More information on Add-on Distribution and Signing"
-msgstr "Accord de distribution des modules complémentaires Firefox"
+msgstr "Informations supplémentaires sur la distribution et la signature des modules"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html src/olympia/devhub/templates/devhub/personas/submit_done.html
 msgid "Submission Complete"
 msgstr "Envoi terminé"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-#, fuzzy
 msgid "Version Submitted for Review"
-msgstr "Notes de version / Notes pour le testeur"
+msgstr "Revue demandée pour cette version"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
 msgid "You’re done! This version has been submitted for review. You will be notified when the review has been completed, or if our reviewers have any questions about your submission."
-msgstr ""
+msgstr "C’est terminé ! Une revue a été demandée pour cette version. Vous serez informé une fois la revue terminée, ou lorsque nos testeurs auront des questions concernant votre proposition."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
 msgid "Your listing will be more successful by adding a detailed description and screenshots. Get your listing ready for publication:"
-msgstr ""
+msgstr "La page de votre module aura plus de succès si vous ajoutez une description détaillée et des captures d’écran. Préparez votre page pour sa publication :"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-#, fuzzy
 msgid "Manage Listing"
-msgstr "Page de l’application"
+msgstr "Gérer la page de l’application"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-msgid "You can also edit this version you just submitted by adding version notes, files for other platforms, or source code if your submission includes minified, obfuscated or compiled code."
+#, fuzzy
+msgid "You can also edit this version you just submitted by adding version notes, or source code if your submission includes minified, obfuscated or compiled code."
 msgstr ""
+"Vous pouvez également modifier la version que vous venez de proposer en ajoutant des notes de version, des fichiers pour d’autres plateformes, ou le code source si cette version contient du code "
+"obfusqué, minifié ou compilé."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-#, fuzzy
 msgid "Edit version {0}"
-msgstr "Version bêta {0}"
+msgstr "Modifier la version {0}"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-#, fuzzy
 msgid "Version Signed"
-msgstr "Notes de version"
+msgstr "Version signée"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-#, fuzzy
 msgid "You’re done! This version is signed and ready to for self-distribution.You can download it by clicking the button below."
-msgstr "Votre module a été signé et peut être utilisé. Vous pouvez le télécharger ici&nbsp;:"
+msgstr "C’est fait ! Cette version a été signée et peut maintenant être distribuée. Vous pouvez la télécharger en cliquant sur le bouton ci-dessous."
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html src/olympia/files/templates/files/file.html
 msgid "Download {0}"
@@ -5305,15 +5288,15 @@ msgstr "Télécharger {0}"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
 #, fuzzy
-msgid "Return to My Submissions"
+msgid "Go to My Submissions"
 msgstr "Mes propositions"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/start.html
-msgid "Getting Started"
-msgstr "Se lancer"
+#, fuzzy
+msgid "Add-on Distribution Agreement"
+msgstr "Accord de distribution des modules complémentaires Firefox"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/upload.html
-#, fuzzy
 msgid "Upload Add-on"
 msgstr "Envoyer votre module"
 
@@ -5559,6 +5542,10 @@ msgstr ""
 #: src/olympia/devhub/templates/devhub/includes/source_form_field.html
 msgid "If your add-on contains binary or obfuscated code other than known libraries, upload its sources for review."
 msgstr "Si votre module contient des fichiers binaires ou du code compressé qui n’est pas celui de bibliothèques connues, veuillez envoyer les fichiers sources afin qu’ils soient revus."
+
+#: src/olympia/devhub/templates/devhub/includes/source_form_field.html
+msgid "Please include instructions on how to reproduce the final add-on file, either in a README file or the Notes to Reviewer for this version."
+msgstr ""
 
 #: src/olympia/devhub/templates/devhub/includes/source_form_field.html
 msgid "Read more about the source code review policy."
@@ -6353,24 +6340,16 @@ msgid "Admin Flag"
 msgstr "Étiquette Admin"
 
 #: src/olympia/editors/forms.py
-msgid "Max. Version"
-msgstr "Version maximum"
-
-#: src/olympia/editors/forms.py
-msgid "Days Since Submission"
-msgstr "Jours depuis l’envoi"
-
-#: src/olympia/editors/forms.py
 msgid "Add-on Types"
 msgstr "Types de modules"
-
-#: src/olympia/editors/forms.py src/olympia/editors/helpers.py
-msgid "Platforms"
-msgstr "Plateformes"
 
 #: src/olympia/editors/forms.py
 msgid "Search by add-on name / author email / guid"
 msgstr "Rechercher par nom de module / e-mail de l’auteur / GUID"
+
+#: src/olympia/editors/forms.py
+msgid "Max. Version"
+msgstr "Version maximum"
 
 #: src/olympia/editors/forms.py
 msgid "Comments:"
@@ -6418,6 +6397,11 @@ msgstr "thème, relecteur ou commentaire"
 msgid "Rejected or Unreviewed"
 msgstr "Rejeté ou non validé"
 
+#: src/olympia/editors/helpers.py src/olympia/versions/models.py
+#, fuzzy, python-format
+msgid "[status:%s]"
+msgstr "Statut :"
+
 #: src/olympia/editors/helpers.py
 msgid "Queue"
 msgstr "En file d’attente"
@@ -6446,15 +6430,7 @@ msgstr "Thèmes notés"
 msgid "Update Themes"
 msgstr "Mettre à jour les thèmes"
 
-#: src/olympia/editors/helpers.py
-msgid "Unlisted Updates"
-msgstr "Mises à jour non répertoriées"
-
-#: src/olympia/editors/helpers.py
-msgid "Unlisted New Add-ons"
-msgstr "Nouveaux modules non répertoriés"
-
-#: src/olympia/editors/helpers.py
+#: src/olympia/editors/helpers.py src/olympia/editors/templates/editors/base.html
 msgid "All Unlisted Add-ons"
 msgstr "Tous les modules non répertoriés"
 
@@ -6477,18 +6453,6 @@ msgstr[0] "Revue modérée ({0})"
 msgstr[1] "Revues modérées ({0})"
 
 #: src/olympia/editors/helpers.py
-msgid "Unlisted New Add-on ({0})"
-msgid_plural "Unlisted New Add-ons ({0})"
-msgstr[0] "Nouveau module non répertorié ({0})"
-msgstr[1] "Nouveaux modules non répertoriés ({0})"
-
-#: src/olympia/editors/helpers.py
-msgid "Unlisted Update ({0})"
-msgid_plural "Unlisted Updates ({0})"
-msgstr[0] "Mise à jour non répertoriée ({0})"
-msgstr[1] "Mises à jour non répertoriées ({0})"
-
-#: src/olympia/editors/helpers.py
 msgid "All Unlisted Add-ons ({0})"
 msgid_plural "All Unlisted Add-ons ({0})"
 msgstr[0] "Tous les modules non répertoriés ({0})"
@@ -6505,26 +6469,6 @@ msgstr "Temps d’attente"
 #: src/olympia/editors/helpers.py src/olympia/editors/templates/editors/review.html
 msgid "Flags"
 msgstr "Drapeaux"
-
-#: src/olympia/editors/helpers.py
-msgid "Applications"
-msgstr "Applications"
-
-#: src/olympia/editors/helpers.py
-msgid "Additional"
-msgstr "Complémentaire"
-
-#: src/olympia/editors/helpers.py
-msgid "Site Specific"
-msgstr "Propre au site"
-
-#: src/olympia/editors/helpers.py
-msgid "Requires External Software"
-msgstr "Nécessite un logiciel externe"
-
-#: src/olympia/editors/helpers.py
-msgid "Binary Components"
-msgstr "Composants binaires"
 
 #: src/olympia/editors/helpers.py
 msgid "moments ago"
@@ -6738,10 +6682,6 @@ msgstr "Files d’attente"
 msgid "Unlisted Queues"
 msgstr "Files pour les modules non répertoriés"
 
-#: src/olympia/editors/templates/editors/base.html src/olympia/search/views.py src/olympia/zadmin/forms.py
-msgid "All Add-ons"
-msgstr "Tous les modules"
-
 #: src/olympia/editors/templates/editors/base.html src/olympia/editors/templates/editors/themes/base.html
 msgid "Logs"
 msgstr "Journaux"
@@ -6839,18 +6779,6 @@ msgstr[1] "{0} modules"
 #, python-format
 msgid "{0}%%"
 msgstr "{0}%%"
-
-#: src/olympia/editors/templates/editors/home.html
-msgid "Unlisted New Add-on ({num})"
-msgid_plural "Unlisted New Add-ons ({num})"
-msgstr[0] "Nouveau module non répertorié ({num})"
-msgstr[1] "Nouveaux modules non répertoriés ({num})"
-
-#: src/olympia/editors/templates/editors/home.html
-msgid "Unlisted Update ({num})"
-msgid_plural "Unlisted Updates ({num})"
-msgstr[0] "Mise à jour non répertoriée ({num})"
-msgstr[1] "Mises à jour non répertoriées ({num})"
 
 #: src/olympia/editors/templates/editors/home.html src/olympia/editors/templates/editors/performance.html src/olympia/editors/templates/editors/themes/home.html
 msgid "Total Reviews"
@@ -6988,10 +6916,6 @@ msgstr "<strong>%(reason)s</strong> <span class=\"light\">Noté par %(user)s le 
 #: src/olympia/editors/templates/editors/queue.html
 msgid "All reviews have been moderated. Good work!"
 msgstr "Toutes les revues ont été modérées. Bon travail !"
-
-#: src/olympia/editors/templates/editors/queue.html
-msgid "Version Notes / Notes for Reviewer"
-msgstr "Notes de version / Notes pour le testeur"
 
 #: src/olympia/editors/templates/editors/queue.html
 msgid "There are currently no add-ons of this type to review."
@@ -10122,6 +10046,10 @@ msgstr "Affichage de {0} - {1} sur {2} résultats"
 msgid "{0} Add-ons"
 msgstr "{0} Modules"
 
+#: src/olympia/search/views.py src/olympia/zadmin/forms.py
+msgid "All Add-ons"
+msgstr "Tous les modules"
+
 #. L10n: {0} is an application, such as Firefox. This means "any version of
 #. Firefox."
 #: src/olympia/search/views.py
@@ -10703,11 +10631,6 @@ msgstr "<a href=\"%(reg)s\">S’inscrire</a> ou <a href=\"%(login)s\">Se connect
 msgid "To try the thousands of add-ons available here, download <a href=\"%(url)s\">Mozilla Firefox</a>, a fast, free way to surf the Web!"
 msgstr "Pour essayer les milliers de modules disponibles ici, téléchargez <a href=\"%(url)s\">Mozilla Firefox</a>, une manière rapide et libre de surfer sur le Web !"
 
-#: src/olympia/templates/impala/base.html
-#, python-format
-msgid "Add-ons is switching to Firefox Accounts for login. <a href=\"%(url)s\" class=\"fxa-login\">Sign in now to transfer your account.</a>"
-msgstr "Le site Add-ons va utiliser les comptes Firefox pour la connexion. <a href=\"%(url)s\" class=\"fxa-login\">Connectez-vous afin de transférer votre compte.</a>"
-
 #. {0} is an application, such as Firefox.
 #: src/olympia/templates/impala/base.html
 msgid "Welcome to {0} Add-ons."
@@ -11160,18 +11083,6 @@ msgstr "tous"
 #: src/olympia/users/templates/users/fxa_login_prompt_content.html
 msgid "Mozilla Add-ons has transitioned to Firefox Accounts for login. Continue to complete the simple login process."
 msgstr "Le site Mozilla Add-ons utilise désormais les comptes Firefox pour la connexion. Poursuivez pour terminer le processus de mise à jour."
-
-#: src/olympia/users/templates/users/fxa_migration.html src/olympia/users/templates/users/mobile/fxa_migration.html
-msgid "Migrate to Firefox Accounts"
-msgstr "Migrer vers Firefox Accounts"
-
-#: src/olympia/users/templates/users/fxa_migration_prompt_content.html
-msgid "Mozilla Add-ons has transitioned to Firefox Accounts for login. Continue to complete the simple upgrade process."
-msgstr "Le site de modules Mozilla utilise désormais Firefox Accounts pour la connexion. Poursuivez pour terminer le processus de mise à jour."
-
-#: src/olympia/users/templates/users/fxa_migration_prompt_content.html
-msgid "Skip"
-msgstr "Passer"
 
 #: src/olympia/users/templates/users/login.html src/olympia/users/templates/users/mobile/login.html
 msgid "User Login"

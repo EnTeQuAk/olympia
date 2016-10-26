@@ -539,8 +539,6 @@ class TestHome(EditorTest):
             reverse('editors.queue_pending'),
             reverse('editors.queue_moderated')]
         unlisted_queues_links = [
-            reverse('editors.unlisted_queue_nominated'),
-            reverse('editors.unlisted_queue_pending'),
             reverse('editors.unlisted_queue_all')]
 
         # Only listed queues for editors.
@@ -560,18 +558,6 @@ class TestHome(EditorTest):
         queues_links = [link.attrib['href'] for link in queues]
         assert queues_links == unlisted_queues_links
 
-    def test_unlisted_stats_only_for_senior_reviewers(self):
-        # Only listed queues stats for editors.
-        doc = pq(self.client.get(self.url).content)
-        assert doc('#editors-stats-charts')
-        assert not doc('#editors-stats-charts-unlisted')
-
-        # Both listed and unlisted queues for senior editors.
-        self.login_as_senior_editor()
-        doc = pq(self.client.get(self.url).content)
-        assert doc('#editors-stats-charts')
-        assert doc('#editors-stats-charts-unlisted')
-
     def test_stats_listed_unlisted(self):
         # Make sure the listed addons are displayed in the listed stats, and
         # that the unlisted addons are listed in the unlisted stats.
@@ -589,9 +575,6 @@ class TestHome(EditorTest):
         doc = pq(self.client.get(self.url).content)
         listed_stats = doc('#editors-stats-charts {0}'.format(selector)).eq(0)
         assert 'New Add-on (1)' in listed_stats.text()
-        unlisted_stats = doc('#editors-stats-charts-unlisted {0}'.format(
-                             selector)).eq(0)
-        assert 'Unlisted New Add-ons (2)' in unlisted_stats.text()
 
 
 class QueueTest(EditorTest):
@@ -660,8 +643,15 @@ class QueueTest(EditorTest):
         self.addons[name] = a['addon']
         return a['addon']
 
+    def get_addon_latest_version(self, addon):
+        if self.listed:
+            channel = amo.RELEASE_CHANNEL_LISTED
+        else:
+            channel = amo.RELEASE_CHANNEL_UNLISTED
+        return addon.find_latest_version(channel=channel)
+
     def get_queue(self, addon):
-        version = addon.latest_version.reload()
+        version = self.get_addon_latest_version(addon)
         assert version.current_queue.objects.filter(id=addon.id).count() == 1
 
     def get_expected_addons_by_names(self, names):
@@ -678,10 +668,10 @@ class QueueTest(EditorTest):
         for addon in self.expected_addons:
             self.get_queue(addon)
 
-    def _test_queue_count(self, eq, name, count):
+    def _test_queue_count(self, position, name, count):
         r = self.client.get(self.url)
         assert r.status_code == 200
-        a = pq(r.content)('.tabnav li a').eq(eq)
+        a = pq(r.content)('.tabnav li a').eq(position)
         assert a.text() == '%s (%s)' % (name, count)
         assert a.attr('href') == self.url
 
@@ -692,9 +682,10 @@ class QueueTest(EditorTest):
         if not len(self.expected_addons):
             raise AssertionError('self.expected_addons was an empty list')
         for idx, addon in enumerate(self.expected_addons):
-            assert addon.latest_version
+            latest_version = self.get_addon_latest_version(addon)
+            assert latest_version
             name = '%s %s' % (unicode(addon.name),
-                              addon.latest_version.version)
+                              latest_version.version)
             url = reverse('editors.review', args=[addon.slug])
             expected.append((name, url))
         check_links(
@@ -742,9 +733,6 @@ class TestQueueBasics(QueueTest):
             'Type',
             'Waiting Time',
             'Flags',
-            'Applications',
-            'Platforms',
-            'Additional',
         ]
         assert [pq(th).text() for th in doc('#addon-queue tr th')[1:]] == (
             expected)
@@ -916,73 +904,6 @@ class TestQueueBasics(QueueTest):
         self.login(users[1])
         res = self.client.get(reverse('editors.home'))
         assert res.status_code == 200
-
-
-class TestUnlistedQueueBasics(TestQueueBasics):
-    fixtures = QueueTest.fixtures + ['editors/user_persona_reviewer']
-    listed = False
-
-    def setUp(self):
-        super(TestUnlistedQueueBasics, self).setUp()
-        self.login_as_senior_editor()
-        self.url = reverse('editors.unlisted_queue_pending')
-
-    def test_only_viewable_by_senior_editor(self):
-        # Addon reviewer has access.
-        r = self.client.get(self.url)
-        assert r.status_code == 200
-
-        # Regular user doesn't have access.
-        self.client.logout()
-        assert self.client.login(email='regular@mozilla.com')
-        r = self.client.get(self.url)
-        assert r.status_code == 403
-
-        # Persona reviewer doesn't have access either.
-        self.client.logout()
-        assert self.client.login(email='persona_reviewer@mozilla.com')
-        r = self.client.get(self.url)
-        assert r.status_code == 403
-
-        # Standard reviewer doesn't have access either.
-        self.client.logout()
-        assert self.client.login(email='editor@mozilla.com')
-        r = self.client.get(self.url)
-        assert r.status_code == 403
-
-    def test_navbar_queue_counts(self):
-        self.generate_files()
-
-        r = self.client.get(self.url)
-        assert r.status_code == 200
-        doc = pq(r.content)
-        assert doc('#navbar li.top ul').eq(1).text() == (
-            'New Add-ons (2) Updates (2) All Add-ons (5)')
-
-    def test_listed_unlisted_queues(self):
-        # Make sure the listed addons are displayed in the listed queue, and
-        # that the unlisted addons are listed in the unlisted queue.
-        listed = create_addon_file('listed', '0.1',
-                                   amo.STATUS_NOMINATED,
-                                   amo.STATUS_AWAITING_REVIEW)['addon']
-        unlisted = create_addon_file('unlisted', '0.1',
-                                     amo.STATUS_NOMINATED,
-                                     amo.STATUS_AWAITING_REVIEW,
-                                     listed=False)['addon']
-
-        # Listed addon is displayed in the listed queue.
-        r = self.client.get(reverse('editors.queue_nominated'))
-        assert r.status_code == 200
-        doc = pq(r.content)
-        assert doc('#addon-queue #addon-{0}'.format(listed.pk))
-        assert not doc('#addon-queue #addon-{0}'.format(unlisted.pk))
-
-        # Unlisted addon is displayed in the unlisted queue.
-        r = self.client.get(reverse('editors.unlisted_queue_nominated'))
-        assert r.status_code == 200
-        doc = pq(r.content)
-        assert not doc('#addon-queue #addon-{0}'.format(listed.pk))
-        assert doc('#addon-queue #addon-{0}'.format(unlisted.pk))
 
 
 class TestPendingQueue(QueueTest):
@@ -1231,38 +1152,6 @@ class TestModeratedQueue(QueueTest):
         assert doc('.no-results').length == 1
 
 
-class TestUnlistedPendingQueue(TestPendingQueue):
-    listed = False
-
-    def setUp(self):
-        super(TestUnlistedPendingQueue, self).setUp()
-        self.url = reverse('editors.unlisted_queue_pending')
-        # Don't need to call get_expected_addons_by_name() again because
-        # we already called it in setUp() of the parent class
-
-    def test_breadcrumbs(self):
-        self._test_breadcrumbs([('Unlisted Updates', None)])
-
-    def test_queue_count(self):
-        self._test_queue_count(1, 'Unlisted Updates', 2)
-
-
-class TestUnlistedNominatedQueue(TestNominatedQueue):
-    listed = False
-
-    def setUp(self):
-        super(TestUnlistedNominatedQueue, self).setUp()
-        self.url = reverse('editors.unlisted_queue_nominated')
-        # Don't need to call get_expected_addons_by_name() again because
-        # we already called it in setUp() of the parent class
-
-    def test_breadcrumbs(self):
-        self._test_breadcrumbs([('Unlisted New Add-ons', None)])
-
-    def test_queue_count(self):
-        self._test_queue_count(0, 'Unlisted New Add-ons', 2)
-
-
 class TestUnlistedAllList(QueueTest):
     listed = False
 
@@ -1275,7 +1164,9 @@ class TestUnlistedAllList(QueueTest):
              'Public'])
         # Need to set unique nomination times or we get a psuedo-random order.
         for idx, addon in enumerate(self.expected_addons):
-            addon.latest_version.update(
+            latest_version = addon.find_latest_version(
+                channel=amo.RELEASE_CHANNEL_UNLISTED)
+            latest_version.update(
                 nomination=(datetime.now() - timedelta(minutes=idx)))
 
     def test_breadcrumbs(self):
@@ -1283,14 +1174,16 @@ class TestUnlistedAllList(QueueTest):
 
     def test_queue_count(self):
         assert Addon.with_unlisted.all().count() == 5
-        self._test_queue_count(2, 'All Unlisted Add-ons', 5)
+        self._test_queue_count(0, 'All Unlisted Add-ons', 5)
 
     def test_results(self):
         self._test_results()
 
     def test_review_notes_json(self):
+        latest_version = self.expected_addons[0].find_latest_version(
+            channel=amo.RELEASE_CHANNEL_UNLISTED)
         log = amo.log(amo.LOG.APPROVE_VERSION,
-                      self.expected_addons[0].latest_version,
+                      latest_version,
                       self.expected_addons[0],
                       user=UserProfile.objects.get(pk=999),
                       details={'comments': 'stish goin` down son'})
@@ -1468,13 +1361,11 @@ class BaseTestQueueSearch(SearchTest):
                 'version_str': '0.1',
                 'addon_status': amo.STATUS_NOMINATED,
                 'file_status': amo.STATUS_AWAITING_REVIEW,
-                'platform': amo.PLATFORM_LINUX,
             }),
             ('Mac Widget', {
                 'version_str': '0.1',
                 'addon_status': amo.STATUS_NOMINATED,
                 'file_status': amo.STATUS_AWAITING_REVIEW,
-                'platform': amo.PLATFORM_MAC,
             }),
             ('Deleted', {
                 'version_str': '0.1',
@@ -1585,51 +1476,6 @@ class BaseTestQueueSearch(SearchTest):
         assert r.status_code == 200
         assert self.named_addons(r) == [name]
 
-    def test_search_by_version_requires_app(self):
-        r = self.client.get(self.url, {'max_version': '3.6'})
-        assert r.status_code == 200
-        # This is not the most descriptive message but it's
-        # the easiest to show.  This missing app scenario is unlikely.
-        assert r.context['search_form'].errors.as_text() == (
-            '* max_version\n  * Select a valid choice. 3.6 is not '
-            'one of the available choices.')
-
-    def test_search_by_app_version(self):
-        d = create_addon_file('Bieber For Mobile 4.0b2pre', '0.1',
-                              amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW,
-                              application=amo.MOBILE, listed=self.listed)
-        max = AppVersion.objects.get(application=amo.MOBILE.id,
-                                     version='4.0b2pre')
-        (ApplicationsVersions.objects.filter(
-            application=amo.MOBILE.id, version=d['version']).update(max=max))
-        r = self.search(application_id=amo.MOBILE.id, max_version='4.0b2pre')
-        assert self.named_addons(r) == [u'Bieber For Mobile 4.0b2pre']
-
-    def test_form(self):
-        self.generate_file('Bieber For Mobile')
-        r = self.search()
-        doc = pq(r.content)
-        assert doc('#id_application_id').attr('data-url') == (
-            reverse('editors.application_versions_json'))
-        assert doc('#id_max_version option').text() == (
-            'Select an application first')
-        r = self.search(application_id=amo.MOBILE.id)
-        doc = pq(r.content)
-        assert doc('#id_max_version option').text() == (
-            ' '.join([av.version for av in
-                      AppVersion.objects.filter(application=amo.MOBILE.id)]))
-
-    def test_application_versions_json(self):
-        self.generate_file('Bieber For Mobile')
-        r = self.client.post(reverse('editors.application_versions_json'),
-                             {'application_id': amo.MOBILE.id})
-        assert r.status_code == 200
-        data = json.loads(r.content)
-        assert data['choices'] == (
-            [[av, av] for av in
-             [u''] + [av.version for av in
-                      AppVersion.objects.filter(application=amo.MOBILE.id)]])
-
     def test_clear_search_visible(self):
         r = self.search(text_query='admin', searching=True)
         assert r.status_code == 200
@@ -1665,49 +1511,6 @@ class TestQueueSearch(BaseTestQueueSearch):
         assert sorted(self.named_addons(r)) == (
             ['Justin Bieber Search Bar', 'Justin Bieber Theme'])
 
-    def test_search_by_platform_mac(self):
-        self.generate_files(['Bieber For Mobile', 'Linux Widget',
-                             'Mac Widget'])
-        r = self.search(platform_ids=[amo.PLATFORM_MAC.id])
-        assert r.status_code == 200
-        assert self.named_addons(r) == ['Mac Widget']
-
-    def test_search_by_platform_linux(self):
-        self.generate_files(['Bieber For Mobile', 'Linux Widget',
-                             'Mac Widget'])
-        r = self.search(platform_ids=[amo.PLATFORM_LINUX.id])
-        assert r.status_code == 200
-        assert self.named_addons(r) == ['Linux Widget']
-
-    def test_search_by_platform_mac_linux(self):
-        self.generate_files(['Bieber For Mobile', 'Linux Widget',
-                             'Mac Widget'])
-        r = self.search(platform_ids=[amo.PLATFORM_MAC.id,
-                                      amo.PLATFORM_LINUX.id])
-        assert r.status_code == 200
-        assert sorted(self.named_addons(r)) == ['Linux Widget', 'Mac Widget']
-
-    def test_preserve_multi_platform_files(self):
-        for plat in (amo.PLATFORM_WIN, amo.PLATFORM_MAC):
-            create_addon_file('Multi Platform', '0.1',
-                              amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW,
-                              platform=plat)
-        r = self.search(platform_ids=[amo.PLATFORM_WIN.id])
-        assert r.status_code == 200
-        # Should not say Windows only.
-        td = pq(r.content)('#addon-queue tbody td').eq(5)
-        assert td.find('div').attr('title') == 'Firefox'
-        assert td.text() == ''
-
-    def test_preserve_single_platform_files(self):
-        create_addon_file('Windows', '0.1',
-                          amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW,
-                          platform=amo.PLATFORM_WIN)
-        r = self.search(platform_ids=[amo.PLATFORM_WIN.id])
-        doc = pq(r.content)
-        assert doc('#addon-queue tbody td').eq(6).find('div').attr(
-            'title') == 'Windows'
-
     def test_search_by_app(self):
         self.generate_files(['Bieber For Mobile', 'Linux Widget'])
         r = self.search(application_id=[amo.MOBILE.id])
@@ -1728,48 +1531,10 @@ class TestQueueSearch(BaseTestQueueSearch):
         assert td.children('.ed-sprite-firefox').length == 1
         assert td.children('.ed-sprite-mobile').length == 1
 
-    def test_age_of_submission(self):
-        self.generate_files(['Not Admin Reviewed', 'Admin Reviewed',
-                             'Justin Bieber Theme'])
-
-        Version.objects.update(nomination=datetime.now() - timedelta(days=1))
-        title = 'Justin Bieber Theme'
-        bieber = Version.objects.filter(addon__name__localized_string=title)
-
-        # Exclude anything out of range:
-        bieber.update(nomination=datetime.now() - timedelta(days=5))
-        r = self.search(waiting_time_days=2)
-        addons = self.named_addons(r)
-        assert title not in addons, ('Unexpected results: %r' % addons)
-
-        # Include anything submitted up to requested days:
-        bieber.update(nomination=datetime.now() - timedelta(days=2))
-        r = self.search(waiting_time_days=5)
-        addons = self.named_addons(r)
-        assert title in addons, ('Unexpected results: %r' % addons)
-
-        # Special case: exclude anything under 10 days:
-        bieber.update(nomination=datetime.now() - timedelta(days=8))
-        r = self.search(waiting_time_days='10+')
-        addons = self.named_addons(r)
-        assert title not in addons, ('Unexpected results: %r' % addons)
-
-        # Special case: include anything 10 days and over:
-        bieber.update(nomination=datetime.now() - timedelta(days=12))
-        r = self.search(waiting_time_days='10+')
-        addons = self.named_addons(r)
-        assert title in addons, ('Unexpected results: %r' % addons)
-
     def test_clear_search_uses_correct_queue(self):
         # The "clear search" link points to the right listed or unlisted queue.
         # Listed queue.
         url = reverse('editors.queue_nominated')
-        r = self.client.get(url, {'text_query': 'admin', 'searching': True})
-        assert pq(r.content)('.clear-queue-search').attr('href') == url
-
-        # Unlisted queue. Needs the Addons:ReviewUnlisted perm.
-        self.login_as_senior_editor()
-        url = reverse('editors.unlisted_queue_nominated')
         r = self.client.get(url, {'text_query': 'admin', 'searching': True})
         assert pq(r.content)('.clear-queue-search').attr('href') == url
 
@@ -1805,53 +1570,6 @@ class TestQueueSearchUnlistedAllList(BaseTestQueueSearch):
         addon.update(guid='guidymcguid.com')
         r = self.search(text_query='mcguid')
         assert self.named_addons(r) == ['Not Admin Reviewed']
-
-
-class TestQueueSearchVersionSpecific(SearchTest):
-    __test__ = True
-
-    def setUp(self):
-        super(TestQueueSearchVersionSpecific, self).setUp()
-        self.url = reverse('editors.queue_nominated')
-        create_addon_file('Not Admin Reviewed', '0.1',
-                          amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW)
-        create_addon_file('Justin Bieber Theme', '0.1',
-                          amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW,
-                          addon_type=amo.ADDON_THEME)
-        self.bieber = Version.objects.filter(
-            addon__name__localized_string='Justin Bieber Theme')
-
-    def update_beiber(self, days):
-        new_created = datetime.now() - timedelta(days=days)
-        self.bieber.update(created=new_created, nomination=new_created)
-        self.bieber[0].files.update(created=new_created)
-
-    def test_age_of_submission(self):
-        Version.objects.update(created=datetime.now() - timedelta(days=1))
-        # Exclude anything out of range:
-        self.update_beiber(5)
-        r = self.search(waiting_time_days=2)
-        addons = self.named_addons(r)
-        assert 'Justin Bieber Theme' not in addons, (
-            'Unexpected results: %r' % addons)
-        # Include anything submitted up to requested days:
-        self.update_beiber(2)
-        r = self.search(waiting_time_days=4)
-        addons = self.named_addons(r)
-        assert 'Justin Bieber Theme' in addons, (
-            'Unexpected results: %r' % addons)
-        # Special case: exclude anything under 10 days:
-        self.update_beiber(8)
-        r = self.search(waiting_time_days='10+')
-        addons = self.named_addons(r)
-        assert 'Justin Bieber Theme' not in addons, (
-            'Unexpected results: %r' % addons)
-        # Special case: include anything 10 days and over:
-        self.update_beiber(12)
-        r = self.search(waiting_time_days='10+')
-        addons = self.named_addons(r)
-        assert 'Justin Bieber Theme' in addons, (
-            'Unexpected results: %r' % addons)
 
 
 class ReviewBase(QueueTest):
@@ -1980,12 +1698,13 @@ class TestReview(ReviewBase):
         self._test_breadcrumbs(expected)
 
     def test_breadcrumbs_unlisted_addons(self):
-        self.addon.update(is_listed=False)
+        self.addon.update(is_listed=False, status=amo.STATUS_PUBLIC)
         self.generate_files()
+        self.addon.current_version.files.update(status=amo.STATUS_PUBLIC)
         self.login_as_admin()
         expected = [
-            ('Unlisted Updates',
-             reverse('editors.unlisted_queue_pending')),
+            ('All Unlisted Add-ons',
+             reverse('editors.unlisted_queue_all')),
             (unicode(self.addon.name), None),
         ]
         self._test_breadcrumbs(expected)
@@ -2163,7 +1882,7 @@ class TestReview(ReviewBase):
         assert pq(r.content)('#review-files .no-activity').length == 1
 
     def test_hide_beta(self):
-        version = self.addon.latest_version
+        version = self.addon.current_version
         f = version.files.all()[0]
         version.pk = None
         version.version = '0.3beta'
@@ -2544,7 +2263,7 @@ class TestReview(ReviewBase):
         check_links(expected, links, verify=False)
 
     def test_download_sources_link(self):
-        version = self.addon.latest_version
+        version = self.addon.current_version
         tdir = temp.gettempdir()
         source_file = temp.NamedTemporaryFile(suffix='.zip', dir=tdir)
         source_file.write('a' * (2 ** 21))
@@ -2575,8 +2294,9 @@ class TestReview(ReviewBase):
                                     follow=True)
         assert response.status_code == 200
         addon = self.get_addon()
+        assert self.version == addon.current_version
         assert addon.status == amo.STATUS_PUBLIC
-        assert addon.latest_version.files.all()[0].status == amo.STATUS_PUBLIC
+        assert addon.current_version.files.all()[0].status == amo.STATUS_PUBLIC
 
         assert mock_sign_file.called
 
@@ -2590,7 +2310,8 @@ class TestReview(ReviewBase):
         # allowed to review admin-flagged add-ons.
         addon = self.get_addon()
         assert addon.status == amo.STATUS_NOMINATED
-        assert addon.latest_version.files.all()[0].status == (
+        assert self.version == addon.current_version
+        assert addon.current_version.files.all()[0].status == (
             amo.STATUS_AWAITING_REVIEW)
         assert response.context['form'].errors['action'] == (
             [u'Select a valid choice. public is not one of the available '
@@ -2700,7 +2421,7 @@ class TestReviewPending(ReviewBase):
         self.login_as_admin()
         response = self.client.post(self.url, self.pending_dict())
         assert self.addon.reload().status == amo.STATUS_PUBLIC
-        self.assert3xx(response, reverse('editors.unlisted_queue_pending'))
+        self.assert3xx(response, reverse('editors.unlisted_queue_all'))
 
         statuses = (self.version.files.values_list('status', flat=True)
                     .order_by('status'))
@@ -2992,7 +2713,9 @@ class TestLimitedReviewerQueue(QueueTest, LimitedReviewerBase):
         self.url = reverse('editors.queue_nominated')
 
         for addon in self.generate_files().values():
-            if addon.latest_version.nomination <= datetime.now() - timedelta(
+            version = addon.find_latest_version(
+                channel=amo.RELEASE_CHANNEL_LISTED)
+            if version.nomination <= datetime.now() - timedelta(
                     hours=REVIEW_LIMITED_DELAY_HOURS):
                 self.expected_addons.append(addon)
 
@@ -3064,7 +2787,9 @@ class TestLimitedReviewerReview(ReviewBase, LimitedReviewerBase):
         assert self.get_addon().status == amo.STATUS_PUBLIC
         assert mock_sign_file.called
 
-    def test_limited_editor_no_latest_version(self):
-        self.addon.latest_version.delete()
+    def test_limited_editor_no_version(self):
+        version = self.addon.find_latest_version(
+            channel=amo.RELEASE_CHANNEL_LISTED)
+        version.delete()
         response = self.client.get(self.url)
         assert response.status_code == 200

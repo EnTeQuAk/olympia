@@ -266,7 +266,7 @@ FXA_CONFIG = {
         'content_host': 'https://stable.dev.lcip.org',
         'oauth_host': 'https://oauth-stable.dev.lcip.org/v1',
         'profile_host': 'https://stable.dev.lcip.org/profile/v1',
-        'redirect_url': 'https://amo.dev.mozaws.net/fxa-authenticate',
+        'redirect_url': 'https://amo.addons-dev.allizom.org/fxa-authenticate',
         'scope': 'profile',
     },
     'local': {
@@ -283,12 +283,16 @@ DEFAULT_FXA_CONFIG_NAME = 'default'
 INTERNAL_FXA_CONFIG_NAME = 'internal'
 ALLOWED_FXA_CONFIGS = ['default', 'amo', 'local']
 
-INTERNAL_DOMAINS = [
-    'addons-admin.dev.mozaws.net',
-    'localhost:3000',
-]
-for regex, overrides in CORS_ENDPOINT_OVERRIDES:
-    overrides['CORS_ORIGIN_WHITELIST'] = INTERNAL_DOMAINS
+CORS_ENDPOINT_OVERRIDES = cors_endpoint_overrides(
+    public=[
+        'amo.addons-dev.allizom.org',
+        'localhost:3000',
+    ],
+    internal=[
+        'addons-admin.dev.mozaws.net',
+        'localhost:3000',
+    ],
+)
 
 READ_ONLY = env.bool('READ_ONLY', default=False)
 

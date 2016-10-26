@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT 1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-18 08:13+0000\n"
-"PO-Revision-Date: 2016-10-17 20:26+0000\n"
+"POT-Creation-Date: 2016-10-25 11:25+0000\n"
+"PO-Revision-Date: 2016-10-22 17:35+0000\n"
 "Last-Translator: Moḥend Belqasem <belkacem77@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: kab\n"
@@ -15,6 +15,10 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Generated-By: Babel 2.3.4\n"
 "X-Generator: Pontoon\n"
+
+#: src/olympia/accounts/views.py
+msgid "You are already logged in."
+msgstr ""
 
 #: src/olympia/accounts/views.py
 msgid "Your log in attempt could not be parsed. Please try again."
@@ -27,22 +31,6 @@ msgstr "Amiḍan inek Firefox ur yettwaf ara. Ma ulac  aɣilif, ɛreḍ tikelt n
 #: src/olympia/accounts/views.py
 msgid "You could not be logged in. Please try again."
 msgstr "Tuqqna yinek ur teddi ara. Ma ulac aɣilif, ɛreḍ tikelt nniḍen."
-
-#: src/olympia/accounts/views.py
-msgid "Your account has already been migrated to Firefox Accounts."
-msgstr "Amiḍan inek iguǧǧ yakan ɣer imiḍanen n Firefox."
-
-#: src/olympia/accounts/views.py
-msgid "Your Firefox Account already exists on this site."
-msgstr "Amiḍan inek Firefox yella yakan qef usmel agi."
-
-#: src/olympia/accounts/views.py
-msgid "Great job!"
-msgstr "D ayen, ifuk!"
-
-#: src/olympia/accounts/views.py
-msgid "You can now log in to Add-ons with your Firefox Account."
-msgstr "Tzemred si sya d asawen ad teqqneḍ ɣer izegrar s umiḍan inek Firefox."
 
 #: src/olympia/accounts/views.py
 msgid "Need help?"
@@ -1376,11 +1364,11 @@ msgstr ""
 #: src/olympia/amo/context_processors.py src/olympia/devhub/templates/devhub/addons/dashboard.html src/olympia/devhub/templates/devhub/addons/submit/base.html
 #: src/olympia/devhub/templates/devhub/nav.html
 msgid "Submit a New Add-on"
-msgstr ""
+msgstr "Azen azegrir amaynut"
 
 #: src/olympia/amo/context_processors.py src/olympia/browse/templates/browse/personas/base.html src/olympia/devhub/templates/devhub/addons/dashboard.html src/olympia/devhub/templates/devhub/index.html
 msgid "Submit a New Theme"
-msgstr ""
+msgstr "Azen asentel amaynut"
 
 #: src/olympia/amo/context_processors.py src/olympia/amo/templates/amo/site_nav.html src/olympia/devhub/helpers.py src/olympia/templates/footer.html
 msgid "Developer Hub"
@@ -1555,7 +1543,7 @@ msgstr ""
 
 #: src/olympia/amo/log.py
 msgid "More information requested"
-msgstr ""
+msgstr "Ugar n telɣut tettusuter"
 
 #: src/olympia/amo/log.py
 msgid "{addon} {version} super review requested."
@@ -1591,7 +1579,7 @@ msgstr "{addon} yettwakkes si {collection}."
 
 #: src/olympia/amo/log.py
 msgid "{review} for {addon} written."
-msgstr ""
+msgstr "{review} i {addon} yura."
 
 #. L10n: {0} is a category name.
 #: src/olympia/amo/log.py
@@ -1627,19 +1615,19 @@ msgstr ""
 
 #: src/olympia/amo/log.py
 msgid "{addon} policy changed."
-msgstr ""
+msgstr "{addon} yesnifel tasertit."
 
 #: src/olympia/amo/log.py
 msgid "{addon} icon changed."
-msgstr ""
+msgstr "{addon} yesnifel tignit."
 
 #: src/olympia/amo/log.py
 msgid "{review} for {addon} approved."
-msgstr ""
+msgstr "{review} i {addon} yettwaqbel."
 
 #: src/olympia/amo/log.py
 msgid "{user} approved {review} for {addon}."
-msgstr ""
+msgstr "{user} yeqbel {review} i {addon}."
 
 #: src/olympia/amo/log.py
 msgid "Review {review} for {addon} deleted."
@@ -1687,7 +1675,7 @@ msgstr ""
 
 #: src/olympia/amo/log.py
 msgid "{addon} installed."
-msgstr ""
+msgstr "{addon} yebded."
 
 #: src/olympia/amo/log.py
 msgid "Account updated."
@@ -1775,7 +1763,7 @@ msgstr ""
 
 #: src/olympia/amo/log.py
 msgid "{review} for {addon} updated."
-msgstr ""
+msgstr "{review} i {addon} yettusnifel."
 
 #: src/olympia/amo/log.py
 msgid "{addon} reviewed."
@@ -2562,7 +2550,7 @@ msgstr ""
 
 #: src/olympia/bandwagon/templates/bandwagon/edit_contributors.html src/olympia/devhub/templates/devhub/addons/forms_shared/media.html src/olympia/devhub/templates/devhub/addons/submit/distribute.html
 #: src/olympia/devhub/templates/devhub/addons/submit/upload.html src/olympia/devhub/templates/devhub/payments/tier.html src/olympia/editors/templates/editors/themes/themes.html
-#: src/olympia/users/templates/users/fxa_login_prompt_content.html src/olympia/users/templates/users/fxa_migration_prompt_content.html
+#: src/olympia/users/templates/users/fxa_login_prompt_content.html
 msgid "Continue"
 msgstr ""
 
@@ -2894,7 +2882,7 @@ msgstr ""
 
 #: src/olympia/browse/templates/browse/themes.html src/olympia/constants/base.py
 msgid "Complete Themes"
-msgstr ""
+msgstr "Isental yemden"
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Most Popular Extensions"
@@ -2922,7 +2910,7 @@ msgstr "Isiɣzaf yettusniflen melmi kan"
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Up & Coming Extensions"
-msgstr ""
+msgstr "Isiɣzaf yettnernin"
 
 #. "Complete" is used as an adjective. "Complete Theme" means a full-featured
 #. theme.
@@ -2940,15 +2928,15 @@ msgstr ""
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Newest Complete Themes"
-msgstr ""
+msgstr "Isental yemden melmi kan"
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Complete Themes by Name"
-msgstr ""
+msgstr "Isental yemden s yisem"
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Complete Themes by Weekly Downloads"
-msgstr ""
+msgstr "Isental yemden s usider n yal dduṛt"
 
 #: src/olympia/browse/templates/browse/impala/base_listing.html
 msgid "Recently Updated Complete Themes"
@@ -2968,7 +2956,7 @@ msgstr[1] ""
 #: src/olympia/browse/templates/browse/mobile/extensions.html src/olympia/devhub/templates/devhub/addons/activity.html src/olympia/devhub/templates/devhub/devhub_search.html
 #: src/olympia/search/templates/search/mobile/results.html src/olympia/search/templates/search/no_results.html
 msgid "No results found."
-msgstr ""
+msgstr "Ulac igmad yettwafen."
 
 #: src/olympia/browse/templates/browse/personas/base.html src/olympia/browse/templates/browse/personas/mobile/base.html
 msgid "{0} Themes"
@@ -2981,11 +2969,11 @@ msgstr "Isental n {0}"
 
 #: src/olympia/browse/templates/browse/personas/base.html
 msgid "View Profile"
-msgstr ""
+msgstr "Sken amaɣnu"
 
 #: src/olympia/browse/templates/browse/personas/base.html
 msgid "Create Your Own Theme"
-msgstr ""
+msgstr "Rnu asentel inek"
 
 #: src/olympia/browse/templates/browse/personas/base.html
 msgid "Your browser, your style! Dress it up with a design of your own!"
@@ -2993,7 +2981,7 @@ msgstr ""
 
 #: src/olympia/browse/templates/browse/personas/base.html
 msgid "Learn more"
-msgstr ""
+msgstr "Issin ugar"
 
 #: src/olympia/browse/templates/browse/personas/category_landing.html src/olympia/browse/templates/browse/personas/mobile/category_landing.html
 msgid "View All Recently Added"
@@ -3025,7 +3013,7 @@ msgstr ""
 
 #: src/olympia/browse/templates/browse/personas/category_landing.html
 msgid "Up & Coming Themes"
-msgstr ""
+msgstr "Isental yettnernin"
 
 #: src/olympia/browse/templates/browse/personas/category_landing.html
 msgid "View All Up & Coming"
@@ -3053,7 +3041,7 @@ msgstr ""
 
 #: src/olympia/compat/forms.py
 msgid "All"
-msgstr ""
+msgstr "Akk"
 
 #: src/olympia/compat/templates/compat/reporter.html
 msgid "Add-on Compatibility Reports"
@@ -3108,7 +3096,7 @@ msgstr ""
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "Application Version"
-msgstr ""
+msgstr "Lqem n usnas"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "Application Build"
@@ -3116,19 +3104,19 @@ msgstr ""
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "Platform"
-msgstr ""
+msgstr "Talɣubliṭ"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "e10s Enabled"
-msgstr ""
+msgstr "e10s yermed"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "e10s Compatible"
-msgstr ""
+msgstr "e10s imṣada"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html src/olympia/editors/templates/editors/themes/themes.html
 msgid "Submitted"
-msgstr ""
+msgstr "Yettwazen"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "Success"
@@ -3136,7 +3124,7 @@ msgstr ""
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "Problem"
-msgstr ""
+msgstr "Ugur"
 
 #: src/olympia/compat/templates/compat/reporter_detail.html
 msgid "No reports found."
@@ -3144,23 +3132,23 @@ msgstr ""
 
 #: src/olympia/constants/applications.py src/olympia/constants/categories.py
 msgid "Firefox"
-msgstr ""
+msgstr "Firefox"
 
 #: src/olympia/constants/applications.py
 msgid "Thunderbird"
-msgstr ""
+msgstr "Thunderbird"
 
 #: src/olympia/constants/applications.py
 msgid "SeaMonkey"
-msgstr ""
+msgstr "SeaMonkey"
 
 #: src/olympia/constants/applications.py src/olympia/pages/templates/pages/sunbird.html
 msgid "Sunbird"
-msgstr ""
+msgstr "Sunbird"
 
 #: src/olympia/constants/applications.py
 msgid "Mobile"
-msgstr ""
+msgstr "Aziraz"
 
 #: src/olympia/constants/applications.py
 msgid "Firefox for Android"
@@ -3168,7 +3156,7 @@ msgstr ""
 
 #: src/olympia/constants/applications.py
 msgid "Mozilla"
-msgstr ""
+msgstr "Mozilla"
 
 #: src/olympia/constants/applications.py src/olympia/constants/base.py
 msgid "Unknown"
@@ -3598,7 +3586,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Websites"
-msgstr ""
+msgstr "Ismal web"
 
 #: src/olympia/constants/categories.py
 msgid "Device Features & Location"
@@ -3606,7 +3594,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Experimental"
-msgstr ""
+msgstr "Armitan"
 
 #: src/olympia/constants/categories.py
 msgid "Feeds, News, & Blogging"
@@ -3614,7 +3602,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py src/olympia/editors/templates/editors/base.html src/olympia/editors/templates/editors/performance.html
 msgid "Performance"
-msgstr ""
+msgstr "Tamellit"
 
 #: src/olympia/constants/categories.py
 msgid "Photos & Media"
@@ -3622,7 +3610,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Security & Privacy"
-msgstr ""
+msgstr "Taɣellist & Tabaḍnit"
 
 #: src/olympia/constants/categories.py
 msgid "Social Networking"
@@ -3630,11 +3618,11 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Sports & Games"
-msgstr ""
+msgstr "Addal & uraren"
 
 #: src/olympia/constants/categories.py
 msgid "User Interface"
-msgstr ""
+msgstr "Agrudem n useqdac"
 
 #: src/olympia/constants/categories.py
 msgid "Appearance and Customization"
@@ -3654,7 +3642,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Contacts"
-msgstr ""
+msgstr "Inermisen"
 
 #: src/olympia/constants/categories.py
 msgid "Folders and Filters"
@@ -3670,7 +3658,7 @@ msgstr ""
 
 #: src/olympia/constants/categories.py
 msgid "Privacy and Security"
-msgstr ""
+msgstr "Tabaḍnit  & Taɣellist"
 
 #: src/olympia/constants/categories.py
 msgid "Downloading and File Management"
@@ -3851,7 +3839,7 @@ msgstr ""
 
 #: src/olympia/devhub/forms.py src/olympia/devhub/templates/devhub/versions/edit.html src/olympia/users/templates/users/edit.html
 msgid "Details"
-msgstr ""
+msgstr "Talqayt"
 
 #: src/olympia/devhub/forms.py
 msgid "What is your license's name?"
@@ -4017,7 +4005,7 @@ msgid "On my own."
 msgstr ""
 
 #: src/olympia/devhub/forms.py
-msgid "This version will be immediately signed for self-distribution. Updates are handled manually via an updateURL or external application updates."
+msgid "This version will be immediately signed for self-distribution. Updates should be handled by you via an updateURL or external application updates."
 msgstr ""
 
 #: src/olympia/devhub/helpers.py
@@ -4533,10 +4521,10 @@ msgid_plural "<b>{0}</b> themes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/addons/listing/item_actions.html src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
-#: src/olympia/devhub/templates/devhub/includes/addons_edit_nav.html src/olympia/devhub/templates/devhub/personas/edit.html src/olympia/editors/templates/editors/themes/single.html
-msgid "Edit Listing"
-msgstr ""
+#: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/addons/listing/item_actions.html src/olympia/devhub/templates/devhub/includes/addons_edit_nav.html
+#, fuzzy
+msgid "Edit Information"
+msgstr "Talɣut ɣef lqem"
 
 #: src/olympia/devhub/templates/devhub/addons/edit.html src/olympia/devhub/templates/devhub/includes/macros.html src/olympia/translations/templates/translations/all-locales.html
 msgid "None"
@@ -4973,8 +4961,9 @@ msgid "Delete this add-on."
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions.html
-msgid "Edit details about this add-on's listing."
-msgstr ""
+#, fuzzy
+msgid "Edit information about this add-on."
+msgstr "Ugar ɣef uzegrir agi"
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions.html
 msgid "Upload a new version of this add-on."
@@ -5012,6 +5001,10 @@ msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
 msgid "Edit details about this theme's listing."
+msgstr ""
+
+#: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html src/olympia/devhub/templates/devhub/personas/edit.html src/olympia/editors/templates/editors/themes/single.html
+msgid "Edit Listing"
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/listing/item_actions_theme.html
@@ -5156,7 +5149,7 @@ msgid "Manage Listing"
 msgstr "Sefrek"
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-msgid "You can also edit this version you just submitted by adding version notes, files for other platforms, or source code if your submission includes minified, obfuscated or compiled code."
+msgid "You can also edit this version you just submitted by adding version notes, or source code if your submission includes minified, obfuscated or compiled code."
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
@@ -5178,11 +5171,11 @@ msgid "Download {0}"
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/submit/done.html
-msgid "Return to My Submissions"
+msgid "Go to My Submissions"
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/submit/start.html
-msgid "Getting Started"
+msgid "Add-on Distribution Agreement"
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/addons/submit/upload.html
@@ -5420,6 +5413,10 @@ msgstr ""
 
 #: src/olympia/devhub/templates/devhub/includes/source_form_field.html
 msgid "If your add-on contains binary or obfuscated code other than known libraries, upload its sources for review."
+msgstr ""
+
+#: src/olympia/devhub/templates/devhub/includes/source_form_field.html
+msgid "Please include instructions on how to reproduce the final add-on file, either in a README file or the Notes to Reviewer for this version."
 msgstr ""
 
 #: src/olympia/devhub/templates/devhub/includes/source_form_field.html
@@ -6198,23 +6195,15 @@ msgid "Admin Flag"
 msgstr ""
 
 #: src/olympia/editors/forms.py
-msgid "Max. Version"
-msgstr ""
-
-#: src/olympia/editors/forms.py
-msgid "Days Since Submission"
-msgstr ""
-
-#: src/olympia/editors/forms.py
 msgid "Add-on Types"
-msgstr ""
-
-#: src/olympia/editors/forms.py src/olympia/editors/helpers.py
-msgid "Platforms"
 msgstr ""
 
 #: src/olympia/editors/forms.py
 msgid "Search by add-on name / author email / guid"
+msgstr ""
+
+#: src/olympia/editors/forms.py
+msgid "Max. Version"
 msgstr ""
 
 #: src/olympia/editors/forms.py
@@ -6263,6 +6252,11 @@ msgstr ""
 msgid "Rejected or Unreviewed"
 msgstr ""
 
+#: src/olympia/editors/helpers.py src/olympia/versions/models.py
+#, python-format
+msgid "[status:%s]"
+msgstr ""
+
 #: src/olympia/editors/helpers.py
 msgid "Queue"
 msgstr ""
@@ -6291,15 +6285,7 @@ msgstr ""
 msgid "Update Themes"
 msgstr ""
 
-#: src/olympia/editors/helpers.py
-msgid "Unlisted Updates"
-msgstr "Ileqman ur d-nettwabder ara"
-
-#: src/olympia/editors/helpers.py
-msgid "Unlisted New Add-ons"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
+#: src/olympia/editors/helpers.py src/olympia/editors/templates/editors/base.html
 msgid "All Unlisted Add-ons"
 msgstr ""
 
@@ -6322,18 +6308,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/olympia/editors/helpers.py
-msgid "Unlisted New Add-on ({0})"
-msgid_plural "Unlisted New Add-ons ({0})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/olympia/editors/helpers.py
-msgid "Unlisted Update ({0})"
-msgid_plural "Unlisted Updates ({0})"
-msgstr[0] "Lqem ur d-nettwabder ara ({0})"
-msgstr[1] "Ileqman ur d-nettwabder ara ({0})"
-
-#: src/olympia/editors/helpers.py
 msgid "All Unlisted Add-ons ({0})"
 msgid_plural "All Unlisted Add-ons ({0})"
 msgstr[0] ""
@@ -6349,26 +6323,6 @@ msgstr ""
 
 #: src/olympia/editors/helpers.py src/olympia/editors/templates/editors/review.html
 msgid "Flags"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
-msgid "Applications"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
-msgid "Additional"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
-msgid "Site Specific"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
-msgid "Requires External Software"
-msgstr ""
-
-#: src/olympia/editors/helpers.py
-msgid "Binary Components"
 msgstr ""
 
 #: src/olympia/editors/helpers.py
@@ -6581,10 +6535,6 @@ msgstr ""
 msgid "Unlisted Queues"
 msgstr ""
 
-#: src/olympia/editors/templates/editors/base.html src/olympia/search/views.py src/olympia/zadmin/forms.py
-msgid "All Add-ons"
-msgstr ""
-
 #: src/olympia/editors/templates/editors/base.html src/olympia/editors/templates/editors/themes/base.html
 msgid "Logs"
 msgstr ""
@@ -6682,18 +6632,6 @@ msgstr[1] ""
 #, python-format
 msgid "{0}%%"
 msgstr ""
-
-#: src/olympia/editors/templates/editors/home.html
-msgid "Unlisted New Add-on ({num})"
-msgid_plural "Unlisted New Add-ons ({num})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/olympia/editors/templates/editors/home.html
-msgid "Unlisted Update ({num})"
-msgid_plural "Unlisted Updates ({num})"
-msgstr[0] ""
-msgstr[1] ""
 
 #: src/olympia/editors/templates/editors/home.html src/olympia/editors/templates/editors/performance.html src/olympia/editors/templates/editors/themes/home.html
 msgid "Total Reviews"
@@ -6830,10 +6768,6 @@ msgstr ""
 
 #: src/olympia/editors/templates/editors/queue.html
 msgid "All reviews have been moderated. Good work!"
-msgstr ""
-
-#: src/olympia/editors/templates/editors/queue.html
-msgid "Version Notes / Notes for Reviewer"
 msgstr ""
 
 #: src/olympia/editors/templates/editors/queue.html
@@ -9769,6 +9703,10 @@ msgstr ""
 msgid "{0} Add-ons"
 msgstr ""
 
+#: src/olympia/search/views.py src/olympia/zadmin/forms.py
+msgid "All Add-ons"
+msgstr ""
+
 #. L10n: {0} is an application, such as Firefox. This means "any version of
 #. Firefox."
 #: src/olympia/search/views.py
@@ -10332,11 +10270,6 @@ msgstr ""
 msgid "To try the thousands of add-ons available here, download <a href=\"%(url)s\">Mozilla Firefox</a>, a fast, free way to surf the Web!"
 msgstr ""
 
-#: src/olympia/templates/impala/base.html
-#, python-format
-msgid "Add-ons is switching to Firefox Accounts for login. <a href=\"%(url)s\" class=\"fxa-login\">Sign in now to transfer your account.</a>"
-msgstr ""
-
 #. {0} is an application, such as Firefox.
 #: src/olympia/templates/impala/base.html
 msgid "Welcome to {0} Add-ons."
@@ -10786,18 +10719,6 @@ msgstr ""
 
 #: src/olympia/users/templates/users/fxa_login_prompt_content.html
 msgid "Mozilla Add-ons has transitioned to Firefox Accounts for login. Continue to complete the simple login process."
-msgstr ""
-
-#: src/olympia/users/templates/users/fxa_migration.html src/olympia/users/templates/users/mobile/fxa_migration.html
-msgid "Migrate to Firefox Accounts"
-msgstr ""
-
-#: src/olympia/users/templates/users/fxa_migration_prompt_content.html
-msgid "Mozilla Add-ons has transitioned to Firefox Accounts for login. Continue to complete the simple upgrade process."
-msgstr ""
-
-#: src/olympia/users/templates/users/fxa_migration_prompt_content.html
-msgid "Skip"
 msgstr ""
 
 #: src/olympia/users/templates/users/login.html src/olympia/users/templates/users/mobile/login.html

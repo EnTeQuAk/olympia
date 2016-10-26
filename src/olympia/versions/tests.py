@@ -27,9 +27,7 @@ from olympia.addons.models import (
 from olympia.addons.tests.test_views import TestMobile
 from olympia.applications.models import AppVersion
 from olympia.devhub.models import ActivityLog
-from olympia.editors.models import (
-    ViewFullReviewQueue, ViewPendingQueue,
-    ViewUnlistedFullReviewQueue, ViewUnlistedPendingQueue,)
+from olympia.editors.models import ViewFullReviewQueue, ViewPendingQueue
 from olympia.files.models import File
 from olympia.files.tests.test_models import UploadTest
 from olympia.users.models import UserProfile
@@ -513,19 +511,13 @@ class TestVersion(TestCase):
             ViewFullReviewQueue: amo.STATUS_NOMINATED,
             ViewPendingQueue: amo.STATUS_PUBLIC
         }
-        unlisted_queue_to_status = {
-            ViewUnlistedFullReviewQueue: amo.STATUS_NOMINATED,
-            ViewUnlistedPendingQueue: amo.STATUS_PUBLIC,
-        }
 
         for queue, status in queue_to_status.iteritems():  # Listed queues.
             self.version.addon.update(status=status)
             assert self.version.current_queue == queue
 
-        self.version.addon.update(is_listed=False)  # Unlisted queues.
-        for queue, status in unlisted_queue_to_status.iteritems():
-            self.version.addon.update(status=status)
-            assert self.version.current_queue == queue
+        self.version.addon.update(is_listed=False)  # Unlisted: no queue.
+        assert self.version.current_queue is None
 
     def test_get_url_path(self):
         assert self.version.get_url_path() == (
@@ -559,6 +551,16 @@ class TestVersion(TestCase):
         uploaded_name = source_upload_path(version, 'crosswarpex-확장.tar.gz')
         assert uploaded_name.endswith(u'crosswarpex-확장-0.1-src.tar.gz')
 
+    def test_status_handles_invalid_status_id(self):
+        version = Addon.objects.get(id=3615).current_version
+        # When status is a valid one, one of STATUS_CHOICES_FILE return label.
+        assert version.status == [
+            amo.STATUS_CHOICES_FILE[version.all_files[0].status]]
+
+        version.all_files[0].update(status=99)  # 99 isn't a valid status.
+        # otherwise return the status code for reference.
+        assert version.status == [u'[status:99]']
+
 
 @pytest.mark.parametrize("addon_status,file_status,is_unreviewed", [
     (amo.STATUS_NOMINATED, amo.STATUS_AWAITING_REVIEW, True),
@@ -577,7 +579,7 @@ def test_unreviewed_files(db, addon_status, file_status, is_unreviewed):
     Use cases are triples taken from the "use_case" fixture above.
     """
     addon = amo.tests.addon_factory(status=addon_status, guid='foo')
-    version = addon.latest_version
+    version = addon.current_version
     file_ = version.files.get()
     file_.update(status=file_status)
     # If the addon is public, and we change its only file to something else
@@ -784,10 +786,11 @@ class TestDownloadsBase(TestCase):
                       filehash=file_.hash))
         assert response['X-Target-Digest'] == file_.hash
 
-    def assert_served_internally(self, response):
+    def assert_served_internally(self, response, guarded=True):
         assert response.status_code == 200
-        assert (response[settings.XSENDFILE_HEADER] ==
-                self.file.guarded_file_path)
+        file_path = (self.file.guarded_file_path if guarded else
+                     self.file.file_path)
+        assert response[settings.XSENDFILE_HEADER] == file_path
 
     def assert_served_locally(self, response, file_=None, attachment=False):
         host = settings.SITE_URL + user_media_url('addons')
@@ -802,16 +805,19 @@ class TestDownloadsBase(TestCase):
 
 class TestDownloadsUnlistedAddons(TestDownloadsBase):
 
+    def setUp(self):
+        super(TestDownloadsUnlistedAddons, self).setUp()
+        self.addon.update(is_listed=False)
+        self.file.version.update(channel=amo.RELEASE_CHANNEL_UNLISTED)
+
     @mock.patch.object(acl, 'check_addons_reviewer', lambda x: False)
     @mock.patch.object(acl, 'check_unlisted_addons_reviewer', lambda x: False)
     @mock.patch.object(acl, 'check_addon_ownership',
                        lambda *args, **kwargs: False)
     def test_download_for_unlisted_addon_returns_404(self):
         """File downloading isn't allowed for unlisted addons."""
-        self.addon.update(is_listed=False)
         assert self.client.get(self.file_url).status_code == 404
         assert self.client.get(self.latest_url).status_code == 404
-        assert self.client.get(self.latest_beta_url).status_code == 404
 
     @mock.patch.object(acl, 'check_addons_reviewer', lambda x: False)
     @mock.patch.object(acl, 'check_unlisted_addons_reviewer', lambda x: False)
@@ -819,10 +825,8 @@ class TestDownloadsUnlistedAddons(TestDownloadsBase):
                        lambda *args, **kwargs: True)
     def test_download_for_unlisted_addon_owner(self):
         """File downloading is allowed for addon owners."""
-        self.addon.update(is_listed=False)
-        assert self.client.get(self.file_url).status_code == 302
-        assert self.client.get(self.latest_url).status_code == 302
-        assert self.client.get(self.latest_beta_url).status_code == 302
+        self.assert_served_internally(self.client.get(self.file_url), False)
+        self.assert_served_internally(self.client.get(self.latest_url), False)
 
     @mock.patch.object(acl, 'check_addons_reviewer', lambda x: True)
     @mock.patch.object(acl, 'check_unlisted_addons_reviewer', lambda x: False)
@@ -830,10 +834,8 @@ class TestDownloadsUnlistedAddons(TestDownloadsBase):
                        lambda *args, **kwargs: False)
     def test_download_for_unlisted_addon_reviewer(self):
         """File downloading isn't allowed for reviewers."""
-        self.addon.update(is_listed=False)
         assert self.client.get(self.file_url).status_code == 404
         assert self.client.get(self.latest_url).status_code == 404
-        assert self.client.get(self.latest_beta_url).status_code == 404
 
     @mock.patch.object(acl, 'check_addons_reviewer', lambda x: False)
     @mock.patch.object(acl, 'check_unlisted_addons_reviewer', lambda x: True)
@@ -841,10 +843,8 @@ class TestDownloadsUnlistedAddons(TestDownloadsBase):
                        lambda *args, **kwargs: False)
     def test_download_for_unlisted_addon_unlisted_reviewer(self):
         """File downloading is allowed for unlisted reviewers."""
-        self.addon.update(is_listed=False)
-        assert self.client.get(self.file_url).status_code == 302
-        assert self.client.get(self.latest_url).status_code == 302
-        assert self.client.get(self.latest_beta_url).status_code == 302
+        self.assert_served_internally(self.client.get(self.file_url), False)
+        self.assert_served_internally(self.client.get(self.latest_url), False)
 
 
 class TestDownloads(TestDownloadsBase):
@@ -936,8 +936,6 @@ class TestDisabledFileDownloads(TestDownloadsBase):
         self.assert_served_internally(self.client.get(self.file_url))
 
     def test_admin_disabled_ok_for_author(self):
-        # downloads_controller.php claims that add-on authors should be able to
-        # download their disabled files.
         self.addon.update(status=amo.STATUS_DISABLED)
         assert self.client.login(email='g@gmail.com')
         self.assert_served_internally(self.client.get(self.file_url))
@@ -963,6 +961,10 @@ class TestUnlistedDisabledFileDownloads(TestDisabledFileDownloads):
     def setUp(self):
         super(TestDisabledFileDownloads, self).setUp()
         self.addon.update(is_listed=False)
+        self.file.version.update(channel=amo.RELEASE_CHANNEL_UNLISTED)
+        self.grant_permission(
+            UserProfile.objects.get(email='editor@mozilla.com'),
+            'Addons:ReviewUnlisted')
 
 
 class TestDownloadsLatest(TestDownloadsBase):
@@ -1050,7 +1052,7 @@ class TestDownloadSource(TestCase):
         self.addon = Addon.objects.get(pk=3615)
         # Make sure non-ascii is ok.
         self.addon.update(slug=u'crosswarpex-확장')
-        self.version = self.addon.latest_version
+        self.version = self.addon.current_version
         tdir = temp.gettempdir()
         self.source_file = temp.NamedTemporaryFile(suffix=".zip", dir=tdir)
         self.source_file.write('a' * (2 ** 21))

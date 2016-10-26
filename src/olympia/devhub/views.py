@@ -1,6 +1,4 @@
-import collections
 import datetime
-import functools
 import json
 import os
 import time
@@ -40,7 +38,7 @@ from olympia.api.models import APIKey
 from olympia.applications.models import AppVersion
 from olympia.devhub.decorators import dev_required
 from olympia.devhub.forms import CheckCompatibilityForm
-from olympia.devhub.models import ActivityLog, BlogPost, RssKey, SubmitStep
+from olympia.devhub.models import ActivityLog, BlogPost, RssKey
 from olympia.devhub.utils import (
     ValidationAnnotator, ValidationComparator, process_validation)
 from olympia.editors.decorators import addons_reviewer_required
@@ -295,12 +293,10 @@ def feed(request, addon_id=None):
 
 @dev_required
 def edit(request, addon_id, addon):
-    url_prefix = 'addons'
-
     data = {
         'page': 'edit',
         'addon': addon,
-        'url_prefix': url_prefix,
+        'show_listed_fields': addon.has_listed_versions(),
         'valid_slug': addon.slug,
         'tags': addon.tags.not_blacklisted().values_list('tag_text',
                                                          flat=True),
@@ -389,8 +385,12 @@ def cancel(request, addon_id, addon):
 @post_required
 def disable(request, addon_id, addon):
     addon.update(disabled_by_user=True)
-    if addon.latest_version:
-        addon.latest_version.files.filter(
+    # Also set the latest listed version to STATUS_DISABLED if it was
+    # AWAITING_REVIEW, to not waste reviewers time.
+    latest_version = addon.find_latest_version(
+        channel=amo.RELEASE_CHANNEL_LISTED)
+    if latest_version:
+        latest_version.files.filter(
             status=amo.STATUS_AWAITING_REVIEW).update(
             status=amo.STATUS_DISABLED)
     addon.update_version()
@@ -409,8 +409,10 @@ def unlist(request, addon_id, addon):
         channel=amo.RELEASE_CHANNEL_UNLISTED)
     amo.log(amo.LOG.ADDON_UNLISTED, addon)
 
-    if addon.latest_version.is_unreviewed:
-        auto_sign_version(addon.latest_version)
+    latest_version = addon.find_latest_version(
+        channel=amo.RELEASE_CHANNEL_UNLISTED)
+    if latest_version and latest_version.is_unreviewed:
+        auto_sign_version(latest_version)
 
     return redirect(addon.get_dev_url('versions'))
 
@@ -418,17 +420,18 @@ def unlist(request, addon_id, addon):
 @dev_required(owner_for_post=True)
 def ownership(request, addon_id, addon):
     fs, ctx = [], {}
+    post_data = request.POST if request.method == 'POST' else None
     # Authors.
     qs = AddonUser.objects.filter(addon=addon).order_by('position')
-    user_form = forms.AuthorFormSet(request.POST or None, queryset=qs)
+    user_form = forms.AuthorFormSet(post_data, queryset=qs)
     fs.append(user_form)
     # Versions.
-    license_form = forms.LicenseForm(request.POST or None, addon=addon)
+    license_form = forms.LicenseForm(post_data, version=addon.current_version)
     ctx.update(license_form.get_context())
     if ctx['license_form']:  # if addon has a version
         fs.append(ctx['license_form'])
     # Policy.
-    policy_form = forms.PolicyForm(request.POST or None, addon=addon)
+    policy_form = forms.PolicyForm(post_data, addon=addon)
     ctx.update(policy_form=policy_form)
     fs.append(policy_form)
 
@@ -929,13 +932,22 @@ def ajax_dependencies(request, addon_id, addon):
 
 @dev_required
 def addons_section(request, addon_id, addon, section, editable=False):
-    basic = addon_forms.AddonFormBasic
-    models = {'basic': basic,
-              'media': addon_forms.AddonFormMedia,
-              'details': addon_forms.AddonFormDetails,
-              'support': addon_forms.AddonFormSupport,
-              'technical': addon_forms.AddonFormTechnical,
-              'admin': forms.AdminForm}
+    show_listed = addon.has_listed_versions()
+    models = {'admin': forms.AdminForm}
+    if show_listed:
+        models.update({
+            'basic': addon_forms.AddonFormBasic,
+            'media': addon_forms.AddonFormMedia,
+            'details': addon_forms.AddonFormDetails,
+            'support': addon_forms.AddonFormSupport,
+            'technical': addon_forms.AddonFormTechnical,
+        })
+    else:
+        models.update({
+            'basic': addon_forms.AddonFormBasicUnlisted,
+            'details': addon_forms.AddonFormDetailsUnlisted,
+            'technical': addon_forms.AddonFormTechnicalUnlisted,
+        })
 
     if section not in models:
         raise http.Http404()
@@ -943,7 +955,7 @@ def addons_section(request, addon_id, addon, section, editable=False):
     tags, previews, restricted_tags = [], [], []
     cat_form = dependency_form = None
 
-    if section == 'basic':
+    if section == 'basic' and show_listed:
         tags = addon.tags.not_blacklisted().values_list('tag_text', flat=True)
         cat_form = addon_forms.CategoryFormSet(request.POST or None,
                                                addon=addon, request=request)
@@ -954,7 +966,7 @@ def addons_section(request, addon_id, addon, section, editable=False):
             request.POST or None,
             prefix='files', queryset=addon.previews.all())
 
-    elif section == 'technical':
+    elif section == 'technical' and show_listed:
         dependency_form = forms.DependencyFormSet(
             request.POST or None,
             queryset=addon.addons_dependencies.all(), addon=addon,
@@ -964,11 +976,8 @@ def addons_section(request, addon_id, addon, section, editable=False):
     valid_slug = addon.slug
     if editable:
         if request.method == 'POST':
-            if section == 'license':
-                form = models[section](request.POST)
-            else:
-                form = models[section](request.POST, request.FILES,
-                                       instance=addon, request=request)
+            form = models[section](request.POST, request.FILES,
+                                   instance=addon, request=request)
 
             if form.is_valid() and (not previews or previews.is_valid()):
                 addon = form.save(addon)
@@ -996,17 +1005,12 @@ def addons_section(request, addon_id, addon, section, editable=False):
                 else:
                     editable = True
         else:
-            if section == 'license':
-                form = models[section]()
-            else:
-                form = models[section](instance=addon, request=request)
+            form = models[section](instance=addon, request=request)
     else:
         form = False
 
-    url_prefix = 'addons'
-
     data = {'addon': addon,
-            'url_prefix': url_prefix,
+            'show_listed_fields': show_listed,
             'form': form,
             'editable': editable,
             'tags': tags,
@@ -1384,68 +1388,29 @@ def version_stats(request, addon_id, addon):
     return d
 
 
-Step = collections.namedtuple('Step', 'current max')
-
-
-def submit_step(outer_step):
-    """Wraps the function with a decorator that bounces to the right step."""
-    def decorator(f):
-        @functools.wraps(f)
-        def wrapper(request, *args, **kw):
-            step = outer_step
-            max_step = 5
-            # We only bounce on pages with an addon id.
-            if 'addon' in kw:
-                addon = kw['addon']
-                on_step = SubmitStep.objects.filter(addon=addon)
-                if on_step:
-                    max_step = on_step[0].step
-                    if max_step < step:
-                        # The step was too high, so bounce to the saved step.
-                        return redirect(_step_url(max_step), addon.slug)
-                elif step != max_step:
-                    # We couldn't find a step, so we must be done.
-                    return redirect(_step_url(5), addon.slug)
-            kw['step'] = Step(step, max_step)
-            return f(request, *args, **kw)
-        # Tell @dev_required that this is a function in the submit flow so it
-        # doesn't try to redirect into the submit flow.
-        wrapper.submitting = True
-        return wrapper
-    return decorator
-
-
-def _step_url(step):
-    url_base = 'devhub.submit'
-    return '%s.%s' % (url_base, step)
-
-
 @login_required
-@submit_step(1)
-def submit(request, step):
+def submit(request):
     return render_agreement(request, 'devhub/addons/submit/start.html',
-                            _step_url(2), step)
+                            'devhub.submit.distribution')
 
 
 @login_required
-@submit_step(2)
 @transaction.atomic
-def submit_addon_distribute(request, step):
+def submit_addon_distribution(request):
     if request.user.read_dev_agreement is None:
-        return redirect(_step_url(1))
+        return redirect('devhub.submit.agreement')
     form = forms.DistributionChoiceForm(request.POST)
 
     if request.method == 'POST' and form.is_valid():
         data = form.cleaned_data
-        return redirect(_step_url(3), data['choices'])
+        return redirect('devhub.submit.upload', data['choices'])
     return render(request, 'devhub/addons/submit/distribute.html',
-                  {'step': step, 'distribution_form': form})
+                  {'distribution_form': form})
 
 
 @login_required
-@submit_step(3)
 @transaction.atomic
-def submit_addon_upload(request, step, channel):
+def submit_addon_upload(request, channel):
     form = forms.NewAddonForm(
         request.POST or None,
         request.FILES or None,
@@ -1467,28 +1432,35 @@ def submit_addon_upload(request, step, channel):
                 addon.update(status=amo.STATUS_NOMINATED)
                 # Sign all the files submitted, one for each platform.
                 auto_sign_version(addon.versions.get())
-                return redirect('devhub.submit.5', addon.slug)
-            SubmitStep.objects.create(addon=addon, step=4)
-            return redirect(_step_url(4), addon.slug)
+                return redirect('devhub.submit.finish', addon.slug)
+            return redirect('devhub.submit.details', addon.slug)
     is_admin = acl.action_allowed(request, 'ReviewerAdminTools', 'View')
 
     return render(request, 'devhub/addons/submit/upload.html',
-                  {'step': step, 'new_addon_form': form, 'is_admin': is_admin,
+                  {'new_addon_form': form, 'is_admin': is_admin,
                    'listed': is_listed})
 
 
-@dev_required
-@submit_step(4)
-def submit_describe(request, addon_id, addon, step):
+@dev_required(submitting=True)
+def submit_details(request, addon_id, addon):
     forms_, context = [], {}
-    describe_form = forms.DescribeForm(request.POST or None, instance=addon,
-                                       request=request)
+    # Figure out the latest version early in order to pass the same instance to
+    # each form that needs it (otherwise they might overwrite each other).
+    latest_version = addon.find_latest_version(
+        channel=amo.RELEASE_CHANNEL_LISTED)
+    if not latest_version:
+        # No listed version ? Then nothing to do in the listed submission flow.
+        return redirect('devhub.submit.finish', addon.slug)
+    post_data = request.POST if request.method == 'POST' else None
+
+    describe_form = forms.DescribeForm(
+        post_data, instance=addon, request=request)
     cat_form = addon_forms.CategoryFormSet(
         request.POST or None, addon=addon, request=request)
-    license_form = forms.LicenseForm(request.POST or None, addon=addon)
-    policy_form = forms.PolicyForm(request.POST or None, addon=addon)
+    license_form = forms.LicenseForm(post_data, version=latest_version)
+    policy_form = forms.PolicyForm(post_data, addon=addon)
     reviewer_form = forms.ReviewerNotesForm(
-        request.POST or None, instance=addon.latest_version)
+        post_data, instance=latest_version)
 
     context.update(license_form.get_context())
     context.update(form=describe_form, cat_form=cat_form,
@@ -1504,17 +1476,18 @@ def submit_describe(request, addon_id, addon, step):
         reviewer_form.save()
         addon.update(status=amo.STATUS_NOMINATED)
 
-        SubmitStep.objects.filter(addon=addon).delete()
         signals.submission_done.send(sender=addon)
 
-        return redirect('devhub.submit.5', addon.slug)
-    context.update(addon=addon, step=step)
+        return redirect('devhub.submit.finish', addon.slug)
+    context.update(addon=addon)
     return render(request, 'devhub/addons/submit/describe.html', context)
 
 
-@dev_required
-@submit_step(5)
-def submit_done(request, addon_id, addon, step):
+@dev_required(submitting=True)
+def submit_finish(request, addon_id, addon):
+    # Bounce to the details step if incomplete
+    if addon.is_incomplete():
+        return redirect('devhub.submit.details', addon.slug)
     # Bounce to the versions page if they don't have any versions.
     if not addon.versions.exists():
         return redirect(addon.get_dev_url('versions'))
@@ -1543,40 +1516,14 @@ def submit_done(request, addon_id, addon, step):
             tasks.send_welcome_email.delay(addon.id, [author.email], context)
 
     return render(request, 'devhub/addons/submit/done.html',
-                  {'addon': addon, 'step': step,
+                  {'addon': addon,
                    'is_platform_specific': is_platform_specific})
 
 
-@dev_required
+@dev_required(submitting=True)
 def submit_resume(request, addon_id, addon):
-    step = SubmitStep.objects.filter(addon=addon)
-    return _resume(addon, step)
-
-
-def _resume(addon, step):
-    if step:
-        return redirect(_step_url(step[0].step), addon.slug)
-
-    return redirect(addon.get_dev_url('versions'))
-
-
-@login_required
-@dev_required
-def submit_bump(request, addon_id, addon):
-    if not acl.action_allowed(request, 'Admin', 'EditSubmitStep'):
-        raise PermissionDenied
-    step = SubmitStep.objects.filter(addon=addon)
-    step = step[0] if step else None
-    if request.method == 'POST' and request.POST.get('step'):
-        new_step = request.POST['step']
-        if step:
-            step.step = new_step
-        else:
-            step = SubmitStep(addon=addon, step=new_step)
-        step.save()
-        return redirect(_step_url('bump'), addon.slug)
-    return render(request, 'devhub/addons/submit/bump.html',
-                  dict(addon=addon, step=step))
+    # Redirect to end and @submit_step will send us back if incomplete.
+    return redirect('devhub.submit.finish', addon.slug)
 
 
 @login_required
@@ -1626,7 +1573,7 @@ def remove_locale(request, addon_id, addon, theme):
 @dev_required
 @post_required
 def request_review(request, addon_id, addon):
-    if amo.STATUS_PUBLIC not in addon.can_request_review():
+    if not addon.can_request_review():
         return http.HttpResponseBadRequest()
 
     addon.update(status=amo.STATUS_NOMINATED)
@@ -1681,14 +1628,13 @@ def api_key_agreement(request):
     return render_agreement(request, 'devhub/api/agreement.html', next_step)
 
 
-def render_agreement(request, template, next_step, step=None):
+def render_agreement(request, template, next_step):
     if request.method == 'POST':
         request.user.update(read_dev_agreement=datetime.datetime.now())
         return redirect(next_step)
 
     if request.user.read_dev_agreement is None:
-        return render(request, template,
-                      {'step': step})
+        return render(request, template)
     else:
         response = redirect(next_step)
         return response

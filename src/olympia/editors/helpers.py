@@ -26,10 +26,10 @@ from olympia.amo.utils import send_mail as amo_send_mail, to_language
 from olympia.constants.base import REVIEW_LIMITED_DELAY_HOURS
 from olympia.editors.models import (
     ReviewerScore, ViewFullReviewQueue, ViewPendingQueue,
-    ViewUnlistedAllList, ViewUnlistedFullReviewQueue,
-    ViewUnlistedPendingQueue)
+    ViewUnlistedAllList)
 from olympia.lib.crypto.packaged import sign_file
 from olympia.users.models import UserProfile
+from olympia.versions.models import Version
 
 
 @register.function
@@ -55,7 +55,7 @@ def file_review_status(addon, file):
         # unreviewed.  Especially for versions.
         else:
             return _(u'Rejected or Unreviewed')
-    return file.STATUS_CHOICES[file.status]
+    return file.STATUS_CHOICES.get(file.status, _('[status:%s]') % file.status)
 
 
 @register.function
@@ -79,7 +79,7 @@ def editor_page_title(context, title=None, addon=None):
 
 @register.function
 @jinja2.contextfunction
-def editors_breadcrumbs(context, queue=None, addon_queue=None, items=None,
+def editors_breadcrumbs(context, queue=None, addon=None, items=None,
                         themes=False):
     """
     Wrapper function for ``breadcrumbs``. Prepends 'Editor Tools'
@@ -93,18 +93,17 @@ def editors_breadcrumbs(context, queue=None, addon_queue=None, items=None,
         Explicit queue type to set.
     """
     crumbs = [(reverse('editors.home'), _('Editor Tools'))]
+    listed = not context.get('unlisted')
 
     if themes:
         crumbs.append((reverse('editors.themes.home'), _('Themes')))
 
-    if addon_queue:
-        queue_id = addon_queue.status
-        queue_ids = {amo.STATUS_NOMINATED: 'nominated',
-                     amo.STATUS_PUBLIC: 'pending'}
-
-        queue = queue_ids.get(queue_id, 'queue')
-
-    listed = not context.get('unlisted')
+    if addon:
+        if listed:
+            queue = {amo.STATUS_NOMINATED: 'nominated',
+                     amo.STATUS_PUBLIC: 'pending'}.get(addon.status, 'queue')
+        else:
+            queue = 'all'
 
     if queue:
         if listed:
@@ -120,9 +119,6 @@ def editors_breadcrumbs(context, queue=None, addon_queue=None, items=None,
             }
         else:
             queues = {
-                'queue': _('Queue'),
-                'pending': _('Unlisted Updates'),
-                'nominated': _('Unlisted New Add-ons'),
                 'all': _('All Unlisted Add-ons'),
             }
 
@@ -130,7 +126,8 @@ def editors_breadcrumbs(context, queue=None, addon_queue=None, items=None,
             if listed:
                 url = reverse('editors.queue_{0}'.format(queue))
             else:
-                url = reverse('editors.unlisted_queue_{0}'.format(queue))
+                # Unlisted add-ons only have the 'all' list.
+                url = reverse('editors.unlisted_queue_all')
         else:
             # The Addon is the end of the trail.
             url = None
@@ -169,17 +166,7 @@ def queue_tabnav(context):
                              counts['moderated'])
                     .format(counts['moderated'])))]
     else:
-        tabnav = [('nominated', 'unlisted_queue_nominated',
-                   (ngettext('Unlisted New Add-on ({0})',
-                             'Unlisted New Add-ons ({0})',
-                             unlisted_counts['nominated'])
-                    .format(unlisted_counts['nominated']))),
-                  ('pending', 'unlisted_queue_pending',
-                   (ngettext('Unlisted Update ({0})',
-                             'Unlisted Updates ({0})',
-                             unlisted_counts['pending'])
-                    .format(unlisted_counts['pending']))),
-                  ('all', 'unlisted_queue_all',
+        tabnav = [('all', 'unlisted_queue_all',
                    (ngettext('All Unlisted Add-ons ({0})',
                              'All Unlisted Add-ons ({0})',
                              unlisted_counts['all'])
@@ -243,13 +230,6 @@ class EditorQueueTable(tables.Table, ItemStateTable):
     addon_type_id = tables.Column(verbose_name=_lazy(u'Type'))
     waiting_time_min = tables.Column(verbose_name=_lazy(u'Waiting Time'))
     flags = tables.Column(verbose_name=_lazy(u'Flags'), orderable=False)
-    application_ids = tables.Column(verbose_name=_lazy(u'Applications'),
-                                    orderable=False)
-    platforms = tables.Column(verbose_name=_lazy(u'Platforms'),
-                              orderable=False)
-    additional_info = tables.Column(
-        verbose_name=_lazy(u'Additional'), orderable=False)
-    show_version_notes = True
 
     class Meta:
         orderable = True
@@ -263,30 +243,6 @@ class EditorQueueTable(tables.Table, ItemStateTable):
 
     def render_addon_type_id(self, record):
         return amo.ADDON_TYPE[record.addon_type_id]
-
-    def render_additional_info(self, record):
-        info = []
-        if record.is_site_specific:
-            info.append(_lazy(u'Site Specific'))
-        if record.external_software:
-            info.append(_lazy(u'Requires External Software'))
-        if record.binary or record.binary_components:
-            info.append(_lazy(u'Binary Components'))
-        return u', '.join([jinja2.escape(i) for i in info])
-
-    def render_application_ids(self, record):
-        # TODO(Kumar) show supported version ranges on hover (if still needed)
-        icon = u'<div class="app-icon ed-sprite-%s" title="%s"></div>'
-        return u''.join([icon % (amo.APPS_ALL[i].short, amo.APPS_ALL[i].pretty)
-                         for i in record.application_ids])
-
-    def render_platforms(self, record):
-        icons = []
-        html = u'<div class="platform-icon plat-sprite-%s" title="%s"></div>'
-        for platform in record.platforms:
-            icons.append(html % (amo.PLATFORMS[int(platform)].shortname,
-                                 amo.PLATFORMS[int(platform)].name))
-        return u''.join(icons)
 
     def render_flags(self, record):
         return ''.join(u'<div class="app-icon ed-sprite-%s" '
@@ -334,7 +290,6 @@ class EditorAllListTable(tables.Table, ItemStateTable):
                             orderable=False)
     review_date = tables.Column(verbose_name=_lazy(u'Last Review'))
     version_date = tables.Column(verbose_name=_lazy(u'Last Update'))
-    show_version_notes = False
 
     class Meta:
         pass
@@ -391,18 +346,6 @@ class ViewFullReviewQueueTable(EditorQueueTable):
         model = ViewFullReviewQueue
 
 
-class ViewUnlistedPendingQueueTable(EditorQueueTable):
-
-    class Meta(EditorQueueTable.Meta):
-        model = ViewUnlistedPendingQueue
-
-
-class ViewUnlistedFullReviewQueueTable(EditorQueueTable):
-
-    class Meta(EditorQueueTable.Meta):
-        model = ViewUnlistedFullReviewQueue
-
-
 class ViewUnlistedAllListTable(EditorAllListTable):
 
     class Meta(EditorQueueTable.Meta):
@@ -431,27 +374,26 @@ def get_position(addon):
                 break
         total = qs.count()
         return {'pos': position, 'total': total}
-    else:
-        version = addon.latest_version
-
-        if not version:
-            return False
-
-        q = version.current_queue
-        if not q:
-            return False
-
-        mins_query = q.objects.filter(id=addon.id)
-        if mins_query.count() > 0:
-            mins = mins_query[0].waiting_time_min
-            pos = q.objects.having('waiting_time_min >=', mins).count()
-            total = q.objects.count()
-            return dict(mins=mins, pos=pos, total=total)
+    elif addon.status in amo.VALID_ADDON_STATUSES:
+        # Look at all add-on versions which have files awaiting review.
+        qs = (Version.objects.filter(addon__disabled_by_user=False,
+                                     files__status=amo.STATUS_AWAITING_REVIEW,
+                                     addon__status=addon.status)
+              .order_by('nomination', 'created').distinct()
+              .no_transforms().values_list('addon_id', flat=True))
+        position = 0
+        for idx, addon_id in enumerate(qs, start=1):
+            if addon_id == addon.id:
+                position = idx
+                break
+        total = qs.count()
+        if position:
+            return {'pos': position, 'total': total}
 
     return False
 
 
-class ReviewHelper:
+class ReviewHelper(object):
     """
     A class that builds enough to render the form back to the user and
     process off to the correct handler.
@@ -482,6 +424,8 @@ class ReviewHelper:
             # ReviewHelper for its `handler` attribute and we don't care about
             # the actions.
             return actions
+        latest_version = addon.find_latest_version(
+            channel=amo.RELEASE_CHANNEL_LISTED)
         reviewable_because_complete = addon.status not in (
             amo.STATUS_NULL, amo.STATUS_DELETED)
         reviewable_because_admin = (
@@ -489,13 +433,13 @@ class ReviewHelper:
             acl.action_allowed(request, 'ReviewerAdminTools', 'View'))
         reviewable_because_submission_time = (
             not is_limited_reviewer(request) or
-            (addon.latest_version is not None and
-                addon.latest_version.nomination is not None and
-                (datetime.datetime.now() - addon.latest_version.nomination >=
+            (latest_version is not None and
+                latest_version.nomination is not None and
+                (datetime.datetime.now() - latest_version.nomination >=
                     datetime.timedelta(hours=REVIEW_LIMITED_DELAY_HOURS))))
         reviewable_because_pending = (
-            addon.latest_version is not None and
-            len(addon.latest_version.is_unreviewed) > 0)
+            latest_version is not None and
+            len(latest_version.is_unreviewed) > 0)
         if (reviewable_because_complete and
                 reviewable_because_admin and
                 reviewable_because_submission_time and

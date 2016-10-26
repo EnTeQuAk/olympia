@@ -15,6 +15,7 @@ from quieter_formset.formset import BaseModelFormSet
 
 from olympia.access import acl
 from olympia import amo, paypal
+from olympia.amo.helpers import mark_safe_lazy
 from olympia.addons.forms import AddonFormBasic
 from olympia.addons.models import (
     Addon, AddonDependency, AddonUser, Charity, Preview)
@@ -119,7 +120,8 @@ class LicenseRadioChoiceInput(forms.widgets.RadioChoiceInput):
         super(LicenseRadioChoiceInput, self).__init__(
             name, value, attrs, choice, index)
         license = choice[1]  # Choice is a tuple (object.id, object).
-        link = u'<a class="xx extra" href="%s">%s</a>'
+        link = (u'<a class="xx extra" href="%s" target="_blank" '
+                u'rel="noopener noreferrer">%s</a>')
         if hasattr(license, 'url'):
             details = link % (license.url, _('Details'))
             self.choice_label = mark_safe(self.choice_label + details)
@@ -143,25 +145,23 @@ class LicenseForm(AMOModelForm):
     text = forms.CharField(widget=TranslationTextarea(), required=False,
                            label=_lazy(u'Provide the text of your license.'))
 
-    def __init__(self, *args, **kw):
-        addon = kw.pop('addon', None)
-        self.version = None
-        if addon:
-            self.version = addon.latest_version
-            if self.version:
-                kw['instance'], kw['initial'] = self.version.license, None
-                # Clear out initial data if it's a builtin license.
-                if getattr(kw['instance'], 'builtin', None):
-                    kw['initial'] = {'builtin': kw['instance'].builtin}
-                    kw['instance'] = None
+    def __init__(self, *args, **kwargs):
+        self.version = kwargs.pop('version', None)
+        if self.version:
+            kwargs['instance'], kwargs['initial'] = self.version.license, None
+            # Clear out initial data if it's a builtin license.
+            if getattr(kwargs['instance'], 'builtin', None):
+                kwargs['initial'] = {'builtin': kwargs['instance'].builtin}
+                kwargs['instance'] = None
 
-        super(LicenseForm, self).__init__(*args, **kw)
+        super(LicenseForm, self).__init__(*args, **kwargs)
 
         cs = [(x.builtin, x)
               for x in License.objects.builtins().filter(on_form=True)]
         cs.append((License.OTHER, _('Other')))
         self.fields['builtin'].choices = cs
-        if addon and not addon.is_listed:
+        if (self.version and
+                self.version.channel == amo.RELEASE_CHANNEL_UNLISTED):
             self.fields['builtin'].required = False
 
     class Meta:
@@ -187,9 +187,12 @@ class LicenseForm(AMOModelForm):
         """
         license_urls = dict(License.objects.builtins()
                             .values_list('builtin', 'url'))
-        return dict(license_urls=license_urls, version=self.version,
-                    license_form=self.version and self,
-                    license_other_val=License.OTHER)
+        return {
+            'license_urls': license_urls,
+            'version': self.version,
+            'license_form': self.version and self,
+            'license_other_val': License.OTHER
+        }
 
     def save(self, *args, **kw):
         """Save all form data.
@@ -210,9 +213,12 @@ class LicenseForm(AMOModelForm):
         if builtin == '':  # No license chosen, it must be an unlisted add-on.
             return
         if builtin != License.OTHER:
+            # We're dealing with a builtin license, there is no modifications
+            # allowed to it, just return it.
             license = License.objects.get(builtin=builtin)
         else:
-            # Save the custom license:
+            # We're not dealing with a builtin license, so save it to the
+            # database.
             license = super(LicenseForm, self).save(*args, **kw)
 
         if self.version:
@@ -234,7 +240,8 @@ class PolicyForm(TranslationFormMixin, AMOModelForm):
         label=_lazy(u"Please specify your add-on's "
                     "End-User License Agreement:"))
     has_priv = forms.BooleanField(
-        required=False, label=_lazy(u"This add-on has a Privacy Policy"))
+        required=False, label=_lazy(u"This add-on has a Privacy Policy"),
+        label_suffix='')
     privacy_policy = TransField(
         widget=TransTextarea(), required=False,
         label=_lazy(u"Please specify your add-on's Privacy Policy:"))
@@ -819,20 +826,28 @@ def DependencyFormSet(*args, **kw):
 
 
 class DistributionChoiceForm(happyforms.Form):
-    LISTED_LABEL = '%s <span class="helptext">%s</span>' % (
-        _(u'On this site.'),
-        _(u'Your submission will be listed on this site and the Firefox '
-          u'Add-ons Manager for millions of users, after it passes code '
-          u'review. Automatic updates are handled by this site. This add-on '
-          u'will also be considered for Mozilla promotions and contests. '
-          u'Self-distribution of the reviewed files is also possible.'))
-    UNLISTED_LABEL = '%s <span class="helptext">%s</span>' % (
-        _(u'On my own.'),
-        _(u'This version will be immediately signed for self-distribution. '
-          u'Updates are handled manually via an updateURL or external '
-          u'application updates.'))
-
     choices = forms.ChoiceField(
-        choices=(('listed', mark_safe(LISTED_LABEL)),
-                 ('unlisted', mark_safe(UNLISTED_LABEL)),),
+        # Workaround, get's filled in in __init__
+        choices=(),
         widget=forms.RadioSelect(attrs={'class': 'channel'}))
+
+    def __init__(self, *args, **kwargs):
+        super(DistributionChoiceForm, self).__init__(*args, **kwargs)
+
+        LISTED_LABEL = '%s <span class="helptext">%s</span>' % (
+            _(u'On this site.'),
+            _(u'Your submission will be listed on this site and the Firefox '
+              u'Add-ons Manager for millions of users, after it passes code '
+              u'review. Automatic updates are handled by this site. This '
+              u'add-on will also be considered for Mozilla promotions and '
+              u'contests. Self-distribution of the reviewed files is also '
+              u'possible.'))
+        UNLISTED_LABEL = '%s <span class="helptext">%s</span>' % (
+            _(u'On your own.'),
+            _(u'Your submission will be immediately signed for '
+              u'self-distribution. Updates should be handled by you via an '
+              u'updateURL or external application updates.'))
+
+        self.fields['choices'].choices = (
+            ('listed', mark_safe_lazy(LISTED_LABEL)),
+            ('unlisted', mark_safe_lazy(UNLISTED_LABEL)),)
