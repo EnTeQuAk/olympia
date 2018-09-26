@@ -486,7 +486,7 @@ class TestSafeZipFile(TestCase, amo.tests.AMOPaths):
 
     def test_read(self):
         zip_file = SafeZip(self.xpi_path('langpack-localepicker'))
-        assert zip_file.is_valid()
+        assert zip_file.is_valid
         assert 'locale browser de' in zip_file.read('chrome.manifest')
 
     def test_invalid_zip_encoding(self):
@@ -499,16 +499,13 @@ class TestSafeZipFile(TestCase, amo.tests.AMOPaths):
 
     def test_not_secure(self):
         zip_file = SafeZip(self.xpi_path('extension'))
-        zip_file.is_valid()
         assert not zip_file.is_signed()
 
     def test_is_secure(self):
         zip_file = SafeZip(self.xpi_path('signed'))
-        zip_file.is_valid()
         assert zip_file.is_signed()
 
     def test_is_broken(self):
         zip_file = SafeZip(self.xpi_path('signed'))
-        zip_file.is_valid()
         zip_file.info_list[2].filename = 'META-INF/foo.sf'
         assert not zip_file.is_signed()
