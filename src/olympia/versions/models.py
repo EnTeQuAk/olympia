@@ -239,9 +239,6 @@ class Version(OnChangeMixin, ModelBase):
             parsed_data=parsed_data
         )]
 
-        # Setup / Update the versions git storage.
-        version.update_git_storage(version.all_files[0])
-
         version.inherit_nomination(from_statuses=[amo.STATUS_AWAITING_REVIEW])
         version.disable_old_files()
         # After the upload has been copied to all platforms, remove the upload.

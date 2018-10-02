@@ -16,6 +16,7 @@ from olympia.files.models import (
 from olympia.files.utils import parse_xpi
 from olympia.translations.models import Translation
 from olympia.users.models import UserProfile
+from olympia.lib.git import AddonGitRepository
 
 
 log = olympia.core.logger.getLogger('z.files.task')
@@ -104,3 +105,17 @@ def update_webext_descriptions(url, locale='en-US', create=True, **kw):
                     except WebextPermissionDescription.DoesNotExist:
                         log.warning('No "%s" permission found to update with '
                                     '[%s] locale' % (perm, locale))
+
+
+@task
+def commit_new_file_to_git_storage(file_pk):
+    """Fetch the relevant file and commit it to the git storage.
+
+    This creates a new comit for the relevant branch or simply creates
+    the repository transparently if none exists.
+    """
+    file_obj = File.objects.select_related('version__channel').get(pk=file_pk)
+
+    AddonGitRepository.extract_and_commit_from_file_obj(
+        file_obj,
+        file_obj.version.channel)
