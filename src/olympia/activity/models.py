@@ -17,6 +17,7 @@ import jinja2
 import olympia.core.logger
 
 from olympia import amo, constants
+from olympia.core.db import functions
 from olympia.access.models import Group
 from olympia.addons.models import Addon
 from olympia.amo.fields import PositiveAutoField
@@ -264,6 +265,21 @@ class ActivityLogManager(ManagerBase):
             tables=[table],
             where=['%s.activity_log_id=%s.id'
                    % (table, 'log_activity')])
+
+    def performance_graph(self):
+        request_ver = amo.LOG.REQUEST_VERSION.id
+        review_ids = [str(r) for r in amo.LOG_REVIEWER_REVIEW_ACTION
+                      if r != request_ver]
+        yearmonth_annotate = functions.DateFormat('created', format='%Y-%m')
+        qset = (
+            super(ActivityLogManager, self).get_queryset()
+            .annotate(total=models.Count('*'))
+            .filter(action__in=review_ids)
+            .exclude(user__id=settings.TASK_USER_ID)
+            .annotate(yearmonth=yearmonth_annotate, user_id=models.F('user_id'))
+            .values('yearmonth', 'user_id')
+            .order_by('user_id', 'yearmonth'))
+        return qset
 
 
 class SafeFormatter(string.Formatter):

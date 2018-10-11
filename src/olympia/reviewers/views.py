@@ -1,5 +1,4 @@
 import json
-import time
 
 from collections import OrderedDict, defaultdict
 from datetime import date, datetime, timedelta
@@ -18,6 +17,8 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from dateutil.relativedelta import relativedelta
 
 import olympia.core.logger
 
@@ -42,7 +43,7 @@ from olympia.reviewers.forms import (
     RatingFlagFormSet, RatingModerationLogForm, ReviewForm, ReviewLogForm,
     WhiteboardForm)
 from olympia.reviewers.models import (
-    AutoApprovalSummary, PerformanceGraph,
+    AutoApprovalSummary,
     RereviewQueueTheme, ReviewerScore, ReviewerSubscription,
     ViewFullReviewQueue, ViewPendingQueue, Whiteboard,
     clear_reviewing_cache, get_flags, get_reviewing_cache,
@@ -370,8 +371,18 @@ def _recent_reviewers(days=90):
 def _performance_total(data):
     # TODO(gkoberger): Fix this so it's the past X, rather than this X to date.
     # (ex: March 15-April 15, not April 1 - April 15)
-    total_yr = dict(usercount=0, teamamt=0, teamcount=0, teamavg=0)
-    total_month = dict(usercount=0, teamamt=0, teamcount=0, teamavg=0)
+    total_yr = {
+        'usercount': 0,
+        'teamamt': 0,
+        'teamcount': 0,
+        'teamavg': 0
+    }
+    total_month = {
+        'usercount': 0,
+        'teamamt': 0,
+        'teamcount': 0,
+        'teamavg': 0
+    }
     current_year = datetime.now().year
 
     for k, val in data.items():
@@ -384,43 +395,37 @@ def _performance_total(data):
     if current_label_month in data:
         total_month = data[current_label_month]
 
-    return dict(month=total_month, year=total_yr)
+    return {'month': total_month, 'year': total_yr}
 
 
-def _performance_by_month(user_id, months=12, end_month=None, end_year=None):
+def _performance_by_month(user_id):
     monthly_data = OrderedDict()
 
     now = datetime.now()
-    if not end_month:
-        end_month = now.month
-    if not end_year:
-        end_year = now.year
+    start_date = now + relativedelta(months=1)
+    end_date = now - relativedelta(months=11)
 
-    end_time = time.mktime((end_year, end_month + 1, 1, 0, 0, 0, 0, 0, -1))
-    start_time = time.mktime((end_year, end_month + 1 - months,
-                              1, 0, 0, 0, 0, 0, -1))
+    sql = (ActivityLog.objects.performance_graph()
+           .filter(created__gte=start_date, created__lt=end_date))
 
-    sql = (PerformanceGraph.objects
-           .filter_raw('log_activity.created >=',
-                       date.fromtimestamp(start_time).isoformat())
-           .filter_raw('log_activity.created <',
-                       date.fromtimestamp(end_time).isoformat()))
+    print('XXXXXXXXXXXX', str(sql.query))
 
-    for row in sql.all():
-        label = row.approval_created.isoformat()[:7]
+    for activity in sql.all():
+        label = activity.created.isoformat()[:7]
 
         if label not in monthly_data:
-            xaxis = row.approval_created.strftime('%b %Y')
-            monthly_data[label] = dict(teamcount=0, usercount=0,
-                                       teamamt=0, label=xaxis)
+            xaxis = activity.created.strftime('%b %Y')
+            monthly_data[label] = {
+                'teamcount': 0, 'usercount': 0,
+                'teamamt': 0, 'label': xaxis}
 
         monthly_data[label]['teamamt'] = monthly_data[label]['teamamt'] + 1
         monthly_data_count = monthly_data[label]['teamcount']
-        monthly_data[label]['teamcount'] = monthly_data_count + row.total
+        monthly_data[label]['teamcount'] = monthly_data_count + activity.total
 
-        if row.user_id == user_id:
+        if activity.user_id == user_id:
             user_count = monthly_data[label]['usercount']
-            monthly_data[label]['usercount'] = user_count + row.total
+            monthly_data[label]['usercount'] = user_count + activity.total
 
     # Calculate averages
     for i, vals in monthly_data.items():
