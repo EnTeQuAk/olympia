@@ -209,7 +209,6 @@ class TestValidator(ValidatorTestCase):
              "id": ["testcases_content", "signed_xpi"],
              "file": "",
              "tier": 2,
-             "for_appversions": None,
              "message": "Package already signed",
              "uid": "87326f8f699f447e90b3d5a66a78513e",
              "line": None,
@@ -238,7 +237,7 @@ class TestValidator(ValidatorTestCase):
         tasks.validate(self.upload, listed=True)
         assert not self.get_upload().valid
 
-    @mock.patch('validator.submain.test_package')
+    @mock.patch('olympia.devhub.tasks.run_validator')
     def test_validation_error(self, _mock):
         _mock.side_effect = Exception
 
@@ -281,7 +280,7 @@ class TestValidator(ValidatorTestCase):
         assert validation['warnings'] == 1
         assert len(validation['messages']) == 1
 
-    @mock.patch('validator.validate.validate')
+    @mock.patch('olympia.devhub.tasks.run_validator')
     @mock.patch('olympia.devhub.tasks.track_validation_stats')
     def test_track_validation_stats(self, mock_track, mock_validate):
         mock_validate.return_value = '{"errors": 0}'
