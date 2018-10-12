@@ -68,14 +68,17 @@ SILENCED_SYSTEM_CHECKS = (
 # LESS CSS OPTIONS (Debug only).
 LESS_PREPROCESS = True  # Compile LESS with Node, rather than client-side JS?
 LESS_LIVE_REFRESH = False  # Refresh the CSS on save?
-LESS_BIN = env('LESS_BIN', default='lessc')
+LESS_BIN = env(
+    'LESS_BIN', default='node_modules/less/bin/lessc')
 
 # Path to cleancss (our CSS minifier).
-CLEANCSS_BIN = env('CLEANCSS_BIN', default='cleancss')
+CLEANCSS_BIN = env(
+    'CLEANCSS_BIN', default='node_modules/less/bin/lessc')
 
 # Path to uglifyjs (our JS minifier).
 # Set as None to use YUI instead (at your risk).
-UGLIFY_BIN = env('UGLIFY_BIN', default='uglifyjs')
+UGLIFY_BIN = env(
+    'UGLIFY_BIN', default='node_modules/uglify-js/bin/uglifyjs')
 
 # rsvg-convert is used to save our svg static theme previews to png
 RSVG_CONVERT_BIN = env('RSVG_CONVERT_BIN', default='rsvg-convert')
@@ -84,10 +87,13 @@ RSVG_CONVERT_BIN = env('RSVG_CONVERT_BIN', default='rsvg-convert')
 PNGCRUSH_BIN = env('PNGCRUSH_BIN', default='pngcrush')
 
 # Path to our addons-linter binary
-ADDONS_LINTER_BIN = env('ADDONS_LINTER_BIN', default='addons-linter')
+ADDONS_LINTER_BIN = env(
+    'ADDONS_LINTER_BIN',
+    default='node_modules/addons-linter/bin/addons-linter')
 
 # Path to the amo-validator binary
-ADDONS_VALIDATOR_BIN = env('ADDONS_VALIDATOR_BIN', default='addons-validator')
+ADDONS_VALIDATOR_BIN = env(
+    'ADDONS_VALIDATOR_BIN', default='/usr/local/bin/addons-validator')
 
 FLIGTAR = 'amo-admins+fligtar-rip@mozilla.org'
 THEMES_EMAIL = 'theme-reviews@mozilla.org'
