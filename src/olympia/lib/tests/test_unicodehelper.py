@@ -10,8 +10,6 @@ def _do_test(path):
 
     text = open(path).read()
     utext = unicodehelper.decode(text)
-
-    print utext.encode('ascii', 'backslashreplace')
     assert utext == COMPARISON
 
 
