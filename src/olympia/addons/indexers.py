@@ -165,8 +165,9 @@ class AddonIndexer(BaseSearchIndexer):
                         # duplicates.
                         'analyzer': 'standard_with_word_split',
                         'fields': {
-                            # Raw field for exact matches and sorting.
-                            'raw': cls.get_raw_field_definition(),
+                            # Raw content, for actual regular expression
+                            # searches
+                            'raw': {'type': 'text'},
                             # Trigrams for partial matches.
                             'trigrams': {
                                 'type': 'text',
