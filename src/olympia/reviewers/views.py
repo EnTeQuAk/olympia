@@ -20,7 +20,8 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import RetrieveModelMixin
+from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 import olympia.core.logger
 
@@ -32,6 +33,7 @@ from olympia.activity.models import ActivityLog, AddonLog, CommentLog
 from olympia.addons.decorators import addon_view, addon_view_factory
 from olympia.addons.models import (
     Addon, AddonApprovalsCounter, AddonReviewerFlags, Persona)
+from olympia.addons import views as addons_views
 from olympia.amo.decorators import (
     json_view, login_required, permission_required, post_required)
 from olympia.amo.urlresolvers import reverse
@@ -52,7 +54,8 @@ from olympia.reviewers.models import (
     clear_reviewing_cache, get_flags, get_reviewing_cache,
     get_reviewing_cache_key, set_reviewing_cache)
 from olympia.reviewers.serializers import (
-    AddonReviewerFlagsSerializer, AddonBrowseVersionSerializer)
+    AddonReviewerFlagsSerializer, AddonBrowseVersionSerializer,
+    DiffableVersionSerializer)
 from olympia.reviewers.utils import (
     AutoApprovedTable, ContentReviewTable, ExpiredInfoRequestsTable,
     ReviewHelper, ViewFullReviewQueueTable, ViewPendingQueueTable,
@@ -1240,43 +1243,47 @@ class AddonReviewerViewSet(GenericViewSet):
         return Response(serializer.data)
 
 
-class BrowseVersionViewSet(RetrieveModelMixin, GenericViewSet):
+class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
     permission_classes = [AnyOf(
         AllowReviewer, AllowReviewerUnlisted, AllowAddonAuthor,
     )]
-
-    serializer_class = AddonBrowseVersionSerializer
+    serializer_class = DiffableVersionSerializer
 
     def get_queryset(self):
-        """Return queryset to be used for the view."""
         # Permission classes disallow access to non-public/unlisted add-ons
         # unless logged in as a reviewer/addon owner/admin, so we don't have to
         # filter the base queryset here.
-        return Version.unfiltered.all()
+        return Version.unfiltered.filter(addon=self.get_addon_aobject())
 
-    def get_serializer_context(self):
-        context = super(BrowseVersionViewSet, self).get_serializer_context()
-        context.update({
-            'file': self.request.GET.get('file', None)
-        })
-        return context
+    def get_addon_object(self, *args, **kwargs):
+        return get_object_or_404(Addon, pk=self.kwargs.get('pk'))
 
-    def check_object_permissions(self, request, obj):
-        """
-        Check if the request should be permitted for a given version.
+    def get_version_object(self, *args, **kwargs):
+        version = self.get_queryset().get(self.kwargs.get('version_pk'))
 
-        This calls the DRF implementation but forwards the respective Add-on
-        as `obj` since most of our permission classes are based on an Add-on
-        being passed around.
-        """
         # If the instance is marked as deleted and the client is not allowed to
         # see deleted instances, we want to return a 404, behaving as if it
         # does not exist.
-        if obj.deleted and not (
+        if version.deleted and not (
                 GroupPermission(amo.permissions.ADDONS_VIEW_DELETED).
-                has_object_permission(request, self, obj.addon)):
+                has_object_permission(request, self, version.addon)):
             raise http.Http404
 
-        return (
-            super(BrowseVersionViewSet, self)
-            .check_object_permissions(request, obj.addon))
+        return version
+
+    def list(self, request, **kwargs):
+        """Return all (re)viewable versions for this add-on."""
+        return Response()
+
+    @action(detail=True, methods=['get'])
+    def browse(self, request, **kwargs):
+        addon = self.get_addon_object()
+        serializer = AddonBrowseVersionSerializer(
+            Version.unfiltered.filter(addon=self.get_addon_object()),
+            data=request.data,
+            context={
+                'file': self.request.GET.get('file', None)
+            },
+            many=True)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data)

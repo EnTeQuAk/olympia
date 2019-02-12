@@ -203,3 +203,31 @@ class AddonBrowseVersionSerializer(VersionSerializer):
 
     def get_has_been_validated(self, obj):
         return obj.current_file.has_been_validated
+
+
+class DiffableVersionSerializer(VersionSerializer):
+    class Meta:
+        model = Version
+        fields = ('id', 'channel', 'url', 'version')
+
+
+class ValidationResultMessageSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    message = serializers.CharField()
+    description = serializers.CharField()
+    column = serializers.IntegerField()
+    line = serializers.IntegerField()
+    file = serializers.CharField()
+    data_path = serializers.CharField()
+
+
+class ValidationResultSerializer(serializers.Serializer):
+    success = serializers.BooleanField()
+    notices = serializers.IntegerField()
+    warnings = serializers.IntegerField()
+    errors = serializers.IntegerField()
+    messages = ValidationResultMessageSerializer(many=True)
+    # Contains unvalidated metadata directly from addons-linter
+    # e.g `listed`, js libs, weight related information etc
+    # TODO: Should we formalize this too?
+    metadata = serializers.DictField()
