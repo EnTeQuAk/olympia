@@ -1248,7 +1248,7 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
         AllowReviewer, AllowReviewerUnlisted, AllowAddonAuthor,
     )]
     serializer_class = DiffableVersionSerializer
-    lookup_field = 'version_pk'
+    lookup_url_kwarg = 'version_pk'
 
     def get_queryset(self):
         # Permission classes disallow access to non-public/unlisted add-ons
@@ -1259,8 +1259,8 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
     def get_addon_object(self):
         return get_object_or_404(Addon, pk=self.kwargs.get('addon_pk'))
 
-    def get_version_object(self):
-        version = self.get_queryset().get(pk=self.kwargs.get('version_pk'))
+    def get_object(self):
+        version = super(ReviewAddonVersionViewSet, self).get_object()
 
         # If the instance is marked as deleted and the client is not allowed to
         # see deleted instances, we want to return a 404, behaving as if it
@@ -1272,6 +1272,11 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
 
         return version
 
+    def check_object_permissions(self, request, obj):
+        """Check permissions against the parent add-on object."""
+        return super(ReviewAddonVersionViewSet, self).check_object_permissions(
+            request, self.get_addon_object())
+
     def list(self, request, **kwargs):
         """Return all (re)viewable versions for this add-on."""
         return Response()
@@ -1280,7 +1285,7 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
         detail=True, methods=['get'], permission_classes=permission_classes)
     def browse(self, request, **kwargs):
         serializer = AddonBrowseVersionSerializer(
-            instance=self.get_version_object(),
+            instance=self.get_object(),
             context={
                 'file': self.request.GET.get('file', None)})
         return Response(serializer.data)
