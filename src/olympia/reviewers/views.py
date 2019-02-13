@@ -1260,22 +1260,29 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
         return get_object_or_404(Addon, pk=self.kwargs.get('addon_pk'))
 
     def get_object(self):
-        version = super(ReviewAddonVersionViewSet, self).get_object()
+        qset = self.filter_queryset(self.get_queryset())
+
+        filter_kwargs = {self.lookup_field: self.kwargs[self.lookup_url_kwarg]}
+
+        obj = get_object_or_404(qset, **filter_kwargs)
 
         # If the instance is marked as deleted and the client is not allowed to
         # see deleted instances, we want to return a 404, behaving as if it
         # does not exist.
-        if version.deleted and not (
+        if obj.deleted and not (
                 GroupPermission(amo.permissions.ADDONS_VIEW_DELETED).
-                has_object_permission(self.request, self, version.addon)):
+                has_object_permission(self.request, self, obj.addon)):
             raise http.Http404
 
-        return version
+        # Now we're checking permissions properly.
+        self.check_object_permissions(self.request, obj)
+
+        return obj
 
     def check_object_permissions(self, request, obj):
         """Check permissions against the parent add-on object."""
         return super(ReviewAddonVersionViewSet, self).check_object_permissions(
-            request, self.get_addon_object())
+            request, obj.addon)
 
     def list(self, request, **kwargs):
         """Return all (re)viewable versions for this add-on."""
