@@ -1248,25 +1248,26 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
         AllowReviewer, AllowReviewerUnlisted, AllowAddonAuthor,
     )]
     serializer_class = DiffableVersionSerializer
+    lookup_field = 'version_pk'
 
     def get_queryset(self):
         # Permission classes disallow access to non-public/unlisted add-ons
         # unless logged in as a reviewer/addon owner/admin, so we don't have to
         # filter the base queryset here.
-        return Version.unfiltered.filter(addon=self.get_addon_aobject())
+        return Version.unfiltered.filter(addon=self.get_addon_object())
 
-    def get_addon_object(self, *args, **kwargs):
-        return get_object_or_404(Addon, pk=self.kwargs.get('pk'))
+    def get_addon_object(self):
+        return get_object_or_404(Addon, pk=self.kwargs.get('addon_pk'))
 
-    def get_version_object(self, *args, **kwargs):
-        version = self.get_queryset().get(self.kwargs.get('version_pk'))
+    def get_version_object(self):
+        version = self.get_queryset().get(pk=self.kwargs.get('version_pk'))
 
         # If the instance is marked as deleted and the client is not allowed to
         # see deleted instances, we want to return a 404, behaving as if it
         # does not exist.
         if version.deleted and not (
                 GroupPermission(amo.permissions.ADDONS_VIEW_DELETED).
-                has_object_permission(request, self, version.addon)):
+                has_object_permission(self.request, self, version.addon)):
             raise http.Http404
 
         return version
@@ -1275,15 +1276,11 @@ class ReviewAddonVersionViewSet(ListModelMixin, GenericViewSet):
         """Return all (re)viewable versions for this add-on."""
         return Response()
 
-    @action(detail=True, methods=['get'])
+    @action(
+        detail=True, methods=['get'], permission_classes=permission_classes)
     def browse(self, request, **kwargs):
-        addon = self.get_addon_object()
         serializer = AddonBrowseVersionSerializer(
-            Version.unfiltered.filter(addon=self.get_addon_object()),
-            data=request.data,
+            instance=self.get_version_object(),
             context={
-                'file': self.request.GET.get('file', None)
-            },
-            many=True)
-        serializer.is_valid(raise_exception=True)
+                'file': self.request.GET.get('file', None)})
         return Response(serializer.data)

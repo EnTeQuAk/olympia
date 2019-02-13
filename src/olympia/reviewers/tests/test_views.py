@@ -5196,7 +5196,7 @@ class TestBrowseViewSet(TestCase):
 
     def _set_tested_url(self):
         self.url = reverse_ns('reviewers-versions-browse', kwargs={
-            'pk': self.addon.pk,
+            'addon_pk': self.addon.pk,
             'version_pk': self.version.pk})
 
     def test_anonymous(self):
@@ -5219,7 +5219,7 @@ class TestBrowseViewSet(TestCase):
         self.grant_permission(user, 'Addons:Review')
         self.client.login_api(user)
         self.url = reverse_ns('reviewers-versions-browse', kwargs={
-            'pk': self.addon.pk,
+            'addon_pk': self.addon.pk,
             'version_pk': self.version.current_file.pk + 42})
         response = self.client.get(self.url)
         assert response.status_code == 404
