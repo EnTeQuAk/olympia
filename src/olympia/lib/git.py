@@ -32,6 +32,9 @@ BRANCHES = {
 # data to avoid any clashes, e.g with .git folders.
 EXTRACTED_PREFIX = 'extracted'
 
+# Rename and copy threshold, 50% is the default git threshold
+SIMILARITY_THRESHOLD = 50
+
 
 class TemporaryWorktree(object):
     def __init__(self, repository):
@@ -370,3 +373,78 @@ class AddonGitRepository(object):
                     blob=tree_or_blob,
                     tree_entry=tree_entry,
                     path=tree_entry.name)
+
+    def get_changes_with_similarity(self, parent, commit):
+        changes = []
+        diff = self.repository.diff(
+            parent, commit, context_lines=0, interhunk_lines=1)
+
+        opts = pygit2.GIT_DIFF_FIND_RENAMES | pygit2.GIT_DIFF_FIND_COPIES
+        diff.find_similar(opts, SIMILARITY_THRESHOLD, SIMILARITY_THRESHOLD)
+
+        # TODO (cgrebs): double-check if we are indeed processing files
+        # multiple times (e.g on renames, copies etc)
+        # I think this happens when renames are < similarity threshold or so
+        # needs some more tests though...
+        checked_paths = set()
+
+        for patch in diff:
+            if patch.delta.new_file.path in checked_paths:
+                continue
+
+            entry = {
+                'path': patch.delta.new_file.path,
+                'size': patch.delta.new_file.size,
+                'lines_added': patch.line_stats[1],
+                'lines_deleted': patch.line_stats[2],
+                'is_binary': patch.delta.is_binary,
+                'mode': patch.delta.status_char(),
+                'hunks': self._create_hunks(patch.hunks),
+                # only add oldpath if file was copied/renamed
+                'old_path': (
+                    patch.delta.old_file.path
+                    if patch.delta.status_char() in {'R', 'C'}
+                    else None)
+            }
+
+            checked_paths.add(patch.delta.new_file.path)
+            changes.append(changed_file)
+        return changes
+
+    def create_hunks(self, hunks, initial_commit=False):
+        """
+        Creates a unidifed diff.
+
+        If we have the initial commit, we need to turn around the
+        hunk.* attributes.
+        """
+        retval = []
+
+        for hunk in hunks:
+            output = ''
+            if initial_commit:
+                for line in hunk.lines:
+                    output += '%s%s' % ('+', line.content)
+            else:
+                for line in hunk.lines:
+                    output += '%s%s' % (line.origin, line.content)
+            retval.append(output)
+        return retval
+
+    # def get_changed_files_for_initial_commit(self, commit):
+    #     """
+    #     Special function for the initial commit, as we need to diff against the empty tree. Creates
+    #     the changed files list, where objects of class :class:`pyvcsshark.parser.models.FileModel` are added.
+    #     For every changed file in the initial commit.
+    #     :param commit: commit of type :class:`pygit2.Commit`
+    #     """
+    #     changed_files = []
+    #     diff = commit.tree.diff_to_tree(context_lines=0, interhunk_lines=1)
+
+    #     for patch in diff:
+    #         changed_file = FileModel(patch.delta.old_file.path, patch.delta.old_file.size,
+    #                                  patch.line_stats[2], patch.line_stats[1],
+    #                                  patch.delta.is_binary, 'A',
+    #                                  self.create_hunks(patch.hunks, True))
+    #         changed_files.append(changed_file)
+    #     return changed_files
