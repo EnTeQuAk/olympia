@@ -12,7 +12,7 @@ from django.core.files.base import File as DjangoFile
 from olympia import amo
 from olympia.amo.tests import (
     addon_factory, version_factory, user_factory, activate_locale)
-from olympia.lib.git import AddonGitRepository, TemporaryWorktree
+from olympia.lib.git import AddonGitRepository, TemporaryWorktree, BRANCHES
 from olympia.files.utils import id_to_path
 
 
@@ -23,6 +23,41 @@ def _run_process(cmd, repo):
         shell=True,
         env={'GIT_DIR': repo.git_repository.path},
         universal_newlines=True)
+
+
+def appply_changes(repo, version, contents, path):
+    # Apply the requested change to the git repository
+    branch_name = BRANCHES[version.channel]
+    git_repo = repo.git_repository
+    blob_id = git_repo.create_blob(contents)
+
+    # Initialize the index from the tree structure of the most
+    # recent commit in `branch`
+    tree = git_repo.revparse_single(branch_name).tree
+    index = git_repo.index
+    index.read_tree(tree)
+
+    # Add / update the index
+    entry = pygit2.IndexEntry(path, blob_id, pygit2.GIT_FILEMODE_BLOB)
+    index.add(entry)
+
+    tree = index.write_tree()
+
+    # Now apply a new commit
+    author = pygit2.Signature('test', 'test@foo.bar')
+    committer = pygit2.Signature('test', 'test@foo.bar')
+
+    branch = git_repo.branches.get(branch_name)
+
+    # Create commit and properly update branch and reflog
+    oid = git_repo.create_commit(
+        None, author, committer, '...', tree, [branch.target])
+    commit = git_repo.get(oid)
+    branch.set_target(commit.hex)
+
+    # To make sure the serializer makes use of the new commit we'll have
+    # to update the `git_hash` values on the version object.
+    version.update(git_hash=commit.hex)
 
 
 def test_temporary_worktree(settings):
@@ -407,3 +442,25 @@ def test_iter_tree():
         assert entry.path == expected_path
         assert entry.tree_entry.name == expected_name
         assert entry.tree_entry.type == expected_type
+
+
+@pytest.mark.django_db
+def test_get_changes_with_similarity_basic():
+    addon = addon_factory(file_kw={'filename': 'notify-link-clicks-i18n.xpi'})
+
+    original_version = addon.current_version
+
+    AddonGitRepository.extract_and_commit_from_version(original_version)
+
+    version = version_factory(
+        addon=addon, file_kw={'filename': 'notify-link-clicks-i18n.xpi'})
+
+    repo = AddonGitRepository.extract_and_commit_from_version(version)
+
+    appply_changes(repo, version, '{"id": "random"}\n', 'manifest.json')
+    appply_changes(repo, version, 'Updated readme\n', 'README.md')
+
+    changes = repo.get_changes_with_similarity(
+        parent=original_version.git_hash,
+        commit=version.git_hash)
+    import pprint; pprint.pprint(changes)

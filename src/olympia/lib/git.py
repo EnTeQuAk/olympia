@@ -376,7 +376,7 @@ class AddonGitRepository(object):
 
     def get_changes_with_similarity(self, parent, commit):
         changes = []
-        diff = self.repository.diff(
+        diff = self.git_repository.diff(
             parent, commit, context_lines=0, interhunk_lines=1)
 
         opts = pygit2.GIT_DIFF_FIND_RENAMES | pygit2.GIT_DIFF_FIND_COPIES
@@ -392,6 +392,17 @@ class AddonGitRepository(object):
             if patch.delta.new_file.path in checked_paths:
                 continue
 
+            hunks = [
+                {
+                    'old_start': hunk.old_start,
+                    'new_start': hunk.new_start,
+                    'old_lines': hunk.old_lines,
+                    'new_lines': hunk.new_lines,
+                    'lines': hunk.lines,
+                }
+                for hunk in patch.hunks
+            ]
+
             entry = {
                 'path': patch.delta.new_file.path,
                 'size': patch.delta.new_file.size,
@@ -399,7 +410,7 @@ class AddonGitRepository(object):
                 'lines_deleted': patch.line_stats[2],
                 'is_binary': patch.delta.is_binary,
                 'mode': patch.delta.status_char(),
-                'hunks': self._create_hunks(patch.hunks),
+                'hunks': hunks,
                 # only add oldpath if file was copied/renamed
                 'old_path': (
                     patch.delta.old_file.path
@@ -408,28 +419,8 @@ class AddonGitRepository(object):
             }
 
             checked_paths.add(patch.delta.new_file.path)
-            changes.append(changed_file)
+            changes.append(entry)
         return changes
-
-    def create_hunks(self, hunks, initial_commit=False):
-        """
-        Creates a unidifed diff.
-
-        If we have the initial commit, we need to turn around the
-        hunk.* attributes.
-        """
-        retval = []
-
-        for hunk in hunks:
-            output = ''
-            if initial_commit:
-                for line in hunk.lines:
-                    output += '%s%s' % ('+', line.content)
-            else:
-                for line in hunk.lines:
-                    output += '%s%s' % (line.origin, line.content)
-            retval.append(output)
-        return retval
 
     # def get_changed_files_for_initial_commit(self, commit):
     #     """
