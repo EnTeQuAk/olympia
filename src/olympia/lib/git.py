@@ -28,6 +28,21 @@ BRANCHES = {
     amo.RELEASE_CHANNEL_UNLISTED: 'unlisted'
 }
 
+# Constants from libgit2 includes/git2/diff.h
+# while they're not in upstream pygit2 I added them here (cgrebs)
+# We don't have all line constants here though since we don't
+# really make use of them in the frontend.
+GIT_DIFF_LINE_CONTEXT = ' '
+GIT_DIFF_LINE_ADDITION = '+'
+GIT_DIFF_LINE_DELETION = '-'
+
+# This matches typing in addons-frontend
+GIT_DIFF_LINE_MAPPING = {
+    GIT_DIFF_LINE_CONTEXT: 'normal',
+    GIT_DIFF_LINE_ADDITION: 'insert',
+    GIT_DIFF_LINE_DELETION: 'delete'
+}
+
 # Prefix folder name we are using to store extracted add-on or source
 # data to avoid any clashes, e.g with .git folders.
 EXTRACTED_PREFIX = 'extracted'
@@ -392,13 +407,14 @@ class AddonGitRepository(object):
             if patch.delta.new_file.path in checked_paths:
                 continue
 
+            import ipdb; ipdb.set_trace()
             hunks = [
                 {
                     'old_start': hunk.old_start,
                     'new_start': hunk.new_start,
                     'old_lines': hunk.old_lines,
                     'new_lines': hunk.new_lines,
-                    'lines': hunk.lines,
+                    'changes': [self._render_line(line) for line in hunk.lines],
                 }
                 for hunk in patch.hunks
             ]
@@ -411,11 +427,7 @@ class AddonGitRepository(object):
                 'is_binary': patch.delta.is_binary,
                 'mode': patch.delta.status_char(),
                 'hunks': hunks,
-                # only add oldpath if file was copied/renamed
-                'old_path': (
-                    patch.delta.old_file.path
-                    if patch.delta.status_char() in {'R', 'C'}
-                    else None)
+                'old_path': patch.delta.old_file.path
             }
 
             checked_paths.add(patch.delta.new_file.path)
