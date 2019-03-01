@@ -407,14 +407,22 @@ class AddonGitRepository(object):
             if patch.delta.new_file.path in checked_paths:
                 continue
 
-            import ipdb; ipdb.set_trace()
             hunks = [
                 {
                     'old_start': hunk.old_start,
                     'new_start': hunk.new_start,
                     'old_lines': hunk.old_lines,
                     'new_lines': hunk.new_lines,
-                    'changes': [self._render_line(line) for line in hunk.lines],
+                    'changes': [
+                        {
+                            'content': line.content
+                            'type': GIT_DIFF_LINE_MAPPING[line.origin],
+                            # Can be `-1` for additions
+                            'old_line_number': line.old_lineno,
+                            'new_line_number': line.new_lineno,
+                        }
+                        for line in hunk.lines
+                    ]
                 }
                 for hunk in patch.hunks
             ]
