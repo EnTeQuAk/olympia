@@ -836,7 +836,7 @@ def test_get_diff_detect_copy():
 
     # Let's copy the contents of manifest.json to a different file
     apply_changes(repo, new_version, manifest, 'manifest2.json')
-    # apply_changes(repo, new_version, manifest.decode('utf-8') + '\n', 'manifest.json')
+    apply_changes(repo, new_version, manifest.decode('utf-8') + '\n', 'manifest.json')
 
     changes = repo.get_diff(
         commit=new_version.git_hash,
