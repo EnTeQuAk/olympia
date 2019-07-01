@@ -332,10 +332,12 @@ class AddonCompareVersionSerializer(AddonBrowseVersionSerializer):
 
 
 class DraftCommentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DraftComment
-        fields = ('comments',)
+        fields = (
+            'filename', 'lineno', 'comment',
+            'version', 'user'
+        )
 
 
 class CannedResponseSerializer(serializers.ModelSerializer):

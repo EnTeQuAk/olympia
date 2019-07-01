@@ -5688,26 +5688,62 @@ class TestReviewAddonVersionViewSetList(TestCase):
         response = self.client.patch(url, {})
         assert response.status_code == 405
 
-    def test_draft_comment(self):
+    def test_create_new_draft_comment(self):
         user = UserProfile.objects.create(username='reviewer')
         self.grant_permission(user, 'Addons:Review')
         self.client.login_api(user)
 
         data = {
-            'comments': 'Some really fancy comment',
+            'comment': 'Some really fancy comment',
+            'lineno': 20,
+            'filename': 'manifest.json',
         }
 
-        url = reverse_ns('reviewers-versions-draft-comment', kwargs={
+        url = reverse_ns('reviewers-versions-draft-comment-list', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
-        response = self.client.put(url, data)
+        response = self.client.post(url, data)
         assert response.status_code == 200
 
         draft_comment = DraftComment.objects.get()
         assert draft_comment.version == self.version
-        assert draft_comment.comments == 'Some really fancy comment'
+        assert draft_comment.comment == 'Some really fancy comment'
+
+        # Let's post a second draft comment for this particular version
+        response = self.client.post(url, data)
+        assert response.status_code == 200
+
+        assert DraftComment.objects.count() == 2
+
+    def test_retrieve_draft_comment(self):
+        user = UserProfile.objects.create(username='reviewer')
+        self.grant_permission(user, 'Addons:Review')
+        self.client.login_api(user)
+
+        data = {
+            'comment': 'Some really fancy comment',
+            'lineno': 20,
+            'filename': 'manifest.json',
+        }
+
+        url = reverse_ns('reviewers-versions-draft-comment-list', kwargs={
+            'addon_pk': self.addon.pk,
+            'version_pk': self.version.pk
+        })
+
+        response = self.client.post(url, data)
+        print(response.content)
+        assert response.status_code == 200
+
+        response = self.client.post(url, data)
+        assert response.status_code == 200
+
+        assert DraftComment.objects.count() == 2
+
+        response = self.client.get(url)
+        print(response.content)
 
     def test_draft_comment_delete(self):
         user = UserProfile.objects.create(username='reviewer')
@@ -5718,9 +5754,9 @@ class TestReviewAddonVersionViewSetList(TestCase):
             version=self.version, comments='test',
             user=user)
 
-        url = reverse_ns('reviewers-versions-draft-comment', kwargs={
+        url = reverse_ns('reviewers-versions-draft-comment-list', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.delete(url)
@@ -5746,7 +5782,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.delete(url)
@@ -5759,7 +5795,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})
@@ -5773,7 +5809,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})
@@ -5787,7 +5823,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})
@@ -5800,7 +5836,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})
@@ -5814,7 +5850,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})
@@ -5827,7 +5863,7 @@ class TestReviewAddonVersionViewSetList(TestCase):
 
         url = reverse_ns('reviewers-versions-draft-comment', kwargs={
             'addon_pk': self.addon.pk,
-            'pk': self.version.pk
+            'version_pk': self.version.pk
         })
 
         response = self.client.put(url, {'comments': 'test'})

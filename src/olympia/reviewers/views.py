@@ -24,7 +24,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
+from rest_framework.mixins import (
+    ListModelMixin, RetrieveModelMixin, CreateModelMixin)
 
 import olympia.core.logger
 
@@ -44,8 +45,7 @@ from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import paginate, render
 from olympia.api.permissions import (
     AllowAnyKindOfReviewer, GroupPermission,
-    AllowAddonAuthor, AllowReviewer, AllowReviewerUnlisted, AnyOf,
-    ByHttpMethod)
+    AllowAddonAuthor, AllowReviewer, AllowReviewerUnlisted, AnyOf)
 from olympia.constants.reviewers import REVIEWS_PER_PAGE, REVIEWS_PER_PAGE_MAX
 from olympia.devhub import tasks as devhub_tasks
 from olympia.discovery.models import DiscoveryItem
@@ -1403,40 +1403,25 @@ class ReviewAddonVersionViewSet(ReviewAddonVersionMixin, ListModelMixin,
         )
         return Response(serializer.data)
 
-    draft_comment_permissions = AnyOf(
+
+class ReviewAddonVersionDraftCommentViewSet(
+        ReviewAddonVersionMixin, RetrieveModelMixin, ListModelMixin,
+        CreateModelMixin, GenericViewSet):
+
+    permission_classes = [AnyOf(
         AllowReviewer, AllowReviewerUnlisted, AllowAddonAuthor,
-    )
+    )]
 
-    @action(
-        detail=True,
-        methods=['get', 'put', 'delete'],
-        permission_classes=[ByHttpMethod({
-            'get': draft_comment_permissions,
-            'put': draft_comment_permissions,
-            'delete': draft_comment_permissions})
-        ])
-    def draft_comment(self, request, **kwargs):
-        version = self.get_object()
+    queryset = DraftComment.objects.all()
+    serializer_class = DraftCommentSerializer
 
-        if request.method == 'GET':
-            instance = get_object_or_404(
-                DraftComment, version=version, user=request.user)
-            serializer = DraftCommentSerializer(instance, data=request.data)
-            return Response(serializer.data)
-        elif request.method == 'DELETE':
-            instance = get_object_or_404(
-                DraftComment, version=version, user=request.user)
-
-            instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        elif request.method == 'PUT':
-            instance, _ = DraftComment.objects.get_or_create(
-                version=version, user=request.user)
-            serializer = DraftCommentSerializer(instance, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
-        return Response(status=http.HTTP_405_METHOD_NOT_ALLOWED)
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({
+            'version': self.get_version_object().pk,
+            'user': self.request.user.pk
+        })
+        return context
 
 
 class ReviewAddonVersionCompareViewSet(ReviewAddonVersionMixin,
