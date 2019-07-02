@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AMO\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-06-25 10:57+0000\n"
-"PO-Revision-Date: 2019-06-28 05:34+0000\n"
+"POT-Creation-Date: 2019-07-02 08:24+0000\n"
+"PO-Revision-Date: 2019-07-02 10:58+0000\n"
 "Last-Translator: passionforlife <eloli@foxmail.com>\n"
 "Language-Team: Chinese Simplified, China <LL@li.org>\n"
 "Language: zh_CN\n"
@@ -2690,6 +2690,9 @@ msgstr "生成新凭据"
 msgid "Invisible"
 msgstr "隐藏"
 
+msgid "Approved and recommended"
+msgstr "已核准并推荐"
+
 msgid "Please complete your add-on by adding a version or missing metadata."
 msgstr "请添加版本或缺失的元数据以完成您的附加组件。"
 
@@ -5212,6 +5215,9 @@ msgstr "已设置禁用自动批准"
 
 msgid "Is recommendable"
 msgstr "可推荐"
+
+msgid "Delayed because it's the first listed version"
+msgstr ""
 
 msgid "Type"
 msgstr "类型"
