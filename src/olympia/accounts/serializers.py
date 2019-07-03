@@ -38,6 +38,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
                     acl.action_allowed_user(user, amo.permissions.USERS_EDIT))
 
         request = self.context.get('request', None)
+        print('XXXXXXXXXXXXXXXXXXXXXX')
         current_user = getattr(request, 'user', None) if request else None
         # Only return your own profile url, and for developers.
         if obj == current_user or is_adminish(current_user) or obj.is_public:

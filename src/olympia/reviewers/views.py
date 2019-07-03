@@ -1329,7 +1329,7 @@ class ReviewAddonVersionMixin(object):
 
         kwargs.setdefault(
             self.lookup_field,
-            self.kwargs[self.lookup_url_kwarg or self.lookup_field])
+            self.kwargs.get(self.lookup_url_kwarg or self.lookup_field))
 
         obj = get_object_or_404(qset, **kwargs)
 
@@ -1394,8 +1394,7 @@ class ReviewAddonVersionViewSet(ReviewAddonVersionMixin, ListModelMixin,
 
 
 class ReviewAddonVersionDraftCommentViewSet(
-        ReviewAddonVersionMixin, RetrieveModelMixin, ListModelMixin,
-        CreateModelMixin, GenericViewSet):
+        RetrieveModelMixin, ListModelMixin, CreateModelMixin, GenericViewSet):
 
     permission_classes = [AnyOf(
         AllowReviewer, AllowReviewerUnlisted, AllowAddonAuthor,
@@ -1404,9 +1403,19 @@ class ReviewAddonVersionDraftCommentViewSet(
     queryset = DraftComment.objects.all()
     serializer_class = DraftCommentSerializer
 
+    # TODO: Implement pagination
+    pagination_class = None
+
+    def get_version_object(self):
+        return get_object_or_404(
+            Version.objects.get_queryset().only_translations(),
+            pk=self.kwargs['version_pk'])
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({
+        # Patch in `version` and `user` as those are required by the serializer
+        # and not provided by the API client as part of the POST data.
+        self.request.data.update({
             'version': self.get_version_object().pk,
             'user': self.request.user.pk
         })

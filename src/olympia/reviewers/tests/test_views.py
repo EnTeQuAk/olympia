@@ -15,6 +15,8 @@ from django.core.files import temp
 from django.core.files.base import File as DjangoFile
 from django.test.utils import override_settings
 
+from rest_framework.test import APIRequestFactory
+
 import pytest
 import six
 
@@ -28,9 +30,11 @@ from olympia import amo, core, ratings
 from olympia.abuse.models import AbuseReport
 from olympia.access.models import Group, GroupUser
 from olympia.accounts.views import API_TOKEN_COOKIE
+from olympia.accounts.serializers import BaseUserSerializer
 from olympia.activity.models import ActivityLog, DraftComment
 from olympia.addons.models import (
     Addon, AddonApprovalsCounter, AddonReviewerFlags, AddonUser)
+from olympia.addons.serializers import SimpleVersionSerializer
 from olympia.amo.storage_utils import copy_stored_file
 from olympia.amo.templatetags.jinja_helpers import (
     absolutify, format_date, format_datetime)
@@ -5741,16 +5745,30 @@ class TestReviewAddonVersionViewSetList(TestCase):
         })
 
         response = self.client.post(url, data)
-        print(response.content)
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         response = self.client.post(url, data)
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         assert DraftComment.objects.count() == 2
 
         response = self.client.get(url)
-        print(response.content)
+
+        request = APIRequestFactory().get('/')
+        request.user = user
+
+        assert response.json()[0] == {
+            'filename': 'manifest.json',
+            'lineno': 20,
+            'comment': 'Some really fancy comment',
+            'version': json.loads(json.dumps(
+                SimpleVersionSerializer(self.version).data,
+                cls=amo.utils.AMOJSONEncoder)),
+            'user': json.loads(json.dumps(
+                BaseUserSerializer(
+                    user, context={'request': request}).data,
+                cls=amo.utils.AMOJSONEncoder))
+        }
 
     def test_draft_comment_delete(self):
         user = UserProfile.objects.create(username='reviewer')
