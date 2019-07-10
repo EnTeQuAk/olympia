@@ -1094,6 +1094,7 @@ CELERY_TASK_ROUTES = {
     # If your tasks need to be run as soon as possible, add them here so they
     # are routed to the priority queue.
     'olympia.addons.tasks.index_addons': {'queue': 'priority'},
+    'olympia.reviewers.tasks.index_blobs': {'queuie': 'priority'},
     'olympia.addons.tasks.unindex_addons': {'queue': 'priority'},
     'olympia.addons.tasks.save_theme': {'queue': 'priority'},
     'olympia.addons.tasks.save_theme_reupload': {'queue': 'priority'},
@@ -1502,6 +1503,7 @@ ES_HOSTS = [os.environ.get('ELASTICSEARCH_LOCATION', '127.0.0.1:9200')]
 ES_URLS = ['http://%s' % h for h in ES_HOSTS]
 ES_INDEXES = {
     'default': 'addons',
+    'blobs': 'blobs',
     'stats': 'addons_stats',
 }
 

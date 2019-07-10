@@ -5,7 +5,9 @@ from olympia.addons.models import Addon
 from olympia.amo.celery import task
 from olympia.amo.decorators import use_primary_db
 from olympia.reviewers.models import AutoApprovalSummary
+from olympia.reviewers.indexers import AddonGitRepositoryBlobIndexer
 from olympia.versions.models import Version
+from olympia.lib.es.utils import index_objects
 
 
 log = olympia.core.logger.getLogger('z.task')
@@ -56,3 +58,13 @@ def recalculate_post_review_weight(ids):
         for summary in summaries:
             summary.calculate_weight()
             summary.save()
+
+
+@task(acks_late=True)
+@use_primary_db
+def index_blobs(addon_ids, **kw):
+    log.info('Indexing git blobs for add-ons %s-%s. [%s]' % (
+        addon_ids[0], addon_ids[-1], len(addon_ids)))
+    index_objects(
+        addon_ids, Addon, AddonGitRepositoryBlobIndexer.extract_document,
+        kw.pop('index', None), None, Addon.unfiltered)

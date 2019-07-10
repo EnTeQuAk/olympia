@@ -11,6 +11,7 @@ from elasticsearch.exceptions import NotFoundError
 import olympia.core.logger
 
 from olympia.addons import indexers as addons_indexer
+from olympia.reviewers import indexers as reviewers_indexer
 from olympia.amo.celery import task
 from olympia.amo.search import get_es
 from olympia.lib.es.utils import (
@@ -34,6 +35,7 @@ def get_modules(with_stats=True):
         # The keys are the index alias names, the values the python modules.
         # The 'default' in ES_INDEXES is actually named 'addons'
         settings.ES_INDEXES['default']: addons_indexer,
+        settings.ES_INDEXES['blobs']: reviewers_indexer
     }
     if with_stats:
         rval[settings.ES_INDEXES['stats']] = stats_search
@@ -58,6 +60,7 @@ def update_aliases(actions):
 def create_new_index(alias, new_index):
     logger.info(
         'Create the index {0}, for alias: {1}'.format(new_index, alias))
+    print('NEW NEW NEW INDEX', new_index, alias)
     get_modules()[alias].create_new_index(new_index)
 
 
@@ -80,7 +83,9 @@ def gather_index_data_tasks(alias, index):
     Return a group of indexing tasks for that index.
     """
     logger.info('Returning reindexing group for {0}'.format(index))
-    return get_modules()[alias].reindex_tasks_group(index)
+    tasks = get_modules()[alias].reindex_tasks_group(index)
+    print('gathered tasks', tasks)
+    return tasks
 
 
 _SUMMARY = """
@@ -140,6 +145,7 @@ class Command(BaseCommand):
 
         modules = get_modules(with_stats=kwargs.get('with_stats', False))
 
+        print('HANDLE', modules)
         if kwargs.get('wipe', False):
             skip_confirmation = kwargs.get('noinput', False)
             confirm = ''
@@ -217,6 +223,7 @@ class Command(BaseCommand):
 
         # Group each alias chain so that they are executed in parallel if there
         # is more than one alias to deal with.
+        print('WORKFLOW', workflow)
         workflow = group(workflow)
 
         # Chain the global group with a task that updates the aliases to point
@@ -237,7 +244,8 @@ class Command(BaseCommand):
         os.environ['FORCE_INDEXING'] = '1'
 
         try:
-            workflow.apply_async()
+            workflow.apply()
+            print('settings', settings.CELERY_ALWAYS_EAGER)
 
             if not getattr(settings, 'CELERY_ALWAYS_EAGER', False):
                 time.sleep(10)   # give celeryd some time to flag the DB
