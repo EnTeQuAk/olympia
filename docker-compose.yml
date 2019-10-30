@@ -35,6 +35,10 @@ services:
     <<: *worker
     command: supervisord -n -c /code/docker/supervisor.conf
 
+
+    stdin_open: true
+    tty: true
+
   nginx:
     image: addons/addons-nginx
     volumes:
