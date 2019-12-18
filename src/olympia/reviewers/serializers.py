@@ -81,6 +81,28 @@ class FileEntriesSerializer(FileSerializer):
             raise NotFound(
                 'Couldn\'t find the requested version in git-repository')
 
+    def _get_hash_for_selected_file(self, obj):
+        selected_file = self.get_selected_file(obj)
+
+        cache_key = (
+            f'reviewers:fileentriesserializer:hashes'
+            f':{commit.hex}:{selected_file}')
+
+        def _calculate_hash():
+            try:
+                blob_or_tree = tree[selected_file]
+            except KeyError:
+                return None
+
+            if blob_or_tree.type == 'tree':
+                return None
+
+            sha_hash = (
+                get_sha256(io.BytesIO(memoryview(blob_or_tree)))
+                if not entry.type == 'tree' else '')
+
+        return cache_get_or_set(cache_key, _fetch_entries, 60 * 60 * 24)
+
     def get_entries(self, obj):
         # Given that this is a very expensive operation we have a two-fold
         # cache, one that is stored on this instance for very-fast retrieval
@@ -94,14 +116,11 @@ class FileEntriesSerializer(FileSerializer):
 
         def _fetch_entries():
             tree = self.repo.get_root_tree(commit)
+
             for entry_wrapper in self.repo.iter_tree(tree):
                 entry = entry_wrapper.tree_entry
                 path = force_text(entry_wrapper.path)
                 blob = entry_wrapper.blob
-
-                sha_hash = (
-                    get_sha256(io.BytesIO(memoryview(blob)))
-                    if not entry.type == 'tree' else '')
 
                 commit_tzinfo = FixedOffset(commit.commit_time_offset)
                 commit_time = datetime.fromtimestamp(
@@ -114,7 +133,7 @@ class FileEntriesSerializer(FileSerializer):
                 result[path] = {
                     'depth': path.count(os.sep),
                     'filename': force_text(entry.name),
-                    'sha256': sha_hash,
+                    'sha256': None,
                     'mime_category': entry_mime_category,
                     'mimetype': mimetype,
                     'path': path,
@@ -130,6 +149,10 @@ class FileEntriesSerializer(FileSerializer):
             # enough to cover regular review-times but not overflow our
             # cache
             60 * 60 * 24)
+
+        # Fetch and set the sha hash for the currently selected file.
+        sha256_hash = self._get_hash_for_selected_file(obj)
+        self._entries[self.get_selected_file()]['sha256'] = sha256_hash
 
         return self._entries
 
