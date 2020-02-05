@@ -5,9 +5,11 @@ won't be tracked in git).
 
 """
 import os
+
 from urllib.parse import urlparse
 
 from olympia.lib.settings_base import *  # noqa
+
 
 WSGI_APPLICATION = 'olympia.wsgi.application'
 
@@ -21,6 +23,8 @@ INSTALLED_APPS += (
 
 # django-debug-doolbar middleware needs to be inserted as high as possible
 # but after GZip middleware
+
+
 def insert_debug_toolbar_middleware(middlewares):
     ret_middleware = list(middlewares)
 
@@ -31,6 +35,7 @@ def insert_debug_toolbar_middleware(middlewares):
             break
 
     return tuple(ret_middleware)
+
 
 MIDDLEWARE = insert_debug_toolbar_middleware(MIDDLEWARE)
 

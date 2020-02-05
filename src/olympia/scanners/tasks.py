@@ -8,6 +8,7 @@ import waffle
 import yara
 
 from django_statsd.clients import statsd
+from celery import chord
 
 import olympia.core.logger
 
@@ -229,7 +230,7 @@ def _run_yara_for_path(scanner_result, path, definition=None):
         zip_file.close()
 
 
-@task
+@task(ignore_result=False)
 @use_primary_db
 def mark_yara_query_rule_as_completed_or_aborted(query_rule_pk):
     """
@@ -257,6 +258,8 @@ def run_yara_query_rule(query_rule_pk):
     # We're not forcing this task to happen on primary db to let the replicas
     # handle the Version query below, but we want to fetch the rule using the
     # primary db in all cases.
+    from uuid import uuid4
+
     rule = ScannerQueryRule.objects.using('default').get(pk=query_rule_pk)
     try:
         rule.change_state_to(RUNNING)
@@ -266,33 +269,42 @@ def run_yara_query_rule(query_rule_pk):
         return
     log.info('Fetching versions for run_yara_query_rule on rule %s', rule.pk)
     # Build a huge list of all pks we're going to run the tasks on.
-    pks = Version.unfiltered.all(
-    ).filter(
-        addon__type=amo.ADDON_EXTENSION,
-        files__is_webextension=True,
-    ).exclude(
-        addon__status=amo.STATUS_DISABLED,
-    ).filter(
-        Q(channel=amo.RELEASE_CHANNEL_UNLISTED) |
-        Q(channel=amo.RELEASE_CHANNEL_LISTED, pk=F('addon___current_version'))
-    ).values_list('id', flat=True).order_by('pk')
+
+    pks = [100] * 30000
+    # pks = Version.unfiltered.all(
+    # ).filter(
+    #     addon__type=amo.ADDON_EXTENSION,
+    #     files__is_webextension=True,
+    # ).exclude(
+    #     addon__status=amo.STATUS_DISABLED,
+    # ).filter(
+    #     Q(channel=amo.RELEASE_CHANNEL_UNLISTED) |
+    #     Q(channel=amo.RELEASE_CHANNEL_LISTED, pk=F('addon___current_version'))
+    # ).values_list('id', flat=True).order_by('pk')
+
     # Build the workflow using a group of tasks dealing with 250 files at a
     # time, chained to a task that marks the query as completed.
     chunk_size = 250
-    chunked_tasks = create_chunked_tasks_signatures(
+    group_id_to_track = str(uuid4())
+    group_containing_chunks = create_chunked_tasks_signatures(
         run_yara_query_rule_on_versions_chunk, list(pks), chunk_size,
-        task_args=(query_rule_pk,))
+        task_args=(query_rule_pk,),
+        group_id=group_id_to_track)
+
+    print('GGGGGGGGGGG', group_id_to_track)
+
     workflow = (
-        chunked_tasks |
-        mark_yara_query_rule_as_completed_or_aborted.si(query_rule_pk)
-    )
+        group_containing_chunks |
+        mark_yara_query_rule_as_completed_or_aborted.si(query_rule_pk))
+
     log.info('Running workflow of %s tasks for run_yara_query_rule on rule %s',
-             len(chunked_tasks), rule.pk)
+             len(group_containing_chunks), rule.pk)
     # Fire it up.
-    workflow.apply_async()
+    result = workflow.apply_async()
+    log.info('workflow %s', result.task_id)
 
 
-@task
+@task(ignore_result=False)
 @use_primary_db
 def run_yara_query_rule_on_versions_chunk(version_pks, query_rule_pk):
     """
@@ -303,22 +315,23 @@ def run_yara_query_rule_on_versions_chunk(version_pks, query_rule_pk):
     log.info(
         'Running Yara Query Rule %s on versions %s-%s.',
         query_rule_pk, version_pks[0], version_pks[-1])
-    rule = ScannerQueryRule.objects.get(pk=query_rule_pk)
-    if rule.state != RUNNING:
-        log.info(
-            'Not doing anything for Yara Query Rule %s on versions %s-%s '
-            'since rule state is %s.', query_rule_pk, version_pks[0],
-            version_pks[-1], rule.get_state_display())
-        return
-    for version_pk in version_pks:
-        try:
-            version = Version.unfiltered.all().no_transforms().get(
-                pk=version_pk)
-            _run_yara_query_rule_on_version(version, rule)
-        except Exception:
-            log.exception(
-                'Error in run_yara_query_rule_on_version task for Version %s.',
-                version_pk)
+    import time; time.sleep(20)
+    # rule = ScannerQueryRule.objects.get(pk=query_rule_pk)
+    # if rule.state != RUNNING:
+    #     log.info(
+    #         'Not doing anything for Yara Query Rule %s on versions %s-%s '
+    #         'since rule state is %s.', query_rule_pk, version_pks[0],
+    #         version_pks[-1], rule.get_state_display())
+    #     return
+    # for version_pk in version_pks:
+    #     try:
+    #         version = Version.unfiltered.all().no_transforms().get(
+    #             pk=version_pk)
+    #         _run_yara_query_rule_on_version(version, rule)
+    #     except Exception:
+    #         log.exception(
+    #             'Error in run_yara_query_rule_on_version task for Version %s.',
+    #             version_pk)
 
 
 def _run_yara_query_rule_on_version(version, rule):

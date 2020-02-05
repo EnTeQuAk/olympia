@@ -18,7 +18,7 @@ from celery.signals import task_failure, task_postrun, task_prerun
 from django_statsd.clients import statsd
 from kombu import serialization
 from post_request_task.task import (
-    PostRequestTask, _start_queuing_tasks, _send_tasks_and_stop_queuing)
+    PostRequestTask, _send_tasks_and_stop_queuing, _start_queuing_tasks)
 from raven import Client
 from raven.contrib.celery import register_logger_signal, register_signal
 
@@ -163,7 +163,8 @@ class TaskTimer(object):
 
 
 def create_chunked_tasks_signatures(
-        task, items, chunk_size, task_args=None, task_kwargs=None):
+        task, items, chunk_size, task_args=None, task_kwargs=None,
+        group_id=None):
     """
     Splits a task depending on a list of items into a bunch of tasks of the
     specified chunk_size, passing a chunked queryset and optional additional
@@ -176,10 +177,15 @@ def create_chunked_tasks_signatures(
     if task_kwargs is None:
         task_kwargs = {}
 
+    options = {}
+
+    if group_id:
+        options['group_id'] = group_id
+
     return group([
         task.si(chunk, *task_args, **task_kwargs)
         for chunk in chunked(items, chunk_size)
-    ])
+    ], **options)
 
 
 def pause_all_tasks():
