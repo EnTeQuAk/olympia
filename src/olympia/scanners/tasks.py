@@ -285,11 +285,11 @@ def run_yara_query_rule(query_rule_pk):
     # Build the workflow using a group of tasks dealing with 250 files at a
     # time, chained to a task that marks the query as completed.
     chunk_size = 250
-    group_id_to_track = str(uuid4())
     group_containing_chunks = create_chunked_tasks_signatures(
         run_yara_query_rule_on_versions_chunk, list(pks), chunk_size,
-        task_args=(query_rule_pk,),
-        group_id=group_id_to_track)
+        task_args=(query_rule_pk,))
+
+    group_id_to_track = group_containing_chunks.freeze()
 
     print('GGGGGGGGGGG', group_id_to_track)
 

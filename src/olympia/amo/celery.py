@@ -177,7 +177,7 @@ def create_chunked_tasks_signatures(
     if task_kwargs is None:
         task_kwargs = {}
 
-    options = {}
+    options = {'ignore_result': False}
 
     if group_id:
         options['group_id'] = group_id
