@@ -259,8 +259,6 @@ def run_yara_query_rule(query_rule_pk):
     # We're not forcing this task to happen on primary db to let the replicas
     # handle the Version query below, but we want to fetch the rule using the
     # primary db in all cases.
-    from uuid import uuid4
-
     rule = ScannerQueryRule.objects.using('default').get(pk=query_rule_pk)
     try:
         rule.change_state_to(RUNNING)
@@ -269,6 +267,7 @@ def run_yara_query_rule(query_rule_pk):
                   'its state is %s', rule.pk, rule.get_state_display())
         return
     log.info('Fetching versions for run_yara_query_rule on rule %s', rule.pk)
+
     # Build a huge list of all pks we're going to run the tasks on.
     pks = [100] * 30000
 
@@ -279,6 +278,7 @@ def run_yara_query_rule(query_rule_pk):
     # ).exclude(
     #     addon__status=amo.STATUS_DISABLED,
     # ).values_list('id', flat=True).order_by('pk')
+
     # Build the workflow using a group of tasks dealing with 250 files at a
     # time, chained to a task that marks the query as completed.
     chunk_size = 250
@@ -287,6 +287,7 @@ def run_yara_query_rule(query_rule_pk):
         task_args=(query_rule_pk,))
 
     group_id_to_track = group_containing_chunks.freeze()
+    group_id_to_track.save()
 
     print('GGGGGGGGGGG', group_id_to_track)
 
